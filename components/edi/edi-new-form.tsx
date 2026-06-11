@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Download,
   Plus,
@@ -11,9 +12,19 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { PHARMAS, formatWon } from "@/lib/edi/constants";
+import { formatWon } from "@/lib/edi/constants";
+import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 import { createRxRow, rowAmount, type RxRow, type RxType } from "@/types/edi";
+
+interface PharmaCompany {
+  id: string;
+  name: string;
+}
+
+function monthToDate(month: string): string | null {
+  return month ? `${month}-01` : null;
+}
 
 const CARD =
   "rounded-xl border border-slate-200 bg-white p-5 shadow-sm";
@@ -40,16 +51,49 @@ function FieldLabel({
 }
 
 export function EdiNewForm() {
+  const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
+
   const [rows, setRows] = useState<RxRow[]>([]);
+  const [pharmaCompanies, setPharmaCompanies] = useState<PharmaCompany[]>([]);
   const [excelPharma, setExcelPharma] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
   const [ocrFiles, setOcrFiles] = useState<File[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const ocrInputRef = useRef<HTMLInputElement>(null);
+
+  const [pharmaCompanyId, setPharmaCompanyId] = useState("");
+  const [hospitalName, setHospitalName] = useState("");
+  const [businessNumber, setBusinessNumber] = useState("");
+  const [memo, setMemo] = useState("");
+  const [prescriptionMonth, setPrescriptionMonth] = useState("2026-05");
+  const [settlementMonth, setSettlementMonth] = useState("2026-06");
 
   useEffect(() => {
     setRows(Array.from({ length: 5 }, createRxRow));
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    supabase
+      .from("pharma_companies")
+      .select("id, name")
+      .order("name", { ascending: true })
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          toast.error("제약사 목록을 불러오지 못했습니다: " + error.message);
+          return;
+        }
+        setPharmaCompanies((data as PharmaCompany[]) ?? []);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
 
   const total = useMemo(
     () => rows.reduce((sum, row) => sum + rowAmount(row), 0),
@@ -78,13 +122,95 @@ export function EdiNewForm() {
     if (ocrInputRef.current) ocrInputRef.current.value = "";
   };
 
-  const handleSave = () => {
-    toast.success("저장되었습니다. (목업)");
+  const handleSave = async () => {
+    if (!pharmaCompanyId) {
+      toast.error("제약사를 선택해주세요.");
+      return;
+    }
+    if (!hospitalName.trim()) {
+      toast.error("병의원명을 입력해주세요.");
+      return;
+    }
+    if (!prescriptionMonth) {
+      toast.error("처방월을 입력해주세요.");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        toast.error("로그인이 필요합니다. 다시 로그인해주세요.");
+        return;
+      }
+
+      const { data: prescription, error: headerError } = await supabase
+        .from("prescriptions")
+        .insert({
+          pharma_company_id: pharmaCompanyId,
+          hospital_name: hospitalName.trim(),
+          business_number: businessNumber.trim() || null,
+          prescription_date: monthToDate(prescriptionMonth),
+          settlement_date: monthToDate(settlementMonth),
+          memo: memo.trim() || null,
+          status: "saved",
+          created_by: user.id,
+        })
+        .select("id")
+        .single();
+
+      if (headerError || !prescription) {
+        toast.error(
+          "저장 실패: " + (headerError?.message ?? "처방 헤더 저장에 실패했습니다."),
+        );
+        return;
+      }
+
+      const items = rows
+        .filter(
+          (row) =>
+            row.name.trim() !== "" ||
+            Number(row.price) > 0 ||
+            Number(row.inN) > 0 ||
+            Number(row.outN) > 0,
+        )
+        .map((row, index) => ({
+          prescription_id: prescription.id,
+          seq: index + 1,
+          insurance_code: row.code,
+          product_name: row.name,
+          unit_price: Number(row.price) || 0,
+          quantity_original: Number(row.inN) || 0,
+          quantity_external: Number(row.outN) || 0,
+          amount: rowAmount(row),
+        }));
+
+      if (items.length > 0) {
+        const { error: itemsError } = await supabase
+          .from("prescription_items")
+          .insert(items);
+
+        if (itemsError) {
+          toast.error("저장 실패: " + itemsError.message);
+          return;
+        }
+      }
+
+      toast.success("저장되었습니다.");
+      router.push("/edi/list");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const pharmaOptions = PHARMAS.map((pharma) => (
-    <option key={pharma} value={pharma}>
-      {pharma}
+  const pharmaOptions = pharmaCompanies.map((pharma) => (
+    <option key={pharma.id} value={pharma.id}>
+      {pharma.name}
     </option>
   ));
 
@@ -143,29 +269,49 @@ export function EdiNewForm() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <FieldLabel required>제약사명</FieldLabel>
-            <select className={inputClassName} defaultValue="">
-              <option value="">제약사명 입력</option>
+            <select
+              className={inputClassName}
+              value={pharmaCompanyId}
+              onChange={(e) => setPharmaCompanyId(e.target.value)}
+            >
+              <option value="">제약사명 선택</option>
               {pharmaOptions}
             </select>
           </div>
           <div>
             <FieldLabel>사업자번호</FieldLabel>
-            <input className={inputClassName} placeholder="000-00-00000" />
+            <input
+              className={inputClassName}
+              placeholder="000-00-00000"
+              value={businessNumber}
+              onChange={(e) => setBusinessNumber(e.target.value)}
+            />
           </div>
           <div>
             <FieldLabel>비고</FieldLabel>
-            <input className={inputClassName} placeholder="메모" />
+            <input
+              className={inputClassName}
+              placeholder="메모"
+              value={memo}
+              onChange={(e) => setMemo(e.target.value)}
+            />
           </div>
           <div>
             <FieldLabel required>병의원명</FieldLabel>
-            <input className={inputClassName} placeholder="병의원명" />
+            <input
+              className={inputClassName}
+              placeholder="병의원명"
+              value={hospitalName}
+              onChange={(e) => setHospitalName(e.target.value)}
+            />
           </div>
           <div>
             <FieldLabel required>처방월</FieldLabel>
             <input
               type="month"
               className={inputClassName}
-              defaultValue="2026-05"
+              value={prescriptionMonth}
+              onChange={(e) => setPrescriptionMonth(e.target.value)}
             />
           </div>
           <div>
@@ -173,7 +319,8 @@ export function EdiNewForm() {
             <input
               type="month"
               className={inputClassName}
-              defaultValue="2026-06"
+              value={settlementMonth}
+              onChange={(e) => setSettlementMonth(e.target.value)}
             />
           </div>
         </div>
@@ -421,10 +568,11 @@ export function EdiNewForm() {
         <button
           type="button"
           onClick={handleSave}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#4f6ef7] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
+          disabled={isSaving}
+          className="inline-flex items-center gap-2 rounded-lg bg-[#4f6ef7] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Save className="size-4" />
-          저장
+          {isSaving ? "저장 중..." : "저장"}
         </button>
       </div>
     </div>
