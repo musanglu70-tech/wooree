@@ -77,7 +77,7 @@ function formatWon(amount: number) {
 
 export default function DashboardPage() {
   return (
-    <div className="min-h-screen bg-[#f8fafc] px-6 py-8">
+    <div className="min-h-screen bg-[#f5f0eb] px-4 py-6 md:bg-[#f8fafc] md:px-6 md:py-8">
       <div className="mx-auto max-w-[1400px]">
         <header className="mb-8">
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">

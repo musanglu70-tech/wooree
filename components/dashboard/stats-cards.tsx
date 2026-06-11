@@ -68,7 +68,7 @@ export async function StatsCards() {
   const stats = await getDashboardStats();
 
   return (
-    <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+    <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
       {STAT_CARD_CONFIG.map((card) => {
         const Icon = card.icon;
         const value = stats[card.key];
@@ -89,7 +89,12 @@ export async function StatsCards() {
                 strokeWidth={1.75}
               />
             </div>
-            <p className="text-2xl font-semibold tracking-tight text-slate-900">
+            <p
+              className={cn(
+                "text-2xl font-semibold tracking-tight",
+                value > 0 ? "text-emerald-600" : "text-red-500",
+              )}
+            >
               {value.toLocaleString("ko-KR")}
             </p>
             <p className="mt-1 text-sm text-slate-500">{card.label}</p>
