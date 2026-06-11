@@ -1,0 +1,170 @@
+
+cursorrules.txt
+
+페이지
+1
+/
+1
+100%
+# ============================================================
+# .cursorrules — CSO(주)우리메디텍 ERP 프로젝트
+# ============================================================
+# 이 파일을 프로젝트 루트에 .cursorrules 로 저장하세요.
+# Cursor AI가 이 규칙을 읽고 일관된 코드를 생성합니다.
+# ============================================================
+
+## 프로젝트 개요
+- 프로젝트명: CSO(주)우리메디텍 EDI 관리 시스템
+- 서비스: 의약품 CSO(Contract Sales Organization) EDI 처방 관리 ERP
+- 기술 스택: Next.js 15 (App Router), TypeScript, Tailwind CSS, shadcn/ui, Supabase
+
+## 기술 스택 규칙
+
+### 프레임워크 & 언어
+- Next.js 15 App Router 사용 (pages router 절대 사용 금지)
+- TypeScript 필수 사용, any 타입 최소화
+- 모든 컴포넌트는 'use client' 또는 서버 컴포넌트 명시
+
+### UI / 스타일링
+- shadcn/ui 컴포넌트 우선 사용
+- Tailwind CSS utility class 사용
+- 커스텀 CSS 파일 생성 최소화
+- 색상 팔레트:
+  - Primary: #3b2e2e (진한 갈색, 사이드바/버튼)
+  - Accent: #c8a882 (골드 베이지, 강조)
+  - Background: #f5f0eb (연한 크림)
+  - White card: #ffffff
+  - Text primary: #1a1a1a
+  - Text secondary: #666666
+  - Success: #16a34a
+  - Warning: #d97706
+  - Danger: #dc2626
+- 폰트: Pretendard (한국어), Inter (영어 숫자)
+
+### 데이터베이스
+- Supabase (PostgreSQL) 사용
+- Supabase client는 /lib/supabase.ts 에서 import
+- Row Level Security (RLS) 활성화
+- 모든 DB 조작은 /app/api/ 서버 라우트 또는 서버 컴포넌트에서만 수행
+
+### 상태 관리
+- 로컬 상태: React useState / useReducer
+- 서버 상태: React Query (TanStack Query) 사용
+- 전역 상태: Zustand (최소한으로)
+
+### 폼 처리
+- react-hook-form + zod 조합 필수 사용
+- 모든 입력값 zod 스키마로 유효성 검증
+
+### 파일 / 엑셀 처리
+- 엑셀 읽기/쓰기: SheetJS (xlsx 라이브러리)
+- 파일 업로드: Supabase Storage
+
+### AI / OCR
+- OCR 자동입력: Google Cloud Vision API
+- AI 정산 에이전트: Claude API (anthropic SDK)
+- API 키는 반드시 환경변수로만 관리 (.env.local)
+
+## 폴더 구조 규칙
+
+```
+/app
+  /api          - 서버 API 라우트
+  /(auth)       - 로그인 관련 페이지
+  /(dashboard)  - 인증 필요한 페이지들
+    /dashboard  - 대시보드
+    /edi        - EDI 관리
+    /settlement - 정산 관리
+    /contract   - 전자계약
+    /automation - AI 재위탁 자동화
+    /reports    - 재위탁보고
+/components
+  /ui           - shadcn 기본 컴포넌트
+  /common       - 공통 컴포넌트 (헤더, 사이드바 등)
+  /edi          - EDI 관련 컴포넌트
+  /settlement   - 정산 관련 컴포넌트
+  /contract     - 계약 관련 컴포넌트
+/lib
+  supabase.ts   - Supabase 클라이언트
+  utils.ts      - 유틸리티 함수
+  validations.ts - Zod 스키마 모음
+/types
+  index.ts      - 전체 타입 정의
+/hooks
+  - 커스텀 훅 모음
+```
+
+## 코딩 컨벤션
+
+### 네이밍
+- 컴포넌트 파일: PascalCase (EdiInputForm.tsx)
+- 유틸 함수: camelCase (formatCurrency.ts)
+- 타입/인터페이스: PascalCase + 접두사 (TediItem, IUserProfile)
+- 상수: UPPER_SNAKE_CASE
+- DB 컬럼명: snake_case
+
+### 컴포넌트 패턴
+- 컴포넌트당 한 파일
+- props 타입은 interface로 정의, 파일 상단에 위치
+- 긴 컴포넌트는 서브 컴포넌트로 분리
+
+### 에러 처리
+- try/catch 필수
+- 사용자에게 toast 알림으로 에러 표시 (sonner 라이브러리)
+- 콘솔 로그는 개발 환경에서만
+
+### 한국어 처리
+- 날짜: YYYY년 MM월 DD일 형식 (date-fns/ko locale)
+- 금액: toLocaleString('ko-KR') + '원'
+- 모든 UI 텍스트는 한국어
+
+## 주요 도메인 모델
+
+### EDI (처방 데이터)
+- 제약사(pharma_company) — 병의원(hospital) — 처방(prescription)
+- 처방에는 처방일, 정산월, 제품목록(보험코드, 수량, 금액) 포함
+
+### 정산
+- 제약사별 정산자료 파일 업로드 → AI가 처방 데이터와 대조
+- 수신함 → 검토함 → 보관함 → 원본분리 흐름
+
+### 재위탁
+- 업체(업체명, 계약조건) → AI가 자동으로 재위탁 신고서 생성 → 발송
+
+## 자주 쓰는 패턴 (이걸 그대로 써줘)
+
+### Supabase 데이터 조회
+```typescript
+const { data, error } = await supabase
+  .from('table_name')
+  .select('*')
+  .order('created_at', { ascending: false })
+if (error) throw error
+```
+
+### 금액 포맷
+```typescript
+const formatWon = (amount: number) => amount.toLocaleString('ko-KR') + '원'
+```
+
+### 날짜 포맷
+```typescript
+import { format } from 'date-fns'
+import { ko } from 'date-fns/locale'
+format(date, 'yyyy년 MM월 dd일', { locale: ko })
+```
+
+### Toast 알림
+```typescript
+import { toast } from 'sonner'
+toast.success('저장되었습니다.')
+toast.error('오류가 발생했습니다.')
+```
+
+## 절대 하지 말 것
+- pages/ 디렉토리 생성 금지
+- any 타입 남발 금지
+- 환경변수 하드코딩 금지
+- 클라이언트 컴포넌트에서 직접 Supabase admin 키 사용 금지
+- CSS 모듈 파일 새로 생성 금지 (Tailwind 사용)
+cursorrules.txt 표시 중입니다.

@@ -1,0 +1,432 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Download,
+  Plus,
+  RotateCcw,
+  Save,
+  Scan,
+  Upload,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
+import { PHARMAS, formatWon } from "@/lib/edi/constants";
+import { cn } from "@/lib/utils";
+import { createRxRow, rowAmount, type RxRow, type RxType } from "@/types/edi";
+
+const CARD =
+  "rounded-xl border border-slate-200 bg-white p-5 shadow-sm";
+
+const inputClassName =
+  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
+
+const tableInputClassName =
+  "w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-xs hover:border-slate-200 focus:border-[#4f6ef7] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#4f6ef7]/12";
+
+function FieldLabel({
+  children,
+  required,
+}: {
+  children: React.ReactNode;
+  required?: boolean;
+}) {
+  return (
+    <label className="mb-1.5 block text-xs font-medium text-slate-700">
+      {children}
+      {required && <span className="text-red-500"> *</span>}
+    </label>
+  );
+}
+
+export function EdiNewForm() {
+  const [rows, setRows] = useState<RxRow[]>([]);
+  const [excelPharma, setExcelPharma] = useState("");
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [ocrFiles, setOcrFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const ocrInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setRows(Array.from({ length: 5 }, createRxRow));
+  }, []);
+
+  const total = useMemo(
+    () => rows.reduce((sum, row) => sum + rowAmount(row), 0),
+    [rows],
+  );
+
+  const updateRow = (index: number, patch: Partial<RxRow>) => {
+    setRows((prev) =>
+      prev.map((row, i) => (i === index ? { ...row, ...patch } : row)),
+    );
+  };
+
+  const addRow = () => setRows((prev) => [...prev, createRxRow()]);
+
+  const deleteRow = (index: number) => {
+    setRows((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleOcrFiles = useCallback((files: FileList | null) => {
+    if (!files?.length) return;
+    setOcrFiles((prev) => [...prev, ...Array.from(files)]);
+  }, []);
+
+  const resetOcr = () => {
+    setOcrFiles([]);
+    if (ocrInputRef.current) ocrInputRef.current.value = "";
+  };
+
+  const handleSave = () => {
+    toast.success("저장되었습니다. (목업)");
+  };
+
+  const pharmaOptions = PHARMAS.map((pharma) => (
+    <option key={pharma} value={pharma}>
+      {pharma}
+    </option>
+  ));
+
+  return (
+    <div className="space-y-4">
+      {/* 1. 엑셀 일괄 업로드 */}
+      <section className={CARD}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">
+              엑셀 일괄 업로드
+            </h2>
+            <p className="mt-1 text-xs text-slate-500">
+              여러 병의원을 엑셀 파일 한 장으로 한번에 저장
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => toast.info("양식 다운로드는 준비 중입니다.")}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+            >
+              <Download className="size-3.5" />
+              양식 다운로드
+            </button>
+            <select
+              value={excelPharma}
+              onChange={(e) => setExcelPharma(e.target.value)}
+              className={cn(inputClassName, "min-w-[160px] text-xs")}
+            >
+              <option value="">제약사 선택 (필수)</option>
+              {pharmaOptions}
+            </select>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#4f6ef7] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
+            >
+              <Upload className="size-3.5" />
+              엑셀 업로드
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              className="hidden"
+              onChange={() => toast.info("엑셀 업로드는 서버 연동 후 사용 가능합니다.")}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* 2. 기본 정보 */}
+      <section className={CARD}>
+        <h2 className="mb-4 text-sm font-semibold text-slate-900">기본 정보</h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <FieldLabel required>제약사명</FieldLabel>
+            <select className={inputClassName} defaultValue="">
+              <option value="">제약사명 입력</option>
+              {pharmaOptions}
+            </select>
+          </div>
+          <div>
+            <FieldLabel>사업자번호</FieldLabel>
+            <input className={inputClassName} placeholder="000-00-00000" />
+          </div>
+          <div>
+            <FieldLabel>비고</FieldLabel>
+            <input className={inputClassName} placeholder="메모" />
+          </div>
+          <div>
+            <FieldLabel required>병의원명</FieldLabel>
+            <input className={inputClassName} placeholder="병의원명" />
+          </div>
+          <div>
+            <FieldLabel required>처방월</FieldLabel>
+            <input
+              type="month"
+              className={inputClassName}
+              defaultValue="2026-05"
+            />
+          </div>
+          <div>
+            <FieldLabel>정산월</FieldLabel>
+            <input
+              type="month"
+              className={inputClassName}
+              defaultValue="2026-06"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* 3. OCR 자동입력 */}
+      <section className={CARD}>
+        <h2 className="mb-1 text-sm font-semibold text-slate-900">
+          OCR 자동입력
+        </h2>
+        <p className="mb-4 text-xs text-slate-500">
+          이미지/PDF 업로드 → 처방입력 자동 추출
+        </p>
+
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => ocrInputRef.current?.click()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") ocrInputRef.current?.click();
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragOver(true);
+          }}
+          onDragLeave={() => setIsDragOver(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragOver(false);
+            handleOcrFiles(e.dataTransfer.files);
+          }}
+          className={cn(
+            "cursor-pointer rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors",
+            isDragOver
+              ? "border-[#4f6ef7] bg-[rgba(79,110,247,0.06)]"
+              : "border-slate-200 bg-slate-50 hover:border-[#4f6ef7] hover:bg-[rgba(79,110,247,0.04)]",
+          )}
+        >
+          <Upload className="mx-auto mb-2 size-8 text-[#4f6ef7]" />
+          <p className="text-sm text-slate-700">
+            클릭하거나 파일을 드래그하세요
+          </p>
+          <p className="mt-1 text-xs text-slate-400">
+            이미지(JPG, PNG), PDF 지원 · 여러 장 동시 가능
+          </p>
+          {ocrFiles.length > 0 && (
+            <p className="mt-3 text-xs font-medium text-[#4f6ef7]">
+              {ocrFiles.length}개 파일 선택됨
+            </p>
+          )}
+        </div>
+        <input
+          ref={ocrInputRef}
+          type="file"
+          accept="image/*,.pdf"
+          multiple
+          className="hidden"
+          onChange={(e) => handleOcrFiles(e.target.files)}
+        />
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => toast.info("OCR 실행은 서버 연동 후 사용 가능합니다.")}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#4f6ef7] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
+          >
+            <Scan className="size-3.5" />
+            OCR 실행
+          </button>
+          <button
+            type="button"
+            onClick={resetOcr}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-slate-300"
+          >
+            <RotateCcw className="size-3.5" />
+            초기화
+          </button>
+        </div>
+
+        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500">
+          OCR 결과가 여기에 표시됩니다. 추출된 데이터는 아래 테이블에 자동
+          입력됩니다.
+        </div>
+      </section>
+
+      {/* 4. 처방입력 테이블 */}
+      <section className={CARD}>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-slate-900">처방입력</h2>
+          <button
+            type="button"
+            onClick={addRow}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#4f6ef7] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
+          >
+            <Plus className="size-3.5" />
+            행 추가
+          </button>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[880px] border-collapse text-xs">
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50">
+                <th className="w-16 px-2 py-2.5" />
+                <th className="px-2 py-2.5 text-left font-medium text-slate-500">
+                  순번
+                </th>
+                <th className="px-2 py-2.5 text-left font-medium text-slate-500">
+                  보험코드
+                </th>
+                <th className="px-2 py-2.5 text-left font-medium text-slate-500">
+                  제품명
+                </th>
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
+                  단가
+                </th>
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
+                  원내수량
+                </th>
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
+                  원외수량
+                </th>
+                <th className="px-2 py-2.5 text-left font-medium text-slate-500">
+                  처방/조제
+                </th>
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
+                  처방금액
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, index) => {
+                const amount = rowAmount(row);
+
+                return (
+                  <tr
+                    key={index}
+                    className="border-b border-slate-100 hover:bg-slate-50/60"
+                  >
+                    <td className="px-1 py-1">
+                      <div className="flex gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => deleteRow(index)}
+                          className="flex size-[22px] items-center justify-center rounded-md text-red-500 hover:bg-red-50"
+                          aria-label="행 삭제"
+                        >
+                          <X className="size-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={addRow}
+                          className="flex size-[22px] items-center justify-center rounded-md text-[#4f6ef7] hover:bg-[rgba(79,110,247,0.1)]"
+                          aria-label="행 추가"
+                        >
+                          <Plus className="size-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-2 py-1.5 text-slate-600">{index + 1}</td>
+                    <td className="px-1 py-1">
+                      <input
+                        value={row.code}
+                        onChange={(e) =>
+                          updateRow(index, { code: e.target.value })
+                        }
+                        className={tableInputClassName}
+                      />
+                    </td>
+                    <td className="px-1 py-1">
+                      <input
+                        value={row.name}
+                        onChange={(e) =>
+                          updateRow(index, { name: e.target.value })
+                        }
+                        placeholder="제품명"
+                        className={cn(tableInputClassName, "min-w-[150px]")}
+                      />
+                    </td>
+                    <td className="px-1 py-1">
+                      <input
+                        value={row.price}
+                        onChange={(e) =>
+                          updateRow(index, { price: e.target.value })
+                        }
+                        className={cn(tableInputClassName, "text-right tabular-nums")}
+                      />
+                    </td>
+                    <td className="px-1 py-1">
+                      <input
+                        value={row.inN}
+                        onChange={(e) =>
+                          updateRow(index, { inN: e.target.value })
+                        }
+                        className={cn(tableInputClassName, "text-right tabular-nums")}
+                      />
+                    </td>
+                    <td className="px-1 py-1">
+                      <input
+                        value={row.outN}
+                        onChange={(e) =>
+                          updateRow(index, { outN: e.target.value })
+                        }
+                        className={cn(tableInputClassName, "text-right tabular-nums")}
+                      />
+                    </td>
+                    <td className="px-1 py-1">
+                      <select
+                        value={row.type}
+                        onChange={(e) =>
+                          updateRow(index, {
+                            type: e.target.value as RxType,
+                          })
+                        }
+                        className={tableInputClassName}
+                      >
+                        <option value="처방">처방</option>
+                        <option value="조제">조제</option>
+                      </select>
+                    </td>
+                    <td className="px-2 py-1.5 text-right font-semibold tabular-nums text-[#4f6ef7]">
+                      {amount ? formatWon(amount) : "0"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot>
+              <tr className="bg-slate-50 font-semibold">
+                <td colSpan={8} className="px-2 py-2.5 text-right text-slate-600">
+                  합계
+                </td>
+                <td className="px-2 py-2.5 text-right tabular-nums text-[#4f6ef7]">
+                  {formatWon(total)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      {/* 5. 저장 */}
+      <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+        <span className="text-xs text-slate-500">행 {rows.length}개 입력됨</span>
+        <button
+          type="button"
+          onClick={handleSave}
+          className="inline-flex items-center gap-2 rounded-lg bg-[#4f6ef7] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
+        >
+          <Save className="size-4" />
+          저장
+        </button>
+      </div>
+    </div>
+  );
+}
