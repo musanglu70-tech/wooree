@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Eye, Search } from "lucide-react";
 import { toast } from "sonner";
-import { PHARMAS, formatWon } from "@/lib/edi/constants";
+import { formatWon } from "@/lib/edi/constants";
+import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
-
-type EdiStatus = "저장" | "확정";
 
 interface EdiListItem {
   id: string;
@@ -14,129 +13,92 @@ interface EdiListItem {
   pharma: string;
   hospital: string;
   amount: number;
-  status: EdiStatus;
+  status: string;
   createdAt: string;
 }
-
-const MOCK_ITEMS: EdiListItem[] = [
-  {
-    id: "1",
-    month: "2026-06",
-    pharma: "위더스제약",
-    hospital: "현마음의원",
-    amount: 1_285_024,
-    status: "저장",
-    createdAt: "2026-06-08",
-  },
-  {
-    id: "2",
-    month: "2026-06",
-    pharma: "(주)테라벤이븐스",
-    hospital: "상진형내과의원",
-    amount: 2_928_380,
-    status: "확정",
-    createdAt: "2026-06-07",
-  },
-  {
-    id: "3",
-    month: "2026-06",
-    pharma: "대웅바이오(주)",
-    hospital: "제이산부인과의원(대전)",
-    amount: 824_938,
-    status: "저장",
-    createdAt: "2026-06-06",
-  },
-  {
-    id: "4",
-    month: "2026-05",
-    pharma: "위더스제약",
-    hospital: "포커스앤여성의원",
-    amount: 1_067_145,
-    status: "확정",
-    createdAt: "2026-05-31",
-  },
-  {
-    id: "5",
-    month: "2026-05",
-    pharma: "경동제약(주)",
-    hospital: "강승모내과의원(충주)",
-    amount: 1_134_336,
-    status: "확정",
-    createdAt: "2026-05-28",
-  },
-  {
-    id: "6",
-    month: "2026-05",
-    pharma: "위더스제약",
-    hospital: "둘앗은비뇨기과의원(충주)",
-    amount: 5_430_052,
-    status: "저장",
-    createdAt: "2026-05-25",
-  },
-  {
-    id: "7",
-    month: "2026-05",
-    pharma: "한화제약(주)",
-    hospital: "365베스트치과의원",
-    amount: 1_955_028,
-    status: "확정",
-    createdAt: "2026-05-22",
-  },
-  {
-    id: "8",
-    month: "2026-04",
-    pharma: "동광제약(주)",
-    hospital: "365시온감동치과의원",
-    amount: 1_563_660,
-    status: "저장",
-    createdAt: "2026-04-30",
-  },
-  {
-    id: "9",
-    month: "2026-04",
-    pharma: "오스틴제약주식회사",
-    hospital: "송탄바른치과의원",
-    amount: 474_376,
-    status: "확정",
-    createdAt: "2026-04-18",
-  },
-  {
-    id: "10",
-    month: "2026-04",
-    pharma: "대화제약(주)",
-    hospital: "서울대학교병원",
-    amount: 48_520_000,
-    status: "확정",
-    createdAt: "2026-04-10",
-  },
-];
 
 const PAGE_SIZE = 5;
 
 const inputClassName =
   "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
-function formatMonthLabel(month: string) {
-  const [year, mon] = month.split("-");
-  return `${year}년 ${mon}월`;
+const STATUS_LABEL: Record<string, string> = {
+  saved: "저장",
+  confirmed: "확정",
+  저장: "저장",
+  확정: "확정",
+};
+
+function toNumber(value: unknown): number {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
 }
 
-function StatusBadge({ status }: { status: EdiStatus }) {
+function toStr(value: unknown): string {
+  return value == null ? "" : String(value);
+}
+
+function toMonth(value: unknown): string {
+  const str = toStr(value);
+  return str.length >= 7 ? str.slice(0, 7) : str;
+}
+
+function toDateOnly(value: unknown): string {
+  const str = toStr(value);
+  return str.length >= 10 ? str.slice(0, 10) : str;
+}
+
+function normalizeRow(row: Record<string, unknown>): EdiListItem {
+  return {
+    id: toStr(row.id ?? row.prescription_id ?? crypto.randomUUID()),
+    month: toMonth(
+      row.month ?? row.prescription_month ?? row.prescription_date,
+    ),
+    pharma: toStr(
+      row.pharma_company_name ??
+        row.pharma_name ??
+        row.pharma ??
+        row.company_name,
+    ),
+    hospital: toStr(row.hospital_name ?? row.hospital ?? row.client),
+    amount: toNumber(
+      row.total_amount ?? row.amount ?? row.prescription_amount ?? row.sum_amount,
+    ),
+    status: toStr(row.status),
+    createdAt: toDateOnly(row.created_at ?? row.created_date ?? row.registered_at),
+  };
+}
+
+function formatMonthLabel(month: string) {
+  if (!month) return "-";
+  const [year, mon] = month.split("-");
+  return mon ? `${year}년 ${mon}월` : month;
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const label = STATUS_LABEL[status] ?? status ?? "-";
+  const isConfirmed = status === "confirmed" || status === "확정";
+
   return (
     <span
       className={cn(
         "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
-        status === "저장"
-          ? "bg-slate-100 text-slate-600"
-          : "bg-[rgba(79,110,247,0.12)] text-[#4f6ef7]",
+        isConfirmed
+          ? "bg-[rgba(79,110,247,0.12)] text-[#4f6ef7]"
+          : "bg-slate-100 text-slate-600",
       )}
     >
-      {status}
+      {label || "-"}
     </span>
   );
 }
 
 export function EdiListContent() {
+  const supabase = useMemo(() => createClient(), []);
+
+  const [items, setItems] = useState<EdiListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [filterMonth, setFilterMonth] = useState("");
   const [filterPharma, setFilterPharma] = useState("");
   const [filterClient, setFilterClient] = useState("");
@@ -147,8 +109,40 @@ export function EdiListContent() {
   });
   const [page, setPage] = useState(1);
 
+  useEffect(() => {
+    let active = true;
+
+    supabase
+      .from("v_monthly_prescriptions")
+      .select("*")
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          toast.error("목록을 불러오지 못했습니다: " + error.message);
+          setItems([]);
+        } else {
+          setItems(
+            ((data as Record<string, unknown>[]) ?? []).map(normalizeRow),
+          );
+        }
+        setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
+
+  const pharmaList = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach((item) => {
+      if (item.pharma) set.add(item.pharma);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "ko-KR"));
+  }, [items]);
+
   const filteredItems = useMemo(() => {
-    return MOCK_ITEMS.filter((item) => {
+    return items.filter((item) => {
       if (appliedFilters.month && item.month !== appliedFilters.month) {
         return false;
       }
@@ -163,7 +157,7 @@ export function EdiListContent() {
       }
       return true;
     });
-  }, [appliedFilters]);
+  }, [items, appliedFilters]);
 
   const totalAmount = useMemo(
     () => filteredItems.reduce((sum, item) => sum + item.amount, 0),
@@ -212,7 +206,7 @@ export function EdiListContent() {
               className={inputClassName}
             >
               <option value="">전체</option>
-              {PHARMAS.map((pharma) => (
+              {pharmaList.map((pharma) => (
                 <option key={pharma} value={pharma}>
                   {pharma}
                 </option>
@@ -287,7 +281,16 @@ export function EdiListContent() {
               </tr>
             </thead>
             <tbody>
-              {paginatedItems.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-5 py-12 text-center text-sm text-slate-500"
+                  >
+                    불러오는 중...
+                  </td>
+                </tr>
+              ) : paginatedItems.length === 0 ? (
                 <tr>
                   <td
                     colSpan={7}
@@ -309,10 +312,10 @@ export function EdiListContent() {
                       {formatMonthLabel(item.month)}
                     </td>
                     <td className="px-5 py-3.5 font-medium text-slate-900">
-                      {item.pharma}
+                      {item.pharma || "-"}
                     </td>
                     <td className="px-5 py-3.5 text-slate-700">
-                      {item.hospital}
+                      {item.hospital || "-"}
                     </td>
                     <td className="px-5 py-3.5 text-right font-medium text-slate-900">
                       {formatWon(item.amount)}
@@ -321,13 +324,13 @@ export function EdiListContent() {
                       <StatusBadge status={item.status} />
                     </td>
                     <td className="px-5 py-3.5 text-slate-600">
-                      {item.createdAt}
+                      {item.createdAt || "-"}
                     </td>
                     <td className="px-5 py-3.5 text-center">
                       <button
                         type="button"
                         onClick={() =>
-                          toast.info(`상세보기: ${item.hospital} (목업)`)
+                          toast.info(`상세보기: ${item.hospital} (준비 중)`)
                         }
                         className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
                       >
