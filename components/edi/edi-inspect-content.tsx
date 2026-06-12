@@ -1,13 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ClipboardCheck, Search } from "lucide-react";
 import { toast } from "sonner";
-import { PHARMAS, formatWon } from "@/lib/edi/constants";
+import { formatWon } from "@/lib/edi/constants";
+import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
-
-type InspectStatus = "미검수" | "검수완료";
-type StatusFilter = "전체" | InspectStatus;
 
 interface InspectItem {
   id: string;
@@ -15,151 +13,117 @@ interface InspectItem {
   pharma: string;
   hospital: string;
   amount: number;
-  status: InspectStatus;
-  inspectedAt: string | null;
+  createdAt: string;
 }
-
-const MOCK_ITEMS: InspectItem[] = [
-  {
-    id: "1",
-    month: "2026-06",
-    pharma: "위더스제약",
-    hospital: "현마음의원",
-    amount: 1_285_024,
-    status: "미검수",
-    inspectedAt: null,
-  },
-  {
-    id: "2",
-    month: "2026-06",
-    pharma: "(주)테라벤이븐스",
-    hospital: "상진형내과의원",
-    amount: 2_928_380,
-    status: "검수완료",
-    inspectedAt: "2026-06-08",
-  },
-  {
-    id: "3",
-    month: "2026-06",
-    pharma: "대웅바이오(주)",
-    hospital: "제이산부인과의원(대전)",
-    amount: 824_938,
-    status: "미검수",
-    inspectedAt: null,
-  },
-  {
-    id: "4",
-    month: "2026-05",
-    pharma: "경동제약(주)",
-    hospital: "강승모내과의원(충주)",
-    amount: 1_134_336,
-    status: "검수완료",
-    inspectedAt: "2026-05-30",
-  },
-  {
-    id: "5",
-    month: "2026-05",
-    pharma: "위더스제약",
-    hospital: "둘앗은비뇨기과의원(충주)",
-    amount: 5_430_052,
-    status: "미검수",
-    inspectedAt: null,
-  },
-  {
-    id: "6",
-    month: "2026-05",
-    pharma: "한화제약(주)",
-    hospital: "365베스트치과의원",
-    amount: 1_955_028,
-    status: "검수완료",
-    inspectedAt: "2026-05-27",
-  },
-  {
-    id: "7",
-    month: "2026-04",
-    pharma: "동광제약(주)",
-    hospital: "365시온감동치과의원",
-    amount: 1_563_660,
-    status: "검수완료",
-    inspectedAt: "2026-04-29",
-  },
-  {
-    id: "8",
-    month: "2026-04",
-    pharma: "대화제약(주)",
-    hospital: "서울대학교병원",
-    amount: 48_520_000,
-    status: "미검수",
-    inspectedAt: null,
-  },
-];
 
 const inputClassName =
   "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
-function formatMonthLabel(month: string) {
-  const [year, mon] = month.split("-");
-  return `${year}년 ${mon}월`;
+function toStr(value: unknown): string {
+  return value == null ? "" : String(value);
 }
 
-function StatusBadge({ status }: { status: InspectStatus }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
-        status === "미검수"
-          ? "bg-amber-50 text-amber-700"
-          : "bg-[rgba(79,110,247,0.12)] text-[#4f6ef7]",
-      )}
-    >
-      {status}
-    </span>
-  );
+function toNumber(value: unknown): number {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+}
+
+function normalizeRow(row: Record<string, unknown>): InspectItem {
+  const pharma = row.pharma_companies as { name?: string } | null;
+  const month = toStr(row.prescription_date);
+
+  return {
+    id: toStr(row.id),
+    month: month.length >= 7 ? month.slice(0, 7) : month,
+    pharma: toStr(pharma?.name),
+    hospital: toStr(row.hospital_name),
+    amount: toNumber(row.total_amount ?? row.amount),
+    createdAt: toStr(row.created_at).slice(0, 10),
+  };
+}
+
+function formatMonthLabel(month: string) {
+  if (!month) return "-";
+  const [year, mon] = month.split("-");
+  return mon ? `${year}년 ${mon}월` : month;
 }
 
 export function EdiInspectContent() {
-  const [items, setItems] = useState(MOCK_ITEMS);
+  const supabase = useMemo(() => createClient(), []);
+
+  const [items, setItems] = useState<InspectItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+
   const [filterMonth, setFilterMonth] = useState("");
   const [filterPharma, setFilterPharma] = useState("");
-  const [filterStatus, setFilterStatus] = useState<StatusFilter>("전체");
-  const [applied, setApplied] = useState({
-    month: "",
-    pharma: "",
-    status: "전체" as StatusFilter,
-  });
+  const [applied, setApplied] = useState({ month: "", pharma: "" });
+
+  useEffect(() => {
+    let active = true;
+
+    supabase
+      .from("prescriptions")
+      .select("*, pharma_companies(name)")
+      .eq("status", "saved")
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          toast.error("검수 목록을 불러오지 못했습니다: " + error.message);
+          setItems([]);
+        } else {
+          setItems(
+            ((data as Record<string, unknown>[]) ?? []).map(normalizeRow),
+          );
+        }
+        setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
+
+  const pharmaList = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach((item) => {
+      if (item.pharma) set.add(item.pharma);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "ko-KR"));
+  }, [items]);
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       if (applied.month && item.month !== applied.month) return false;
       if (applied.pharma && item.pharma !== applied.pharma) return false;
-      if (applied.status !== "전체" && item.status !== applied.status) {
-        return false;
-      }
       return true;
     });
   }, [items, applied]);
 
   const handleSearch = () => {
-    setApplied({
-      month: filterMonth,
-      pharma: filterPharma,
-      status: filterStatus,
-    });
+    setApplied({ month: filterMonth, pharma: filterPharma });
   };
 
-  const handleInspect = (id: string) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              status: "검수완료" as const,
-              inspectedAt: new Date().toISOString().slice(0, 10),
-            }
-          : item,
-      ),
-    );
-    toast.success("검수가 완료되었습니다.");
+  const handleConfirm = async (item: InspectItem) => {
+    setConfirmingId(item.id);
+
+    try {
+      const { error } = await supabase
+        .from("prescriptions")
+        .update({ status: "confirmed" })
+        .eq("id", item.id);
+
+      if (error) {
+        toast.error("확정 처리에 실패했습니다: " + error.message);
+        return;
+      }
+
+      setItems((prev) => prev.filter((row) => row.id !== item.id));
+      toast.success(`'${item.hospital}' 처방이 확정되었습니다.`);
+    } finally {
+      setConfirmingId(null);
+    }
   };
 
   return (
@@ -187,27 +151,11 @@ export function EdiInspectContent() {
               className={inputClassName}
             >
               <option value="">전체</option>
-              {PHARMAS.map((pharma) => (
+              {pharmaList.map((pharma) => (
                 <option key={pharma} value={pharma}>
                   {pharma}
                 </option>
               ))}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-slate-700">
-              상태
-            </label>
-            <select
-              value={filterStatus}
-              onChange={(e) =>
-                setFilterStatus(e.target.value as StatusFilter)
-              }
-              className={inputClassName}
-            >
-              <option value="전체">전체</option>
-              <option value="미검수">미검수</option>
-              <option value="검수완료">검수완료</option>
             </select>
           </div>
           <div className="flex items-end">
@@ -224,6 +172,14 @@ export function EdiInspectContent() {
       </section>
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-5 py-4">
+          <h2 className="text-sm font-semibold text-slate-900">
+            검수 대기 (저장 상태){" "}
+            <span className="font-normal text-slate-500">
+              {filteredItems.length}건
+            </span>
+          </h2>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[880px] text-left text-sm">
             <thead>
@@ -234,23 +190,29 @@ export function EdiInspectContent() {
                 <th className="px-5 py-3 text-right font-medium text-slate-600">
                   처방금액
                 </th>
-                <th className="px-5 py-3 font-medium text-slate-600">
-                  검수상태
-                </th>
-                <th className="px-5 py-3 font-medium text-slate-600">검수일</th>
+                <th className="px-5 py-3 font-medium text-slate-600">등록일</th>
                 <th className="px-5 py-3 text-center font-medium text-slate-600">
                   검수
                 </th>
               </tr>
             </thead>
             <tbody>
-              {filteredItems.length === 0 ? (
+              {isLoading ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={6}
                     className="px-5 py-12 text-center text-sm text-slate-500"
                   >
-                    조회 결과가 없습니다.
+                    불러오는 중...
+                  </td>
+                </tr>
+              ) : filteredItems.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-5 py-12 text-center text-sm text-slate-500"
+                  >
+                    검수 대기 중인 데이터가 없습니다.
                   </td>
                 </tr>
               ) : (
@@ -266,29 +228,26 @@ export function EdiInspectContent() {
                       {formatMonthLabel(item.month)}
                     </td>
                     <td className="px-5 py-3.5 font-medium text-slate-900">
-                      {item.pharma}
+                      {item.pharma || "-"}
                     </td>
                     <td className="px-5 py-3.5 text-slate-700">
-                      {item.hospital}
+                      {item.hospital || "-"}
                     </td>
                     <td className="px-5 py-3.5 text-right font-medium text-slate-900">
                       {formatWon(item.amount)}
                     </td>
-                    <td className="px-5 py-3.5">
-                      <StatusBadge status={item.status} />
-                    </td>
                     <td className="px-5 py-3.5 text-slate-600">
-                      {item.inspectedAt ?? "-"}
+                      {item.createdAt || "-"}
                     </td>
                     <td className="px-5 py-3.5 text-center">
                       <button
                         type="button"
-                        disabled={item.status === "검수완료"}
-                        onClick={() => handleInspect(item.id)}
+                        disabled={confirmingId === item.id}
+                        onClick={() => handleConfirm(item)}
                         className="inline-flex items-center gap-1 rounded-lg bg-[#4f6ef7] px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
                       >
                         <ClipboardCheck className="size-3.5" />
-                        검수
+                        {confirmingId === item.id ? "처리 중..." : "확정"}
                       </button>
                     </td>
                   </tr>
