@@ -14,8 +14,8 @@ import {
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { toast } from "sonner";
-import { MENU_GROUPS, isActivePath } from "@/components/common/nav-items";
+import { MENU_GROUPS, ADMIN_BOTTOM_MENU, isActivePath } from "@/components/common/nav-items";
+import { useUserProfile } from "@/hooks/use-user-profile";
 import { cn } from "@/lib/utils";
 
 interface BottomItem {
@@ -37,6 +37,7 @@ export function MobileNav() {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const { isAdmin } = useUserProfile();
 
   return (
     <>
@@ -183,7 +184,30 @@ export function MobileNav() {
               ))}
             </nav>
 
-            <div className="border-t border-[rgba(255,255,255,0.06)] px-5 py-4">
+            <div className="border-t border-[rgba(255,255,255,0.06)] px-3 py-4">
+              {isAdmin && (
+                <Link
+                  href={ADMIN_BOTTOM_MENU.href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "mb-2 flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-150",
+                    isActivePath(pathname, ADMIN_BOTTOM_MENU.href)
+                      ? "bg-[#4f6ef7] text-white"
+                      : "text-[#8892a4] hover:bg-[rgba(79,110,247,0.12)] hover:text-[#c5cdd9]",
+                  )}
+                >
+                  <ADMIN_BOTTOM_MENU.icon
+                    className={cn(
+                      "size-4 shrink-0",
+                      isActivePath(pathname, ADMIN_BOTTOM_MENU.href)
+                        ? "text-white"
+                        : "text-[#8892a4]",
+                    )}
+                    strokeWidth={1.75}
+                  />
+                  {ADMIN_BOTTOM_MENU.label}
+                </Link>
+              )}
               <button
                 type="button"
                 className="flex w-full items-center gap-2 rounded-lg px-1 py-2 text-[13px] font-medium text-[#8892a4] transition-colors duration-150 hover:text-white"

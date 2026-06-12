@@ -16,6 +16,7 @@ import {
   Save,
   Scissors,
   Send,
+  Users,
   Zap,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -92,6 +93,12 @@ export const MENU_GROUPS: MenuGroup[] = [
     ],
   },
 ];
+
+export const ADMIN_BOTTOM_MENU: MenuItem = {
+  href: "/users",
+  label: "사용자 관리",
+  icon: Users,
+};
 
 export function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);

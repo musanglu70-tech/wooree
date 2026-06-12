@@ -3,11 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
-import { MENU_GROUPS, isActivePath } from "@/components/common/nav-items";
+import {
+  ADMIN_BOTTOM_MENU,
+  MENU_GROUPS,
+  isActivePath,
+} from "@/components/common/nav-items";
+import { useUserProfile } from "@/hooks/use-user-profile";
 import { cn } from "@/lib/utils";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const { isAdmin } = useUserProfile();
 
   return (
     <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col border-r border-[rgba(255,255,255,0.06)] bg-[#1a1f2e] md:flex">
@@ -63,10 +69,32 @@ export function DashboardSidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-[rgba(255,255,255,0.06)] px-5 py-4">
+      <div className="border-t border-[rgba(255,255,255,0.06)] px-3 py-4">
+        {isAdmin && (
+          <Link
+            href={ADMIN_BOTTOM_MENU.href}
+            className={cn(
+              "mb-2 flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-150",
+              isActivePath(pathname, ADMIN_BOTTOM_MENU.href)
+                ? "bg-[#4f6ef7] text-white"
+                : "text-[#8892a4] hover:bg-[rgba(79,110,247,0.12)] hover:text-[#c5cdd9]",
+            )}
+          >
+            <ADMIN_BOTTOM_MENU.icon
+              className={cn(
+                "size-4 shrink-0",
+                isActivePath(pathname, ADMIN_BOTTOM_MENU.href)
+                  ? "text-white"
+                  : "text-[#8892a4]",
+              )}
+              strokeWidth={1.75}
+            />
+            {ADMIN_BOTTOM_MENU.label}
+          </Link>
+        )}
         <button
           type="button"
-          className="flex w-full items-center gap-2 rounded-lg px-1 py-2 text-[13px] font-medium text-[#8892a4] transition-colors duration-150 hover:text-white"
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-[#8892a4] transition-colors duration-150 hover:text-white"
         >
           <LogOut className="size-4 shrink-0" strokeWidth={1.75} />
           로그아웃
