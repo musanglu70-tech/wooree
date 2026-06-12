@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Bell,
@@ -7,8 +10,13 @@ import {
   Files,
   Pill,
 } from "lucide-react";
-import { getDashboardStats } from "@/lib/dashboard/get-dashboard-stats";
-import type { VDashboardStats } from "@/types/dashboard";
+import { toast } from "sonner";
+import { StatsCardsSkeleton } from "@/components/dashboard/stats-cards-skeleton";
+import { createClient } from "@/lib/supabase/browser";
+import {
+  DEFAULT_DASHBOARD_STATS,
+  type VDashboardStats,
+} from "@/types/dashboard";
 import { cn } from "@/lib/utils";
 
 interface StatCardConfig {
@@ -64,8 +72,54 @@ const STAT_CARD_CONFIG: StatCardConfig[] = [
   },
 ];
 
-export async function StatsCards() {
-  const stats = await getDashboardStats();
+function toNumber(value: unknown): number {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+}
+
+function normalizeStats(row: Record<string, unknown>): VDashboardStats {
+  return {
+    unread_notices: toNumber(row.unread_notices ?? row.unconfirmed_notices),
+    confirmed_notices: toNumber(row.confirmed_notices),
+    registered_hospitals: toNumber(row.registered_hospitals),
+    registered_pharma: toNumber(row.registered_pharma),
+    total_edi_count: toNumber(row.total_edi_count),
+    monthly_edi_count: toNumber(row.monthly_edi_count ?? row.this_month_edi),
+  };
+}
+
+export function StatsCards() {
+  const supabase = useMemo(() => createClient(), []);
+
+  const [stats, setStats] = useState<VDashboardStats | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    supabase
+      .from("v_dashboard_stats")
+      .select("*")
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          toast.error("대시보드 통계를 불러오지 못했습니다: " + error.message);
+          setStats(DEFAULT_DASHBOARD_STATS);
+        } else if (!data) {
+          setStats(DEFAULT_DASHBOARD_STATS);
+        } else {
+          setStats(normalizeStats(data as Record<string, unknown>));
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
+
+  if (!stats) {
+    return <StatsCardsSkeleton />;
+  }
 
   return (
     <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
@@ -89,12 +143,7 @@ export async function StatsCards() {
                 strokeWidth={1.75}
               />
             </div>
-            <p
-              className={cn(
-                "text-2xl font-semibold tracking-tight",
-                value > 0 ? "text-emerald-600" : "text-red-500",
-              )}
-            >
+            <p className="text-2xl font-semibold tracking-tight text-slate-900">
               {value.toLocaleString("ko-KR")}
             </p>
             <p className="mt-1 text-sm text-slate-500">{card.label}</p>

@@ -1,7 +1,5 @@
-import { Suspense } from "react";
 import { MonthlyPrescriptionsTable } from "@/components/dashboard/monthly-prescriptions-table";
 import { StatsCards } from "@/components/dashboard/stats-cards";
-import { StatsCardsSkeleton } from "@/components/dashboard/stats-cards-skeleton";
 
 export default function DashboardPage() {
   return (
@@ -16,9 +14,7 @@ export default function DashboardPage() {
           </p>
         </header>
 
-        <Suspense fallback={<StatsCardsSkeleton />}>
-          <StatsCards />
-        </Suspense>
+        <StatsCards />
 
         <section className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-200 px-6 py-4">
