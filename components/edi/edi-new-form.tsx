@@ -222,11 +222,7 @@ export function EdiNewForm() {
       };
 
       if (!response.ok) {
-        toast.error(
-          result.message?.includes("GOOGLE_VISION_API_KEY")
-            ? "OCR 서비스 설정 오류입니다. 관리자에게 문의하세요."
-            : result.message ?? "OCR 처리에 실패했습니다.",
-        );
+        toast.error(result.message ?? "OCR 처리에 실패했습니다.");
         return;
       }
 

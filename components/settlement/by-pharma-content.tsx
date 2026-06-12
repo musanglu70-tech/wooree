@@ -6,7 +6,12 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 
-const STORAGE_BUCKET = "settlements";
+const STORAGE_BUCKET = "settlement-files";
+
+interface PharmaCompany {
+  id: string;
+  name: string;
+}
 
 interface SettlementFile {
   id: string;
@@ -28,9 +33,9 @@ function normalizeRow(row: Record<string, unknown>): SettlementFile {
 
   return {
     id: toStr(row.id),
-    fileName: toStr(row.file_name ?? row.filename ?? row.name),
-    filePath: toStr(row.file_path ?? row.path ?? row.storage_path),
-    pharma: toStr(pharma?.name ?? row.pharma_company_name ?? row.pharma_name),
+    fileName: toStr(row.file_name),
+    filePath: toStr(row.file_path),
+    pharma: toStr(pharma?.name),
     month: month.length >= 7 ? month.slice(0, 7) : month,
     uploadedAt: toStr(row.uploaded_at).slice(0, 16).replace("T", " "),
     status: toStr(row.status),
@@ -52,25 +57,48 @@ function sanitizeFileName(name: string): string {
   return `${base || "file"}${ext}`;
 }
 
+function monthToSettlementDate(month: string): string {
+  return month ? `${month}-01` : "";
+}
+
 function StatusBadge({ status }: { status: string }) {
   if (!status) {
     return <span className="text-slate-400">-</span>;
   }
 
+  const label =
+    status === "pending"
+      ? "대기"
+      : status === "reviewed"
+        ? "검토완료"
+        : status === "archived"
+          ? "보관"
+          : status;
+
   return (
     <span className="inline-flex rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
-      {status}
+      {label}
     </span>
   );
 }
+
+const inputClassName =
+  "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
 export function ByPharmaContent() {
   const supabase = useMemo(() => createClient(), []);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [files, setFiles] = useState<SettlementFile[]>([]);
+  const [pharmaCompanies, setPharmaCompanies] = useState<PharmaCompany[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+
+  const [uploadPharmaId, setUploadPharmaId] = useState("");
+  const [uploadMonth, setUploadMonth] = useState(
+    () => new Date().toISOString().slice(0, 7),
+  );
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
 
   const loadFiles = useMemo(
     () => async () => {
@@ -93,21 +121,56 @@ export function ByPharmaContent() {
   );
 
   useEffect(() => {
-    loadFiles();
-  }, [loadFiles]);
+    let active = true;
 
-  const handleUpload = async (fileList: FileList | null) => {
+    async function init() {
+      const { data, error } = await supabase
+        .from("pharma_companies")
+        .select("id, name")
+        .order("name", { ascending: true });
+
+      if (active && !error) {
+        setPharmaCompanies((data as PharmaCompany[]) ?? []);
+      }
+
+      await loadFiles();
+    }
+
+    void init();
+
+    return () => {
+      active = false;
+    };
+  }, [supabase, loadFiles]);
+
+  const handleFileSelect = (fileList: FileList | null) => {
     const file = fileList?.[0];
     if (!file) return;
+    setPendingFile(file);
+  };
+
+  const handleUpload = async () => {
+    if (!uploadPharmaId) {
+      toast.error("제약사를 선택해주세요.");
+      return;
+    }
+    if (!uploadMonth) {
+      toast.error("정산월을 선택해주세요.");
+      return;
+    }
+    if (!pendingFile) {
+      toast.error("업로드할 파일을 선택해주세요.");
+      return;
+    }
 
     setIsUploading(true);
 
-    try {
-      const filePath = `${new Date().toISOString().slice(0, 7)}/${Date.now()}_${sanitizeFileName(file.name)}`;
+    const filePath = `${uploadPharmaId}/${uploadMonth}/${Date.now()}_${sanitizeFileName(pendingFile.name)}`;
 
+    try {
       const { error: uploadError } = await supabase.storage
         .from(STORAGE_BUCKET)
-        .upload(filePath, file);
+        .upload(filePath, pendingFile, { upsert: false });
 
       if (uploadError) {
         toast.error("파일 업로드 실패: " + uploadError.message);
@@ -117,20 +180,26 @@ export function ByPharmaContent() {
       const { error: insertError } = await supabase
         .from("settlement_files")
         .insert({
-          file_name: file.name,
+          file_name: pendingFile.name,
           file_path: filePath,
+          pharma_company_id: uploadPharmaId,
+          settlement_month: monthToSettlementDate(uploadMonth),
+          status: "pending",
+          uploaded_at: new Date().toISOString(),
         });
 
       if (insertError) {
+        await supabase.storage.from(STORAGE_BUCKET).remove([filePath]);
         toast.error("파일 정보 저장 실패: " + insertError.message);
         return;
       }
 
       toast.success("업로드되었습니다.");
+      setPendingFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       await loadFiles();
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -156,26 +225,77 @@ export function ByPharmaContent() {
 
   return (
     <div className="space-y-4">
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="mb-4 text-sm font-semibold text-slate-900">
+          정산자료 업로드
+        </h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-slate-700">
+              제약사 <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={uploadPharmaId}
+              onChange={(e) => setUploadPharmaId(e.target.value)}
+              className={inputClassName}
+            >
+              <option value="">제약사 선택</option>
+              {pharmaCompanies.map((pharma) => (
+                <option key={pharma.id} value={pharma.id}>
+                  {pharma.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-slate-700">
+              정산월 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="month"
+              value={uploadMonth}
+              onChange={(e) => setUploadMonth(e.target.value)}
+              className={inputClassName}
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-slate-700">
+              파일 <span className="text-red-500">*</span>
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv,.pdf"
+              onChange={(e) => handleFileSelect(e.target.files)}
+              className={cn(
+                inputClassName,
+                "cursor-pointer file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-slate-700",
+              )}
+            />
+          </div>
+          <div className="flex items-end">
+            <button
+              type="button"
+              onClick={handleUpload}
+              disabled={isUploading}
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#4f6ef7] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Upload className="size-4" />
+              {isUploading ? "업로드 중..." : "업로드"}
+            </button>
+          </div>
+        </div>
+        {pendingFile && (
+          <p className="mt-3 text-xs text-slate-500">
+            선택된 파일: {pendingFile.name}
+          </p>
+        )}
+      </section>
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-500">
           전체 {files.length.toLocaleString("ko-KR")}건
         </p>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isUploading}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#4f6ef7] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <Upload className="size-4" />
-          {isUploading ? "업로드 중..." : "직접 업로드"}
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".xlsx,.xls,.csv,.pdf"
-          className="hidden"
-          onChange={(e) => handleUpload(e.target.files)}
-        />
       </div>
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
