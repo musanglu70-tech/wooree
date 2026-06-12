@@ -1,173 +1,185 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import {
-  Archive,
-  Building2,
-  Download,
-  Eye,
-  FolderOpen,
-  Inbox,
-  Layers,
-  Scissors,
-  Upload,
-} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Building2, Download, FolderOpen, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 
-type TabId = "inbox" | "review" | "archive" | "cso" | "split";
+const STORAGE_BUCKET = "settlements";
 
 interface SettlementFile {
   id: string;
-  tab: TabId;
   fileName: string;
+  filePath: string;
   pharma: string;
   month: string;
   uploadedAt: string;
   status: string;
 }
 
-const TABS: { id: TabId; label: string; icon: typeof Inbox }[] = [
-  { id: "inbox", label: "수신함", icon: Inbox },
-  { id: "review", label: "검토함", icon: Eye },
-  { id: "archive", label: "보관함", icon: Archive },
-  { id: "cso", label: "CSO별 집계", icon: Layers },
-  { id: "split", label: "원본 분리", icon: Scissors },
-];
+function toStr(value: unknown): string {
+  return value == null ? "" : String(value);
+}
 
-const MOCK_FILES: SettlementFile[] = [
-  {
-    id: "1",
-    tab: "inbox",
-    fileName: "위더스제약_2026-05_정산.xlsx",
-    pharma: "위더스제약",
-    month: "2026-05",
-    uploadedAt: "2026-06-08 10:22",
-    status: "수신",
-  },
-  {
-    id: "2",
-    tab: "inbox",
-    fileName: "테라벤이븐스_2026-05_정산.xlsx",
-    pharma: "(주)테라벤이븐스",
-    month: "2026-05",
-    uploadedAt: "2026-06-07 15:40",
-    status: "수신",
-  },
-  {
-    id: "3",
-    tab: "review",
-    fileName: "대웅바이오_2026-04_정산.xlsx",
-    pharma: "대웅바이오(주)",
-    month: "2026-04",
-    uploadedAt: "2026-05-30 09:15",
-    status: "검토중",
-  },
-  {
-    id: "4",
-    tab: "review",
-    fileName: "경동제약_2026-04_정산.xlsx",
-    pharma: "경동제약(주)",
-    month: "2026-04",
-    uploadedAt: "2026-05-29 14:00",
-    status: "검토중",
-  },
-  {
-    id: "5",
-    tab: "archive",
-    fileName: "한화제약_2026-03_정산.xlsx",
-    pharma: "한화제약(주)",
-    month: "2026-03",
-    uploadedAt: "2026-04-25 11:30",
-    status: "보관",
-  },
-  {
-    id: "6",
-    tab: "cso",
-    fileName: "CSO집계_우리메디텍_2026-05.xlsx",
-    pharma: "전체",
-    month: "2026-05",
-    uploadedAt: "2026-06-06 16:00",
-    status: "집계완료",
-  },
-  {
-    id: "7",
-    tab: "split",
-    fileName: "원본분리_위더스_2026-05.pdf",
-    pharma: "위더스제약",
-    month: "2026-05",
-    uploadedAt: "2026-06-05 13:20",
-    status: "분리완료",
-  },
-];
+function normalizeRow(row: Record<string, unknown>): SettlementFile {
+  const pharma = row.pharma_companies as { name?: string } | null;
+  const month = toStr(
+    row.settlement_month ?? row.month ?? row.settlement_date,
+  );
+
+  return {
+    id: toStr(row.id),
+    fileName: toStr(row.file_name ?? row.filename ?? row.name),
+    filePath: toStr(row.file_path ?? row.path ?? row.storage_path),
+    pharma: toStr(pharma?.name ?? row.pharma_company_name ?? row.pharma_name),
+    month: month.length >= 7 ? month.slice(0, 7) : month,
+    uploadedAt: toStr(row.created_at ?? row.uploaded_at)
+      .slice(0, 16)
+      .replace("T", " "),
+    status: toStr(row.status),
+  };
+}
 
 function formatMonthLabel(month: string) {
+  if (!month) return "-";
   const [year, mon] = month.split("-");
-  return `${year}년 ${mon}월`;
+  return mon ? `${year}년 ${mon}월` : month;
+}
+
+function sanitizeFileName(name: string): string {
+  const dotIndex = name.lastIndexOf(".");
+  const ext = dotIndex >= 0 ? name.slice(dotIndex) : "";
+  const base = (dotIndex >= 0 ? name.slice(0, dotIndex) : name)
+    .replace(/[^\w-]/g, "_")
+    .slice(0, 80);
+  return `${base || "file"}${ext}`;
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, string> = {
-    수신: "bg-blue-50 text-blue-700",
-    검토중: "bg-amber-50 text-amber-700",
-    보관: "bg-slate-100 text-slate-600",
-    집계완료: "bg-emerald-50 text-emerald-700",
-    분리완료: "bg-violet-50 text-violet-700",
-  };
+  if (!status) {
+    return <span className="text-slate-400">-</span>;
+  }
 
   return (
-    <span
-      className={cn(
-        "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
-        styles[status] ?? "bg-slate-100 text-slate-600",
-      )}
-    >
+    <span className="inline-flex rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
       {status}
     </span>
   );
 }
 
 export function ByPharmaContent() {
-  const [activeTab, setActiveTab] = useState<TabId>("inbox");
+  const supabase = useMemo(() => createClient(), []);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const filteredFiles = useMemo(
-    () => MOCK_FILES.filter((f) => f.tab === activeTab),
-    [activeTab],
+  const [files, setFiles] = useState<SettlementFile[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const loadFiles = useMemo(
+    () => async () => {
+      const { data, error } = await supabase
+        .from("settlement_files")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        toast.error("정산자료를 불러오지 못했습니다: " + error.message);
+        setFiles([]);
+      } else {
+        setFiles(
+          ((data as Record<string, unknown>[]) ?? []).map(normalizeRow),
+        );
+      }
+      setIsLoading(false);
+    },
+    [supabase],
   );
+
+  useEffect(() => {
+    loadFiles();
+  }, [loadFiles]);
+
+  const handleUpload = async (fileList: FileList | null) => {
+    const file = fileList?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+
+    try {
+      const filePath = `${new Date().toISOString().slice(0, 7)}/${Date.now()}_${sanitizeFileName(file.name)}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(filePath, file);
+
+      if (uploadError) {
+        toast.error("파일 업로드 실패: " + uploadError.message);
+        return;
+      }
+
+      const { error: insertError } = await supabase
+        .from("settlement_files")
+        .insert({
+          file_name: file.name,
+          file_path: filePath,
+        });
+
+      if (insertError) {
+        toast.error("파일 정보 저장 실패: " + insertError.message);
+        return;
+      }
+
+      toast.success("업로드되었습니다.");
+      await loadFiles();
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDownload = async (file: SettlementFile) => {
+    if (!file.filePath) {
+      toast.error("파일 경로 정보가 없습니다.");
+      return;
+    }
+
+    const { data, error } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .createSignedUrl(file.filePath, 60);
+
+    if (error || !data?.signedUrl) {
+      toast.error(
+        "다운로드 링크 생성 실패: " + (error?.message ?? "알 수 없는 오류"),
+      );
+      return;
+    }
+
+    window.open(data.signedUrl, "_blank");
+  };
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  activeTab === tab.id
-                    ? "bg-[#4f6ef7] text-white"
-                    : "text-slate-600 hover:bg-slate-50",
-                )}
-              >
-                <Icon className="size-3.5" />
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-
+        <p className="text-sm text-slate-500">
+          전체 {files.length.toLocaleString("ko-KR")}건
+        </p>
         <button
           type="button"
-          onClick={() => toast.info("파일 업로드는 서버 연동 후 사용 가능합니다.")}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#4f6ef7] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          className="inline-flex items-center gap-2 rounded-lg bg-[#4f6ef7] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Upload className="size-4" />
-          직접 업로드
+          {isUploading ? "업로드 중..." : "직접 업로드"}
         </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xlsx,.xls,.csv,.pdf"
+          className="hidden"
+          onChange={(e) => handleUpload(e.target.files)}
+        />
       </div>
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -188,17 +200,26 @@ export function ByPharmaContent() {
               </tr>
             </thead>
             <tbody>
-              {filteredFiles.length === 0 ? (
+              {isLoading ? (
                 <tr>
                   <td
                     colSpan={6}
                     className="px-5 py-12 text-center text-sm text-slate-500"
                   >
-                    해당 탭에 파일이 없습니다.
+                    불러오는 중...
+                  </td>
+                </tr>
+              ) : files.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-5 py-12 text-center text-sm text-slate-500"
+                  >
+                    등록된 정산자료가 없습니다.
                   </td>
                 </tr>
               ) : (
-                filteredFiles.map((file, index) => (
+                files.map((file, index) => (
                   <tr
                     key={file.id}
                     className={cn(
@@ -209,39 +230,33 @@ export function ByPharmaContent() {
                     <td className="px-5 py-3.5 font-medium text-slate-900">
                       <span className="inline-flex items-center gap-2">
                         <FolderOpen className="size-4 text-slate-400" />
-                        {file.fileName}
+                        {file.fileName || "-"}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-slate-700">
                       <span className="inline-flex items-center gap-1.5">
                         <Building2 className="size-3.5 text-slate-400" />
-                        {file.pharma}
+                        {file.pharma || "-"}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-slate-700">
                       {formatMonthLabel(file.month)}
                     </td>
                     <td className="px-5 py-3.5 text-slate-600">
-                      {file.uploadedAt}
+                      {file.uploadedAt || "-"}
                     </td>
                     <td className="px-5 py-3.5">
                       <StatusBadge status={file.status} />
                     </td>
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center justify-center gap-1.5">
+                      <div className="flex items-center justify-center">
                         <button
                           type="button"
-                          onClick={() => toast.info(`미리보기: ${file.fileName}`)}
-                          className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
-                        >
-                          <Eye className="size-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => toast.info(`다운로드: ${file.fileName}`)}
-                          className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                          onClick={() => handleDownload(file)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
                         >
                           <Download className="size-3.5" />
+                          다운로드
                         </button>
                       </div>
                     </td>
