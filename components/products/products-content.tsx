@@ -64,7 +64,7 @@ function normalizeRow(row: Record<string, unknown>): Product {
   return {
     id: toStr(row.id),
     insuranceCode: toStr(row.insurance_code ?? row.code),
-    productName: toStr(row.product_name ?? row.name),
+    productName: toStr(row.name),
     pharmaCompanyId: toStr(row.pharma_company_id ?? pharma?.id),
     pharmaName: toStr(pharma?.name),
     unitPrice: toNumber(row.unit_price ?? row.price),
@@ -114,7 +114,7 @@ export function ProductsContent() {
         supabase
           .from("products")
           .select("*, pharma_companies(id, name)")
-          .order("product_name", { ascending: true }),
+          .order("name", { ascending: true }),
         supabase
           .from("pharma_companies")
           .select("id, name")
@@ -210,7 +210,7 @@ export function ProductsContent() {
     try {
       const payload = {
         insurance_code: form.insuranceCode.trim(),
-        product_name: form.productName.trim(),
+        name: form.productName.trim(),
         pharma_company_id: form.pharmaCompanyId || null,
         unit_price: Number(form.unitPrice) || 0,
         is_active: form.isActive,

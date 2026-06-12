@@ -51,7 +51,7 @@ export function ProductCodeInput({
     const timer = setTimeout(() => {
       supabase
         .from("products")
-        .select("insurance_code, product_name, unit_price")
+        .select("insurance_code, name, unit_price")
         .ilike("insurance_code", `%${keyword}%`)
         .eq("is_active", true)
         .limit(8)
@@ -60,7 +60,7 @@ export function ProductCodeInput({
           const items = ((data as Record<string, unknown>[]) ?? []).map(
             (row) => ({
               insuranceCode: toStr(row.insurance_code),
-              productName: toStr(row.product_name),
+              productName: toStr(row.name),
               unitPrice: toNumber(row.unit_price),
             }),
           );
@@ -100,7 +100,7 @@ export function ProductCodeInput({
 
     const { data } = await supabase
       .from("products")
-      .select("insurance_code, product_name, unit_price")
+      .select("insurance_code, name, unit_price")
       .eq("insurance_code", keyword)
       .eq("is_active", true)
       .maybeSingle();
@@ -108,7 +108,7 @@ export function ProductCodeInput({
     if (data) {
       onSelect({
         insuranceCode: toStr(data.insurance_code),
-        productName: toStr(data.product_name),
+        productName: toStr(data.name),
         unitPrice: toNumber(data.unit_price),
       });
     }
