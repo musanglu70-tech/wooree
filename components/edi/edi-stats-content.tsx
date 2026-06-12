@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
 import { toast } from "sonner";
 import { formatWon } from "@/lib/edi/constants";
+import { downloadExcel, formatYyyyMm } from "@/lib/excel/export";
 import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,7 @@ interface MonthlySummary {
 interface PharmaStat {
   name: string;
   count: number;
+  quantity: number;
   amount: number;
 }
 
@@ -41,6 +43,18 @@ function toNumber(value: unknown): number {
 
 function rowAmount(row: Record<string, unknown>): number {
   return toNumber(row.total_amount ?? row.amount);
+}
+
+function rowQuantity(row: Record<string, unknown>): number {
+  const items = row.prescription_items as Record<string, unknown>[] | null;
+  if (!items?.length) return 0;
+  return items.reduce(
+    (sum, item) =>
+      sum +
+      toNumber(item.quantity_original) +
+      toNumber(item.quantity_external),
+    0,
+  );
 }
 
 function monthRange(month: string): { start: string; end: string } {
@@ -123,7 +137,7 @@ export function EdiStatsContent() {
 
     supabase
       .from("prescriptions")
-      .select("*, pharma_companies(name)")
+      .select("*, pharma_companies(name), prescription_items(*)")
       .then(({ data, error }) => {
         if (!active) return;
         if (error) {
@@ -138,8 +152,14 @@ export function EdiStatsContent() {
           rows.forEach((row) => {
             const pharma = row.pharma_companies as { name?: string } | null;
             const name = toStr(pharma?.name) || "(미지정)";
-            const stat = grouped.get(name) ?? { name, count: 0, amount: 0 };
+            const stat = grouped.get(name) ?? {
+              name,
+              count: 0,
+              quantity: 0,
+              amount: 0,
+            };
             stat.count += 1;
+            stat.quantity += rowQuantity(row);
             stat.amount += rowAmount(row);
             grouped.set(name, stat);
           });
@@ -167,7 +187,35 @@ export function EdiStatsContent() {
   };
 
   const handleExport = () => {
-    toast.info("엑셀보내기는 준비 중입니다.");
+    if (pharmaStats.length === 0 && summary.totalCount === 0) {
+      toast.error("다운로드할 데이터가 없습니다.");
+      return;
+    }
+
+    downloadExcel(`처방통계_${formatYyyyMm(appliedMonth)}.xlsx`, [
+      {
+        name: "제약사별",
+        rows: pharmaStats.map((row) => ({
+          제약사명: row.name,
+          처방건수: row.count,
+          총수량: row.quantity,
+          처방금액: row.amount,
+        })),
+      },
+      {
+        name: "전체요약",
+        rows: [
+          {
+            총건수: summary.totalCount,
+            총금액: summary.totalAmount,
+            제약사수: summary.pharmaCount,
+            거래처수: summary.hospitalCount,
+          },
+        ],
+      },
+    ]);
+
+    toast.success("엑셀 파일을 다운로드했습니다.");
   };
 
   const summaryCards = [
@@ -256,6 +304,9 @@ export function EdiStatsContent() {
                   처방 건수
                 </th>
                 <th className="px-5 py-3 text-right font-medium text-slate-600">
+                  총 수량
+                </th>
+                <th className="px-5 py-3 text-right font-medium text-slate-600">
                   처방금액
                 </th>
               </tr>
@@ -264,7 +315,7 @@ export function EdiStatsContent() {
               {isPharmaLoading ? (
                 <tr>
                   <td
-                    colSpan={3}
+                    colSpan={4}
                     className="px-5 py-12 text-center text-sm text-slate-500"
                   >
                     불러오는 중...
@@ -273,7 +324,7 @@ export function EdiStatsContent() {
               ) : pharmaStats.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={3}
+                    colSpan={4}
                     className="px-5 py-12 text-center text-sm text-slate-500"
                   >
                     데이터가 없습니다
@@ -293,6 +344,9 @@ export function EdiStatsContent() {
                     </td>
                     <td className="px-5 py-3 text-right text-slate-700">
                       {row.count.toLocaleString("ko-KR")}건
+                    </td>
+                    <td className="px-5 py-3 text-right text-slate-700">
+                      {row.quantity.toLocaleString("ko-KR")}
                     </td>
                     <td className="px-5 py-3 text-right font-medium text-slate-900">
                       {formatWon(row.amount)}

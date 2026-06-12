@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Eye, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Eye, Search } from "lucide-react";
 import { toast } from "sonner";
 import { formatWon } from "@/lib/edi/constants";
+import { downloadExcel, formatYmd } from "@/lib/excel/export";
 import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 
@@ -182,6 +183,29 @@ export function EdiListContent() {
     setPage(1);
   };
 
+  const handleExport = () => {
+    if (filteredItems.length === 0) {
+      toast.error("다운로드할 데이터가 없습니다.");
+      return;
+    }
+
+    downloadExcel(`EDI목록_${formatYmd()}.xlsx`, [
+      {
+        name: "EDI목록",
+        rows: filteredItems.map((item) => ({
+          처방월: formatMonthLabel(item.month),
+          제약사: item.pharma || "-",
+          병의원명: item.hospital || "-",
+          처방금액: item.amount,
+          상태: STATUS_LABEL[item.status] ?? item.status ?? "-",
+          등록일: item.createdAt || "-",
+        })),
+      },
+    ]);
+
+    toast.success("엑셀 파일을 다운로드했습니다.");
+  };
+
   return (
     <div className="space-y-4">
       {/* 필터 */}
@@ -243,20 +267,31 @@ export function EdiListContent() {
         </div>
       </section>
 
-      {/* 통계 카드 */}
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">총 건수</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">
-            {filteredItems.length.toLocaleString("ko-KR")}건
-          </p>
+      {/* 통계 카드 + 엑셀 다운로드 */}
+      <section className="flex flex-wrap items-center justify-between gap-4">
+        <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-sm text-slate-500">총 건수</p>
+            <p className="mt-1 text-2xl font-semibold text-slate-900">
+              {filteredItems.length.toLocaleString("ko-KR")}건
+            </p>
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-sm text-slate-500">총 처방금액</p>
+            <p className="mt-1 text-2xl font-semibold text-[#4f6ef7]">
+              {formatWon(totalAmount)}
+            </p>
+          </div>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">총 처방금액</p>
-          <p className="mt-1 text-2xl font-semibold text-[#4f6ef7]">
-            {formatWon(totalAmount)}
-          </p>
-        </div>
+        <button
+          type="button"
+          onClick={handleExport}
+          disabled={isLoading || filteredItems.length === 0}
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Download className="size-4" />
+          엑셀 다운로드
+        </button>
       </section>
 
       {/* 테이블 */}
