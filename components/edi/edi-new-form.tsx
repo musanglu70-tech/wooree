@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { formatWon } from "@/lib/edi/constants";
 import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
+import { ProductCodeInput } from "@/components/edi/product-code-input";
 import { createRxRow, rowAmount, type RxRow, type RxType } from "@/types/edi";
 
 interface PharmaCompany {
@@ -482,10 +483,15 @@ export function EdiNewForm() {
                     </td>
                     <td className="px-2 py-1.5 text-slate-600">{index + 1}</td>
                     <td className="px-1 py-1">
-                      <input
+                      <ProductCodeInput
                         value={row.code}
-                        onChange={(e) =>
-                          updateRow(index, { code: e.target.value })
+                        onChange={(code) => updateRow(index, { code })}
+                        onSelect={(product) =>
+                          updateRow(index, {
+                            code: product.insuranceCode,
+                            name: product.productName,
+                            price: String(product.unitPrice),
+                          })
                         }
                         className={tableInputClassName}
                       />
