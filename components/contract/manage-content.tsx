@@ -1,125 +1,150 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Eye, Search, Send } from "lucide-react";
 import { toast } from "sonner";
-import { PHARMAS } from "@/lib/edi/constants";
+import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
-
-type ContractStatus = "초안" | "발송" | "서명완료";
-type StatusFilter = "전체" | ContractStatus;
 
 interface ContractItem {
   id: string;
-  name: string;
-  company: string;
-  pharma: string;
+  title: string;
+  companyName: string;
+  pharmaName: string;
   validFrom: string;
   validTo: string;
-  status: ContractStatus;
+  status: string;
 }
-
-const MOCK_CONTRACTS: ContractItem[] = [
-  {
-    id: "1",
-    name: "위더스제약 CSO 위탁계약",
-    company: "우리메디텍",
-    pharma: "위더스제약",
-    validFrom: "2026-01-01",
-    validTo: "2026-12-31",
-    status: "서명완료",
-  },
-  {
-    id: "2",
-    name: "테라벤이븐스 위탁판매 계약",
-    company: "우리메디텍",
-    pharma: "(주)테라벤이븐스",
-    validFrom: "2026-03-01",
-    validTo: "2027-02-28",
-    status: "발송",
-  },
-  {
-    id: "3",
-    name: "대웅바이오 수수료 합의서",
-    company: "우리메디텍",
-    pharma: "대웅바이오(주)",
-    validFrom: "2026-04-01",
-    validTo: "2027-03-31",
-    status: "초안",
-  },
-  {
-    id: "4",
-    name: "경동제약 재위탁 동의서",
-    company: "우리메디텍",
-    pharma: "경동제약(주)",
-    validFrom: "2026-01-01",
-    validTo: "2026-12-31",
-    status: "서명완료",
-  },
-  {
-    id: "5",
-    name: "한화제약 CSO 계약",
-    company: "우리메디텍",
-    pharma: "한화제약(주)",
-    validFrom: "2026-06-01",
-    validTo: "2027-05-31",
-    status: "발송",
-  },
-  {
-    id: "6",
-    name: "동광제약 위탁계약",
-    company: "우리메디텍",
-    pharma: "동광제약(주)",
-    validFrom: "2026-02-01",
-    validTo: "2027-01-31",
-    status: "초안",
-  },
-];
 
 const inputClassName =
   "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
-function StatusBadge({ status }: { status: ContractStatus }) {
-  const styles: Record<ContractStatus, string> = {
-    초안: "bg-slate-100 text-slate-600",
-    발송: "bg-amber-50 text-amber-700",
-    서명완료: "bg-[rgba(79,110,247,0.12)] text-[#4f6ef7]",
+const STATUS_LABEL: Record<string, string> = {
+  draft: "초안",
+  sent: "발송",
+  signed: "서명완료",
+  초안: "초안",
+  발송: "발송",
+  서명완료: "서명완료",
+};
+
+function toStr(value: unknown): string {
+  return value == null ? "" : String(value);
+}
+
+function toDateOnly(value: unknown): string {
+  const str = toStr(value);
+  return str.length >= 10 ? str.slice(0, 10) : str;
+}
+
+function normalizeRow(row: Record<string, unknown>): ContractItem {
+  const company = row.companies as { name?: string } | null;
+  const pharma = row.pharma_companies as { name?: string } | null;
+
+  return {
+    id: toStr(row.id),
+    title: toStr(row.title ?? row.name ?? row.contract_name),
+    companyName: toStr(company?.name ?? row.company_name),
+    pharmaName: toStr(pharma?.name ?? row.pharma_company_name),
+    validFrom: toDateOnly(row.valid_from ?? row.start_date ?? row.valid_start),
+    validTo: toDateOnly(row.valid_to ?? row.end_date ?? row.valid_end),
+    status: toStr(row.status),
   };
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const label = STATUS_LABEL[status] ?? status ?? "-";
+  const isSigned = status === "signed" || status === "서명완료";
+  const isSent = status === "sent" || status === "발송";
 
   return (
     <span
       className={cn(
         "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
-        styles[status],
+        isSigned
+          ? "bg-[rgba(79,110,247,0.12)] text-[#4f6ef7]"
+          : isSent
+            ? "bg-amber-50 text-amber-700"
+            : "bg-slate-100 text-slate-600",
       )}
     >
-      {status}
+      {label}
     </span>
   );
 }
 
 export function ManageContent() {
+  const supabase = useMemo(() => createClient(), []);
+
+  const [contracts, setContracts] = useState<ContractItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [filterPharma, setFilterPharma] = useState("");
   const [filterCompany, setFilterCompany] = useState("");
-  const [filterStatus, setFilterStatus] = useState<StatusFilter>("전체");
+  const [filterStatus, setFilterStatus] = useState("");
   const [applied, setApplied] = useState({
     pharma: "",
     company: "",
-    status: "전체" as StatusFilter,
+    status: "",
   });
 
+  useEffect(() => {
+    let active = true;
+
+    supabase
+      .from("contracts")
+      .select("*, companies(name), pharma_companies(name)")
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          toast.error("계약서 목록을 불러오지 못했습니다: " + error.message);
+          setContracts([]);
+        } else {
+          setContracts(
+            ((data as Record<string, unknown>[]) ?? []).map(normalizeRow),
+          );
+        }
+        setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
+
+  const pharmaList = useMemo(() => {
+    const set = new Set<string>();
+    contracts.forEach((c) => {
+      if (c.pharmaName) set.add(c.pharmaName);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "ko-KR"));
+  }, [contracts]);
+
+  const statusList = useMemo(() => {
+    const set = new Set<string>();
+    contracts.forEach((c) => {
+      if (c.status) set.add(STATUS_LABEL[c.status] ?? c.status);
+    });
+    return Array.from(set);
+  }, [contracts]);
+
   const filteredItems = useMemo(() => {
-    return MOCK_CONTRACTS.filter((item) => {
-      if (applied.pharma && item.pharma !== applied.pharma) return false;
-      if (applied.company && !item.company.includes(applied.company)) {
+    return contracts.filter((item) => {
+      if (applied.pharma && item.pharmaName !== applied.pharma) return false;
+      if (
+        applied.company &&
+        !item.companyName.includes(applied.company)
+      ) {
         return false;
       }
-      if (applied.status !== "전체" && item.status !== applied.status) {
-        return false;
+      if (applied.status) {
+        const label = STATUS_LABEL[item.status] ?? item.status;
+        if (label !== applied.status) return false;
       }
       return true;
     });
-  }, [applied]);
+  }, [contracts, applied]);
 
   return (
     <div className="space-y-4">
@@ -135,7 +160,7 @@ export function ManageContent() {
               className={inputClassName}
             >
               <option value="">전체</option>
-              {PHARMAS.map((pharma) => (
+              {pharmaList.map((pharma) => (
                 <option key={pharma} value={pharma}>
                   {pharma}
                 </option>
@@ -160,15 +185,15 @@ export function ManageContent() {
             </label>
             <select
               value={filterStatus}
-              onChange={(e) =>
-                setFilterStatus(e.target.value as StatusFilter)
-              }
+              onChange={(e) => setFilterStatus(e.target.value)}
               className={inputClassName}
             >
-              <option value="전체">전체</option>
-              <option value="초안">초안</option>
-              <option value="발송">발송</option>
-              <option value="서명완료">서명완료</option>
+              <option value="">전체</option>
+              {statusList.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
             </select>
           </div>
           <div className="flex items-end">
@@ -195,11 +220,11 @@ export function ManageContent() {
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
+                <th className="px-5 py-3 font-medium text-slate-600">제목</th>
+                <th className="px-5 py-3 font-medium text-slate-600">업체명</th>
                 <th className="px-5 py-3 font-medium text-slate-600">
-                  계약서명
+                  제약사명
                 </th>
-                <th className="px-5 py-3 font-medium text-slate-600">업체</th>
-                <th className="px-5 py-3 font-medium text-slate-600">제약사</th>
                 <th className="px-5 py-3 font-medium text-slate-600">
                   유효기간
                 </th>
@@ -210,47 +235,80 @@ export function ManageContent() {
               </tr>
             </thead>
             <tbody>
-              {filteredItems.map((item, index) => (
-                <tr
-                  key={item.id}
-                  className={cn(
-                    "border-b border-slate-100 last:border-b-0",
-                    index % 2 === 1 && "bg-slate-50/40",
-                  )}
-                >
-                  <td className="px-5 py-3.5 font-medium text-slate-900">
-                    {item.name}
-                  </td>
-                  <td className="px-5 py-3.5 text-slate-700">{item.company}</td>
-                  <td className="px-5 py-3.5 text-slate-700">{item.pharma}</td>
-                  <td className="px-5 py-3.5 text-slate-600">
-                    {item.validFrom} ~ {item.validTo}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <StatusBadge status={item.status} />
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => toast.info(`보기: ${item.name}`)}
-                        className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
-                      >
-                        <Eye className="size-3.5" />
-                      </button>
-                      {item.status !== "서명완료" && (
-                        <button
-                          type="button"
-                          onClick={() => toast.success(`발송: ${item.name}`)}
-                          className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
-                        >
-                          <Send className="size-3.5" />
-                        </button>
-                      )}
-                    </div>
+              {isLoading ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-5 py-12 text-center text-sm text-slate-500"
+                  >
+                    불러오는 중...
                   </td>
                 </tr>
-              ))}
+              ) : filteredItems.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-5 py-12 text-center text-sm text-slate-500"
+                  >
+                    등록된 계약서가 없습니다.
+                  </td>
+                </tr>
+              ) : (
+                filteredItems.map((item, index) => {
+                  const isSigned =
+                    item.status === "signed" || item.status === "서명완료";
+
+                  return (
+                    <tr
+                      key={item.id}
+                      className={cn(
+                        "border-b border-slate-100 last:border-b-0",
+                        index % 2 === 1 && "bg-slate-50/40",
+                      )}
+                    >
+                      <td className="px-5 py-3.5 font-medium text-slate-900">
+                        {item.title || "-"}
+                      </td>
+                      <td className="px-5 py-3.5 text-slate-700">
+                        {item.companyName || "-"}
+                      </td>
+                      <td className="px-5 py-3.5 text-slate-700">
+                        {item.pharmaName || "-"}
+                      </td>
+                      <td className="px-5 py-3.5 text-slate-600">
+                        {item.validFrom || "-"} ~ {item.validTo || "-"}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <StatusBadge status={item.status} />
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              toast.info(`보기: ${item.title}`)
+                            }
+                            className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                          >
+                            <Eye className="size-3.5" />
+                          </button>
+                          {!isSigned && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                toast.info(`발송: ${item.title}`)
+                              }
+                              className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                            >
+                              <Send className="size-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
