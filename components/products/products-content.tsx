@@ -26,8 +26,8 @@ interface Product {
   pharmaCompanyId: string;
   pharmaName: string;
   unitPrice: number;
-  commissionRate: number;
-  extraCommissionRate: number;
+  commissionRate: number | null;
+  extraCommissionRate: number | null;
   isActive: boolean;
 }
 
@@ -60,12 +60,17 @@ function toStr(value: unknown): string {
   return value == null ? "" : String(value);
 }
 
-function toNumber(value: unknown): number {
-  const num = Number(value);
-  return Number.isFinite(num) ? num : 0;
+function toNumber(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  const num =
+    typeof value === "number"
+      ? value
+      : Number(String(value).replace(/,/g, "").trim());
+  return Number.isFinite(num) ? num : null;
 }
 
-function formatRate(value: number): string {
+function formatRate(value: number | null): string {
+  if (value == null) return "-";
   return `${value}%`;
 }
 
@@ -77,7 +82,7 @@ function normalizeRow(row: Record<string, unknown>): Product {
     productName: toStr(row.name),
     pharmaCompanyId: toStr(row.pharma_company_id ?? pharma?.id),
     pharmaName: toStr(pharma?.name),
-    unitPrice: toNumber(row.unit_price ?? row.price),
+    unitPrice: toNumber(row.unit_price ?? row.price) ?? 0,
     commissionRate: toNumber(row.commission_rate),
     extraCommissionRate: toNumber(row.extra_commission_rate),
     isActive: row.is_active !== false && row.is_active !== "false",
@@ -125,9 +130,7 @@ export function ProductsContent() {
       const [productsResult, pharmaResult] = await Promise.all([
         supabase
           .from("products")
-          .select(
-            "id, insurance_code, name, pharma_company_id, unit_price, commission_rate, extra_commission_rate, is_active, pharma_companies(id, name)",
-          )
+          .select("*, pharma_companies(id, name)")
           .order("name", { ascending: true }),
         supabase
           .from("pharma_companies")
@@ -199,8 +202,12 @@ export function ProductsContent() {
       productName: product.productName,
       pharmaCompanyId: product.pharmaCompanyId,
       unitPrice: String(product.unitPrice),
-      commissionRate: String(product.commissionRate),
-      extraCommissionRate: String(product.extraCommissionRate),
+      commissionRate:
+        product.commissionRate != null ? String(product.commissionRate) : "",
+      extraCommissionRate:
+        product.extraCommissionRate != null
+          ? String(product.extraCommissionRate)
+          : "",
       isActive: product.isActive,
     });
     setIsModalOpen(true);
@@ -326,10 +333,10 @@ export function ProductsContent() {
                 <th className="px-5 py-3 text-right font-medium text-slate-600">
                   단가
                 </th>
-                <th className="px-5 py-3 text-right font-medium text-slate-600">
+                <th className="min-w-[96px] whitespace-nowrap px-5 py-3 text-right font-medium text-slate-600">
                   제약수수료율
                 </th>
-                <th className="px-5 py-3 text-right font-medium text-slate-600">
+                <th className="min-w-[96px] whitespace-nowrap px-5 py-3 text-right font-medium text-slate-600">
                   추가수수료율
                 </th>
                 <th className="px-5 py-3 font-medium text-slate-600">
@@ -383,10 +390,10 @@ export function ProductsContent() {
                     <td className="px-5 py-3.5 text-right tabular-nums text-slate-700">
                       {product.unitPrice.toLocaleString("ko-KR")}원
                     </td>
-                    <td className="px-5 py-3.5 text-right tabular-nums text-slate-700">
+                    <td className="min-w-[96px] whitespace-nowrap px-5 py-3.5 text-right tabular-nums text-slate-700">
                       {formatRate(product.commissionRate)}
                     </td>
-                    <td className="px-5 py-3.5 text-right tabular-nums text-slate-700">
+                    <td className="min-w-[96px] whitespace-nowrap px-5 py-3.5 text-right tabular-nums text-slate-700">
                       {formatRate(product.extraCommissionRate)}
                     </td>
                     <td className="px-5 py-3.5">
