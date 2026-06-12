@@ -10,6 +10,7 @@ import {
   FileText,
   FolderOpen,
   GitCompare,
+  Hospital,
   LayoutDashboard,
   Save,
   Scissors,
@@ -44,6 +45,7 @@ export const MENU_GROUPS: MenuGroup[] = [
       { href: "/edi/list", label: "저장 목록", icon: Save },
       { href: "/edi/inspect", label: "검수 관리", icon: ClipboardCheck },
       { href: "/edi/stats", label: "처방 통계", icon: BarChart3 },
+      { href: "/hospitals", label: "병의원 관리", icon: Hospital },
     ],
   },
   {
