@@ -87,17 +87,16 @@ export function MobileNav() {
             </Link>
           );
         })}
-        <button
-          type="button"
-          onClick={() => toast.info("의약품(제품) 메뉴는 준비 중입니다.")}
+        <Link
+          href="/products"
           className={cn(
             "flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors",
-            INACTIVE_COLOR,
+            isActivePath(pathname, "/products") ? ACTIVE_COLOR : INACTIVE_COLOR,
           )}
         >
-          <Pill className="size-5" strokeWidth={1.75} />
+          <Pill className="size-5" strokeWidth={isActivePath(pathname, "/products") ? 2.25 : 1.75} />
           의약품
-        </button>
+        </Link>
         <button
           type="button"
           onClick={() => setOpen(true)}
