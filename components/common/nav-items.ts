@@ -48,6 +48,7 @@ export const MENU_GROUPS: MenuGroup[] = [
       { href: "/edi/stats", label: "처방 통계", icon: BarChart3 },
       { href: "/hospitals", label: "병의원 관리", icon: Hospital },
       { href: "/products", label: "의약품 관리", icon: Pill },
+      { href: "/companies", label: "업체 관리", icon: Building2 },
     ],
   },
   {
