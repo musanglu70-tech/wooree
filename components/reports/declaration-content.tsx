@@ -1,131 +1,117 @@
 "use client";
 
-import { Eye, FileOutput, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Eye, FileOutput } from "lucide-react";
 import { toast } from "sonner";
+import { formatWon } from "@/lib/edi/constants";
+import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 
-type DeclarationStatus = "작성중" | "완료" | "제출됨";
-
-interface Declaration {
+interface RecommissionReport {
   id: string;
   title: string;
-  company: string;
-  pharma: string;
-  period: string;
-  status: DeclarationStatus;
-  createdAt: string;
+  companyName: string;
+  reportDate: string;
+  totalAmount: number;
+  isSent: boolean;
 }
 
-const MOCK_DECLARATIONS: Declaration[] = [
-  {
-    id: "1",
-    title: "2026년 5월 재위탁 신고서",
-    company: "우리메디텍",
-    pharma: "위더스제약",
-    period: "2026-05",
-    status: "제출됨",
-    createdAt: "2026-06-05",
-  },
-  {
-    id: "2",
-    title: "2026년 5월 재위탁 신고서",
-    company: "우리메디텍",
-    pharma: "(주)테라벤이븐스",
-    period: "2026-05",
-    status: "완료",
-    createdAt: "2026-06-04",
-  },
-  {
-    id: "3",
-    title: "2026년 4월 재위탁 신고서",
-    company: "우리메디텍",
-    pharma: "대웅바이오(주)",
-    period: "2026-04",
-    status: "작성중",
-    createdAt: "2026-05-28",
-  },
-  {
-    id: "4",
-    title: "2026년 4월 재위탁 신고서",
-    company: "우리메디텍",
-    pharma: "경동제약(주)",
-    period: "2026-04",
-    status: "제출됨",
-    createdAt: "2026-05-25",
-  },
-  {
-    id: "5",
-    title: "2026년 3월 재위탁 신고서",
-    company: "우리메디텍",
-    pharma: "한화제약(주)",
-    period: "2026-03",
-    status: "완료",
-    createdAt: "2026-04-20",
-  },
-];
-
-function formatPeriod(period: string) {
-  const [year, mon] = period.split("-");
-  return `${year}년 ${mon}월`;
+function toStr(value: unknown): string {
+  return value == null ? "" : String(value);
 }
 
-function StatusBadge({ status }: { status: DeclarationStatus }) {
-  const styles: Record<DeclarationStatus, string> = {
-    작성중: "bg-amber-50 text-amber-700",
-    완료: "bg-[rgba(79,110,247,0.12)] text-[#4f6ef7]",
-    제출됨: "bg-emerald-50 text-emerald-700",
+function toNumber(value: unknown): number {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+}
+
+function normalizeRow(row: Record<string, unknown>): RecommissionReport {
+  const company = row.companies as { name?: string } | null;
+
+  return {
+    id: toStr(row.id),
+    title: toStr(row.title),
+    companyName: toStr(company?.name ?? row.company_name),
+    reportDate: toStr(
+      row.report_date ?? row.created_at,
+    ).slice(0, 10),
+    totalAmount: toNumber(row.total_amount),
+    isSent: Boolean(row.is_sent),
   };
-
-  return (
-    <span
-      className={cn(
-        "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
-        styles[status],
-      )}
-    >
-      {status}
-    </span>
-  );
 }
 
 export function DeclarationContent() {
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() => toast.info("신고서 생성 기능은 준비 중입니다.")}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#4f6ef7] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
-        >
-          <Plus className="size-4" />
-          신고서 생성
-        </button>
-      </div>
+  const supabase = useMemo(() => createClient(), []);
 
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[800px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="px-5 py-3 font-medium text-slate-600">
-                  신고서명
-                </th>
-                <th className="px-5 py-3 font-medium text-slate-600">업체</th>
-                <th className="px-5 py-3 font-medium text-slate-600">제약사</th>
-                <th className="px-5 py-3 font-medium text-slate-600">
-                  신고 기간
-                </th>
-                <th className="px-5 py-3 font-medium text-slate-600">상태</th>
-                <th className="px-5 py-3 font-medium text-slate-600">
-                  생성일
-                </th>
-                <th className="px-5 py-3 text-center font-medium text-slate-600">
-                  액션
-                </th>
+  const [reports, setReports] = useState<RecommissionReport[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    supabase
+      .from("recommission_reports")
+      .select("*, companies(name)")
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          toast.error("신고서 목록을 불러오지 못했습니다: " + error.message);
+          setReports([]);
+        } else {
+          setReports(
+            ((data as Record<string, unknown>[]) ?? []).map(normalizeRow),
+          );
+        }
+        setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
+
+  return (
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[720px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 bg-slate-50">
+              <th className="px-5 py-3 font-medium text-slate-600">신고서</th>
+              <th className="px-5 py-3 font-medium text-slate-600">업체명</th>
+              <th className="px-5 py-3 font-medium text-slate-600">신고일</th>
+              <th className="px-5 py-3 text-right font-medium text-slate-600">
+                총금액
+              </th>
+              <th className="px-5 py-3 font-medium text-slate-600">
+                발송여부
+              </th>
+              <th className="px-5 py-3 text-center font-medium text-slate-600">
+                액션
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-5 py-12 text-center text-sm text-slate-500"
+                >
+                  불러오는 중...
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {MOCK_DECLARATIONS.map((item, index) => (
+            ) : reports.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-5 py-12 text-center text-sm text-slate-500"
+                >
+                  등록된 신고서가 없습니다.
+                </td>
+              </tr>
+            ) : (
+              reports.map((item, index) => (
                 <tr
                   key={item.id}
                   className={cn(
@@ -136,19 +122,29 @@ export function DeclarationContent() {
                   <td className="px-5 py-3.5">
                     <span className="inline-flex items-center gap-2 font-medium text-slate-900">
                       <FileOutput className="size-4 text-slate-400" />
-                      {item.title}
+                      {item.title || "-"}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-slate-700">{item.company}</td>
-                  <td className="px-5 py-3.5 text-slate-700">{item.pharma}</td>
                   <td className="px-5 py-3.5 text-slate-700">
-                    {formatPeriod(item.period)}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <StatusBadge status={item.status} />
+                    {item.companyName || "-"}
                   </td>
                   <td className="px-5 py-3.5 text-slate-600">
-                    {item.createdAt}
+                    {item.reportDate || "-"}
+                  </td>
+                  <td className="px-5 py-3.5 text-right font-medium text-slate-900">
+                    {formatWon(item.totalAmount)}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <span
+                      className={cn(
+                        "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
+                        item.isSent
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-amber-50 text-amber-700",
+                      )}
+                    >
+                      {item.isSent ? "발송완료" : "미발송"}
+                    </span>
                   </td>
                   <td className="px-5 py-3.5 text-center">
                     <button
@@ -161,11 +157,11 @@ export function DeclarationContent() {
                     </button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }

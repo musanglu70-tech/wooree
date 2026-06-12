@@ -1,95 +1,85 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Mail, Send } from "lucide-react";
 import { toast } from "sonner";
+import { formatWon } from "@/lib/edi/constants";
+import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 
 type SendTab = "pending" | "sent";
-type SendStatus = "대기" | "발송완료";
 
-interface SendItem {
+interface SendReport {
   id: string;
-  company: string;
-  reportTitle: string;
-  email: string;
-  status: SendStatus;
-  sentAt?: string;
+  title: string;
+  companyName: string;
+  totalAmount: number;
+  isSent: boolean;
+  sentAt: string;
 }
 
-const INITIAL_PENDING: SendItem[] = [
-  {
-    id: "1",
-    company: "우리메디텍",
-    reportTitle: "2026년 5월 재위탁 신고서 (위더스제약)",
-    email: "contact@woorimeditech.co.kr",
-    status: "대기",
-  },
-  {
-    id: "2",
-    company: "우리메디텍",
-    reportTitle: "2026년 5월 재위탁 신고서 (테라벤이븐스)",
-    email: "edi@teravenus.com",
-    status: "대기",
-  },
-  {
-    id: "3",
-    company: "우리메디텍",
-    reportTitle: "2026년 4월 재위탁 신고서 (대웅바이오)",
-    email: "settlement@daewoongbio.com",
-    status: "대기",
-  },
-  {
-    id: "4",
-    company: "우리메디텍",
-    reportTitle: "2026년 4월 재위탁 신고서 (경동제약)",
-    email: "cso@kyungdong.co.kr",
-    status: "대기",
-  },
-];
+function toStr(value: unknown): string {
+  return value == null ? "" : String(value);
+}
 
-const INITIAL_SENT: SendItem[] = [
-  {
-    id: "s1",
-    company: "우리메디텍",
-    reportTitle: "2026년 3월 재위탁 신고서 (한화제약)",
-    email: "pharma@hanwha.co.kr",
-    status: "발송완료",
-    sentAt: "2026-04-18 14:30",
-  },
-  {
-    id: "s2",
-    company: "우리메디텍",
-    reportTitle: "2026년 3월 재위탁 신고서 (동광제약)",
-    email: "report@dongkwang.com",
-    status: "발송완료",
-    sentAt: "2026-04-15 10:20",
-  },
-];
+function toNumber(value: unknown): number {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+}
 
-function StatusBadge({ status }: { status: SendStatus }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
-        status === "대기"
-          ? "bg-amber-50 text-amber-700"
-          : "bg-emerald-50 text-emerald-700",
-      )}
-    >
-      {status}
-    </span>
-  );
+function normalizeRow(row: Record<string, unknown>): SendReport {
+  const company = row.companies as { name?: string } | null;
+
+  return {
+    id: toStr(row.id),
+    title: toStr(row.title),
+    companyName: toStr(company?.name ?? row.company_name),
+    totalAmount: toNumber(row.total_amount),
+    isSent: Boolean(row.is_sent),
+    sentAt: toStr(row.sent_at).slice(0, 16).replace("T", " "),
+  };
 }
 
 export function SendContent() {
-  const [activeTab, setActiveTab] = useState<SendTab>("pending");
-  const [pendingItems, setPendingItems] = useState(INITIAL_PENDING);
-  const [sentItems, setSentItems] = useState(INITIAL_SENT);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const supabase = useMemo(() => createClient(), []);
 
-  const pendingCount = pendingItems.length;
-  const sentCount = sentItems.length;
+  const [reports, setReports] = useState<SendReport[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<SendTab>("pending");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [sendingIds, setSendingIds] = useState<string[]>([]);
+
+  const loadReports = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("recommission_reports")
+      .select("*, companies(name)")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast.error("신고서 목록을 불러오지 못했습니다: " + error.message);
+      setReports([]);
+    } else {
+      setReports(
+        ((data as Record<string, unknown>[]) ?? []).map(normalizeRow),
+      );
+    }
+    setIsLoading(false);
+  }, [supabase]);
+
+  useEffect(() => {
+    loadReports();
+  }, [loadReports]);
+
+  const pendingItems = useMemo(
+    () => reports.filter((r) => !r.isSent),
+    [reports],
+  );
+  const sentItems = useMemo(
+    () => reports.filter((r) => r.isSent),
+    [reports],
+  );
+
+  const displayItems = activeTab === "pending" ? pendingItems : sentItems;
 
   const allSelected =
     pendingItems.length > 0 && selectedIds.length === pendingItems.length;
@@ -104,33 +94,43 @@ export function SendContent() {
     );
   };
 
-  const sendItems = (ids: string[]) => {
+  const sendReports = async (ids: string[]) => {
     if (ids.length === 0) {
       toast.error("발송할 항목을 선택해주세요.");
       return;
     }
 
-    const now = new Date();
-    const sentAt = `${now.toISOString().slice(0, 10)} ${now.toTimeString().slice(0, 5)}`;
+    setSendingIds(ids);
+    const now = new Date().toISOString();
+    let successCount = 0;
 
-    const toSend = pendingItems.filter((item) => ids.includes(item.id));
-    setPendingItems((prev) => prev.filter((item) => !ids.includes(item.id)));
-    setSentItems((prev) => [
-      ...toSend.map((item) => ({
-        ...item,
-        status: "발송완료" as const,
-        sentAt,
-      })),
-      ...prev,
-    ]);
-    setSelectedIds((prev) => prev.filter((id) => !ids.includes(id)));
-    toast.success(`${ids.length}건 발송 완료되었습니다.`);
+    try {
+      for (const id of ids) {
+        const { error } = await supabase
+          .from("recommission_reports")
+          .update({ is_sent: true, sent_at: now })
+          .eq("id", id);
+
+        if (error) {
+          toast.error("발송 실패: " + error.message);
+        } else {
+          successCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(`${successCount}건 발송 완료되었습니다.`);
+        setSelectedIds((prev) => prev.filter((id) => !ids.includes(id)));
+        await loadReports();
+      }
+    } finally {
+      setSendingIds([]);
+    }
   };
 
-  const displayItems = useMemo(
-    () => (activeTab === "pending" ? pendingItems : sentItems),
-    [activeTab, pendingItems, sentItems],
-  );
+  const handleSendOne = async (report: SendReport) => {
+    await sendReports([report.id]);
+  };
 
   return (
     <div className="space-y-4">
@@ -147,7 +147,7 @@ export function SendContent() {
             )}
           >
             발송 대기
-            {pendingCount > 0 && (
+            {pendingItems.length > 0 && (
               <span
                 className={cn(
                   "ml-1.5 rounded-full px-1.5 py-0.5 text-xs",
@@ -156,7 +156,7 @@ export function SendContent() {
                     : "bg-amber-100 text-amber-700",
                 )}
               >
-                {pendingCount}
+                {pendingItems.length}
               </span>
             )}
           </button>
@@ -170,7 +170,7 @@ export function SendContent() {
                 : "text-slate-600 hover:bg-slate-50",
             )}
           >
-            발송 완료 내역
+            발송 완료
             <span
               className={cn(
                 "ml-1.5 rounded-full px-1.5 py-0.5 text-xs",
@@ -179,7 +179,7 @@ export function SendContent() {
                   : "bg-slate-100 text-slate-600",
               )}
             >
-              {sentCount}
+              {sentItems.length}
             </span>
           </button>
         </div>
@@ -188,8 +188,8 @@ export function SendContent() {
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => sendItems(selectedIds)}
-              disabled={selectedIds.length === 0}
+              onClick={() => sendReports(selectedIds)}
+              disabled={selectedIds.length === 0 || sendingIds.length > 0}
               className="inline-flex items-center gap-2 rounded-lg border border-[#4f6ef7] bg-white px-4 py-2.5 text-sm font-semibold text-[#4f6ef7] transition-colors hover:bg-[rgba(79,110,247,0.06)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Send className="size-4" />
@@ -197,8 +197,8 @@ export function SendContent() {
             </button>
             <button
               type="button"
-              onClick={() => sendItems(pendingItems.map((item) => item.id))}
-              disabled={pendingItems.length === 0}
+              onClick={() => sendReports(pendingItems.map((item) => item.id))}
+              disabled={pendingItems.length === 0 || sendingIds.length > 0}
               className="inline-flex items-center gap-2 rounded-lg bg-[#4f6ef7] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Mail className="size-4" />
@@ -226,11 +226,14 @@ export function SendContent() {
                 )}
                 <th className="px-5 py-3 font-medium text-slate-600">업체명</th>
                 <th className="px-5 py-3 font-medium text-slate-600">신고서</th>
-                <th className="px-5 py-3 font-medium text-slate-600">
-                  발송 대상 이메일
+                <th className="px-5 py-3 text-right font-medium text-slate-600">
+                  총금액
                 </th>
-                <th className="px-5 py-3 font-medium text-slate-600">상태</th>
-                {activeTab === "sent" && (
+                {activeTab === "pending" ? (
+                  <th className="px-5 py-3 text-center font-medium text-slate-600">
+                    발송
+                  </th>
+                ) : (
                   <th className="px-5 py-3 font-medium text-slate-600">
                     발송일시
                   </th>
@@ -238,10 +241,19 @@ export function SendContent() {
               </tr>
             </thead>
             <tbody>
-              {displayItems.length === 0 ? (
+              {isLoading ? (
                 <tr>
                   <td
-                    colSpan={activeTab === "pending" ? 5 : 5}
+                    colSpan={activeTab === "pending" ? 5 : 4}
+                    className="px-5 py-12 text-center text-sm text-slate-500"
+                  >
+                    불러오는 중...
+                  </td>
+                </tr>
+              ) : displayItems.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={activeTab === "pending" ? 5 : 4}
                     className="px-5 py-12 text-center text-sm text-slate-500"
                   >
                     {activeTab === "pending"
@@ -265,23 +277,34 @@ export function SendContent() {
                           checked={selectedIds.includes(item.id)}
                           onChange={() => toggleSelect(item.id)}
                           className="size-4 rounded border-slate-300 accent-[#4f6ef7]"
-                          aria-label={`${item.reportTitle} 선택`}
+                          aria-label={`${item.title} 선택`}
                         />
                       </td>
                     )}
                     <td className="px-5 py-3.5 font-medium text-slate-900">
-                      {item.company}
+                      {item.companyName || "-"}
                     </td>
                     <td className="px-5 py-3.5 text-slate-700">
-                      {item.reportTitle}
+                      {item.title || "-"}
                     </td>
-                    <td className="px-5 py-3.5 text-slate-600">{item.email}</td>
-                    <td className="px-5 py-3.5">
-                      <StatusBadge status={item.status} />
+                    <td className="px-5 py-3.5 text-right font-medium text-slate-900">
+                      {formatWon(item.totalAmount)}
                     </td>
-                    {activeTab === "sent" && (
+                    {activeTab === "pending" ? (
+                      <td className="px-5 py-3.5 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleSendOne(item)}
+                          disabled={sendingIds.includes(item.id)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-[#4f6ef7] px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <Send className="size-3.5" />
+                          {sendingIds.includes(item.id) ? "발송 중..." : "발송"}
+                        </button>
+                      </td>
+                    ) : (
                       <td className="px-5 py-3.5 text-slate-600">
-                        {item.sentAt ?? "-"}
+                        {item.sentAt || "-"}
                       </td>
                     )}
                   </tr>

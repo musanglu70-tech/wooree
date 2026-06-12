@@ -1,129 +1,259 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Play, Search } from "lucide-react";
+import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 
-type ProgressTab = "all" | "sent" | "contract" | "pending";
+type StatusFilter = "all" | "pending" | "processing" | "sent" | "error";
 
-interface ProgressItem {
+interface AutomationTask {
   id: string;
-  company: string;
-  pharma: string;
-  status: "발송완료" | "계약진행" | "서류미제출";
-  updatedAt: string;
-  manager: string;
+  companyName: string;
+  prescriptionMonth: string;
+  status: string;
+  createdAt: string;
+  sentAt: string;
 }
 
-const MOCK_ITEMS: ProgressItem[] = [
-  {
-    id: "1",
-    company: "우리메디텍",
-    pharma: "위더스제약",
-    status: "발송완료",
-    updatedAt: "2026-06-08",
-    manager: "김영수",
-  },
-  {
-    id: "2",
-    company: "우리메디텍",
-    pharma: "(주)테라벤이븐스",
-    status: "계약진행",
-    updatedAt: "2026-06-07",
-    manager: "이민정",
-  },
-  {
-    id: "3",
-    company: "우리메디텍",
-    pharma: "대웅바이오(주)",
-    status: "서류미제출",
-    updatedAt: "2026-06-06",
-    manager: "박지훈",
-  },
-  {
-    id: "4",
-    company: "우리메디텍",
-    pharma: "경동제약(주)",
-    status: "발송완료",
-    updatedAt: "2026-06-05",
-    manager: "김영수",
-  },
-  {
-    id: "5",
-    company: "우리메디텍",
-    pharma: "한화제약(주)",
-    status: "계약진행",
-    updatedAt: "2026-06-04",
-    manager: "최수연",
-  },
-  {
-    id: "6",
-    company: "우리메디텍",
-    pharma: "동광제약(주)",
-    status: "서류미제출",
-    updatedAt: "2026-06-03",
-    manager: "이민정",
-  },
+const STATUS_TABS: {
+  id: StatusFilter;
+  label: string;
+  value?: string;
+}[] = [
+  { id: "all", label: "전체" },
+  { id: "pending", label: "대기", value: "pending" },
+  { id: "processing", label: "처리중", value: "processing" },
+  { id: "sent", label: "완료", value: "sent" },
+  { id: "error", label: "오류", value: "error" },
 ];
 
-const TABS: { id: ProgressTab; label: string; status?: ProgressItem["status"] }[] =
-  [
-    { id: "all", label: "전체" },
-    { id: "sent", label: "발송완료", status: "발송완료" },
-    { id: "contract", label: "계약진행", status: "계약진행" },
-    { id: "pending", label: "서류미제출", status: "서류미제출" },
-  ];
+const STATUS_LABEL: Record<string, string> = {
+  pending: "대기",
+  processing: "처리중",
+  sent: "완료",
+  error: "오류",
+};
 
 const inputClassName =
   "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
-function StatusBadge({ status }: { status: ProgressItem["status"] }) {
-  const styles: Record<ProgressItem["status"], string> = {
-    발송완료: "bg-emerald-50 text-emerald-700",
-    계약진행: "bg-[rgba(79,110,247,0.12)] text-[#4f6ef7]",
-    서류미제출: "bg-amber-50 text-amber-700",
+function toStr(value: unknown): string {
+  return value == null ? "" : String(value);
+}
+
+function normalizeRow(row: Record<string, unknown>): AutomationTask {
+  const company = row.companies as { name?: string } | null;
+  const month = toStr(row.prescription_month ?? row.prescription_date);
+
+  return {
+    id: toStr(row.id),
+    companyName: toStr(company?.name ?? row.company_name),
+    prescriptionMonth: month.length >= 7 ? month.slice(0, 7) : month,
+    status: toStr(row.status),
+    createdAt: toStr(row.created_at).slice(0, 16).replace("T", " "),
+    sentAt: toStr(row.sent_at).slice(0, 16).replace("T", " "),
+  };
+}
+
+function formatMonthLabel(month: string) {
+  if (!month) return "-";
+  const [year, mon] = month.split("-");
+  return mon ? `${year}년 ${mon}월` : month;
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const label = STATUS_LABEL[status] ?? status ?? "-";
+  const styles: Record<string, string> = {
+    pending: "bg-amber-50 text-amber-700",
+    processing: "bg-[rgba(79,110,247,0.12)] text-[#4f6ef7]",
+    sent: "bg-emerald-50 text-emerald-700",
+    error: "bg-red-50 text-red-600",
   };
 
   return (
     <span
       className={cn(
         "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
-        styles[status],
+        styles[status] ?? "bg-slate-100 text-slate-600",
       )}
     >
-      {status}
+      {label}
     </span>
   );
 }
 
+function currentMonth(): string {
+  return new Date().toISOString().slice(0, 7);
+}
+
 export function ProgressContent() {
-  const [activeTab, setActiveTab] = useState<ProgressTab>("all");
+  const supabase = useMemo(() => createClient(), []);
+
+  const [tasks, setTasks] = useState<AutomationTask[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
+  const [prescriptionMonth, setPrescriptionMonth] = useState(currentMonth);
+
+  const loadTasks = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("automation_tasks")
+      .select("*, companies(name)")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      toast.error("작업 목록을 불러오지 못했습니다: " + error.message);
+      setTasks([]);
+    } else {
+      setTasks(
+        ((data as Record<string, unknown>[]) ?? []).map(normalizeRow),
+      );
+    }
+    setIsLoading(false);
+  }, [supabase]);
+
+  useEffect(() => {
+    loadTasks();
+  }, [loadTasks]);
 
   const tabCounts = useMemo(() => {
-    const counts = { all: MOCK_ITEMS.length, sent: 0, contract: 0, pending: 0 };
-    for (const item of MOCK_ITEMS) {
-      if (item.status === "발송완료") counts.sent++;
-      if (item.status === "계약진행") counts.contract++;
-      if (item.status === "서류미제출") counts.pending++;
-    }
+    const counts: Record<StatusFilter, number> = {
+      all: tasks.length,
+      pending: 0,
+      processing: 0,
+      sent: 0,
+      error: 0,
+    };
+    tasks.forEach((task) => {
+      if (task.status === "pending") counts.pending++;
+      if (task.status === "processing") counts.processing++;
+      if (task.status === "sent") counts.sent++;
+      if (task.status === "error") counts.error++;
+    });
     return counts;
-  }, []);
+  }, [tasks]);
 
   const filteredItems = useMemo(() => {
-    const tab = TABS.find((t) => t.id === activeTab);
-    return MOCK_ITEMS.filter((item) => {
-      if (tab?.status && item.status !== tab.status) return false;
-      if (appliedSearch && !item.company.includes(appliedSearch)) return false;
+    const tab = STATUS_TABS.find((t) => t.id === activeTab);
+    return tasks.filter((item) => {
+      if (tab?.value && item.status !== tab.value) return false;
+      if (appliedSearch && !item.companyName.includes(appliedSearch)) {
+        return false;
+      }
       return true;
     });
-  }, [activeTab, appliedSearch]);
+  }, [tasks, activeTab, appliedSearch]);
+
+  const handleGenerate = async () => {
+    if (!prescriptionMonth) {
+      toast.error("처방월을 선택해주세요.");
+      return;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      const { data: companies, error: companyError } = await supabase
+        .from("companies")
+        .select("id, name")
+        .order("name", { ascending: true });
+
+      if (companyError) {
+        toast.error("업체 목록을 불러오지 못했습니다: " + companyError.message);
+        return;
+      }
+
+      const companyList = companies ?? [];
+      if (companyList.length === 0) {
+        toast.error("등록된 업체가 없습니다.");
+        return;
+      }
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const company of companyList) {
+        const { data: task, error: insertError } = await supabase
+          .from("automation_tasks")
+          .insert({
+            company_id: company.id,
+            prescription_month: `${prescriptionMonth}-01`,
+            status: "pending",
+          })
+          .select("id")
+          .single();
+
+        if (insertError || !task) {
+          failCount++;
+          continue;
+        }
+
+        const response = await fetch("/api/automation/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ taskId: task.id }),
+        });
+
+        if (!response.ok) {
+          const result = (await response.json()) as { message?: string };
+          toast.error(
+            `${company.name}: ${result.message ?? "신고서 생성 실패"}`,
+          );
+          failCount++;
+        } else {
+          successCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        toast.success(
+          `${successCount}개 업체 재위탁 신고서 생성이 완료되었습니다.`,
+        );
+      }
+      if (failCount > 0 && successCount === 0) {
+        toast.error("신고서 생성에 실패했습니다.");
+      }
+
+      await loadTasks();
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
-      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {TABS.map((tab) => (
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[180px]">
+            <label className="mb-1.5 block text-xs font-medium text-slate-700">
+              처방월
+            </label>
+            <input
+              type="month"
+              value={prescriptionMonth}
+              onChange={(e) => setPrescriptionMonth(e.target.value)}
+              className={inputClassName}
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#4f6ef7] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Play className="size-4" />
+            {isGenerating ? "생성 중..." : "재위탁 신고서 생성"}
+          </button>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+        {STATUS_TABS.map((tab) => (
           <button
             key={tab.id}
             type="button"
@@ -179,18 +309,23 @@ export function ProgressContent() {
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
                 <th className="px-5 py-3 font-medium text-slate-600">업체명</th>
-                <th className="px-5 py-3 font-medium text-slate-600">제약사</th>
+                <th className="px-5 py-3 font-medium text-slate-600">처방월</th>
                 <th className="px-5 py-3 font-medium text-slate-600">상태</th>
-                <th className="px-5 py-3 font-medium text-slate-600">
-                  담당자
-                </th>
-                <th className="px-5 py-3 font-medium text-slate-600">
-                  최종 업데이트
-                </th>
+                <th className="px-5 py-3 font-medium text-slate-600">생성일</th>
+                <th className="px-5 py-3 font-medium text-slate-600">완료일</th>
               </tr>
             </thead>
             <tbody>
-              {filteredItems.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-5 py-12 text-center text-sm text-slate-500"
+                  >
+                    불러오는 중...
+                  </td>
+                </tr>
+              ) : filteredItems.length === 0 ? (
                 <tr>
                   <td
                     colSpan={5}
@@ -209,19 +344,19 @@ export function ProgressContent() {
                     )}
                   >
                     <td className="px-5 py-3.5 font-medium text-slate-900">
-                      {item.company}
+                      {item.companyName || "-"}
                     </td>
                     <td className="px-5 py-3.5 text-slate-700">
-                      {item.pharma}
+                      {formatMonthLabel(item.prescriptionMonth)}
                     </td>
                     <td className="px-5 py-3.5">
                       <StatusBadge status={item.status} />
                     </td>
-                    <td className="px-5 py-3.5 text-slate-700">
-                      {item.manager}
+                    <td className="px-5 py-3.5 text-slate-600">
+                      {item.createdAt || "-"}
                     </td>
                     <td className="px-5 py-3.5 text-slate-600">
-                      {item.updatedAt}
+                      {item.sentAt || "-"}
                     </td>
                   </tr>
                 ))
