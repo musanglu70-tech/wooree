@@ -26,6 +26,8 @@ interface Product {
   pharmaCompanyId: string;
   pharmaName: string;
   unitPrice: number;
+  commissionRate: number;
+  extraCommissionRate: number;
   isActive: boolean;
 }
 
@@ -34,6 +36,8 @@ interface ProductForm {
   productName: string;
   pharmaCompanyId: string;
   unitPrice: string;
+  commissionRate: string;
+  extraCommissionRate: string;
   isActive: boolean;
 }
 
@@ -42,6 +46,8 @@ const EMPTY_FORM: ProductForm = {
   productName: "",
   pharmaCompanyId: "",
   unitPrice: "0",
+  commissionRate: "0",
+  extraCommissionRate: "0",
   isActive: true,
 };
 
@@ -59,6 +65,10 @@ function toNumber(value: unknown): number {
   return Number.isFinite(num) ? num : 0;
 }
 
+function formatRate(value: number): string {
+  return `${value}%`;
+}
+
 function normalizeRow(row: Record<string, unknown>): Product {
   const pharma = row.pharma_companies as { id?: string; name?: string } | null;
   return {
@@ -68,6 +78,8 @@ function normalizeRow(row: Record<string, unknown>): Product {
     pharmaCompanyId: toStr(row.pharma_company_id ?? pharma?.id),
     pharmaName: toStr(pharma?.name),
     unitPrice: toNumber(row.unit_price ?? row.price),
+    commissionRate: toNumber(row.commission_rate),
+    extraCommissionRate: toNumber(row.extra_commission_rate),
     isActive: row.is_active !== false && row.is_active !== "false",
   };
 }
@@ -113,7 +125,9 @@ export function ProductsContent() {
       const [productsResult, pharmaResult] = await Promise.all([
         supabase
           .from("products")
-          .select("*, pharma_companies(id, name)")
+          .select(
+            "id, insurance_code, name, pharma_company_id, unit_price, commission_rate, extra_commission_rate, is_active, pharma_companies(id, name)",
+          )
           .order("name", { ascending: true }),
         supabase
           .from("pharma_companies")
@@ -185,6 +199,8 @@ export function ProductsContent() {
       productName: product.productName,
       pharmaCompanyId: product.pharmaCompanyId,
       unitPrice: String(product.unitPrice),
+      commissionRate: String(product.commissionRate),
+      extraCommissionRate: String(product.extraCommissionRate),
       isActive: product.isActive,
     });
     setIsModalOpen(true);
@@ -213,6 +229,8 @@ export function ProductsContent() {
         name: form.productName.trim(),
         pharma_company_id: form.pharmaCompanyId || null,
         unit_price: Number(form.unitPrice) || 0,
+        commission_rate: Number(form.commissionRate) || 0,
+        extra_commission_rate: Number(form.extraCommissionRate) || 0,
         is_active: form.isActive,
       };
 
@@ -297,7 +315,7 @@ export function ProductsContent() {
 
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left text-sm">
+          <table className="w-full min-w-[1100px] text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
                 <th className="px-5 py-3 font-medium text-slate-600">
@@ -307,6 +325,12 @@ export function ProductsContent() {
                 <th className="px-5 py-3 font-medium text-slate-600">제약사</th>
                 <th className="px-5 py-3 text-right font-medium text-slate-600">
                   단가
+                </th>
+                <th className="px-5 py-3 text-right font-medium text-slate-600">
+                  제약수수료율
+                </th>
+                <th className="px-5 py-3 text-right font-medium text-slate-600">
+                  추가수수료율
                 </th>
                 <th className="px-5 py-3 font-medium text-slate-600">
                   활성여부
@@ -320,7 +344,7 @@ export function ProductsContent() {
               {isLoading ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={8}
                     className="px-5 py-12 text-center text-sm text-slate-500"
                   >
                     불러오는 중...
@@ -329,7 +353,7 @@ export function ProductsContent() {
               ) : paginatedProducts.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={8}
                     className="px-5 py-12 text-center text-sm text-slate-500"
                   >
                     {appliedSearch
@@ -358,6 +382,12 @@ export function ProductsContent() {
                     </td>
                     <td className="px-5 py-3.5 text-right tabular-nums text-slate-700">
                       {product.unitPrice.toLocaleString("ko-KR")}원
+                    </td>
+                    <td className="px-5 py-3.5 text-right tabular-nums text-slate-700">
+                      {formatRate(product.commissionRate)}
+                    </td>
+                    <td className="px-5 py-3.5 text-right tabular-nums text-slate-700">
+                      {formatRate(product.extraCommissionRate)}
                     </td>
                     <td className="px-5 py-3.5">
                       <span
@@ -517,6 +547,33 @@ export function ProductsContent() {
                   value={form.unitPrice}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, unitPrice: e.target.value }))
+                  }
+                  className={inputClassName}
+                />
+              </FormField>
+              <FormField label="제약수수료율 (%)">
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={form.commissionRate}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, commissionRate: e.target.value }))
+                  }
+                  className={inputClassName}
+                />
+              </FormField>
+              <FormField label="추가수수료율 (%)">
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={form.extraCommissionRate}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      extraCommissionRate: e.target.value,
+                    }))
                   }
                   className={inputClassName}
                 />
