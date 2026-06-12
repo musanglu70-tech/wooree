@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Eye, Search } from "lucide-react";
 import { toast } from "sonner";
 import { formatWon } from "@/lib/edi/constants";
@@ -94,6 +95,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export function EdiListContent() {
+  const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
   const [items, setItems] = useState<EdiListItem[]>([]);
@@ -329,9 +331,7 @@ export function EdiListContent() {
                     <td className="px-5 py-3.5 text-center">
                       <button
                         type="button"
-                        onClick={() =>
-                          toast.info(`상세보기: ${item.hospital} (준비 중)`)
-                        }
+                        onClick={() => router.push(`/edi/${item.id}`)}
                         className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
                       >
                         <Eye className="size-3.5" />
