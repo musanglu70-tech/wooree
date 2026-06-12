@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { CheckCheck, PenLine, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { CheckCheck, PenLine, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 
 type NoticeTab = "unread" | "read";
@@ -13,106 +14,186 @@ interface Notice {
   content: string;
   category: string;
   createdAt: string;
-  isRead: boolean;
+  isConfirmed: boolean;
 }
 
-const INITIAL_NOTICES: Notice[] = [
-  {
-    id: "1",
-    title: "6월 정산 일정 안내",
-    content: "6월 정산 마감일은 6월 20일입니다. 기한 내 제출 부탁드립니다.",
-    category: "정산",
-    createdAt: "2026-06-08 09:30",
-    isRead: false,
-  },
-  {
-    id: "2",
-    title: "EDI 입력 양식 업데이트",
-    content: "신규 EDI 엑셀 양식이 업데이트되었습니다. 양식 다운로드 후 사용해주세요.",
-    category: "EDI",
-    createdAt: "2026-06-07 14:15",
-    isRead: false,
-  },
-  {
-    id: "3",
-    title: "시스템 점검 안내",
-    content: "6월 10일 02:00~04:00 시스템 점검이 예정되어 있습니다.",
-    category: "시스템",
-    createdAt: "2026-06-06 11:00",
-    isRead: false,
-  },
-  {
-    id: "4",
-    title: "위더스제약 단가 변경 공지",
-    content: "위더스제약 3개 품목의 단가가 6월 1일부터 변경됩니다.",
-    category: "제약사",
-    createdAt: "2026-06-05 16:40",
-    isRead: true,
-  },
-  {
-    id: "5",
-    title: "재위탁 신고 마감 안내",
-    content: "5월분 재위탁 신고 마감일이 6월 15일입니다.",
-    category: "재위탁",
-    createdAt: "2026-06-04 10:20",
-    isRead: true,
-  },
-  {
-    id: "6",
-    title: "신규 제약사 등록",
-    content: "건일바이오팜주식회사가 신규 등록되었습니다.",
-    category: "제약사",
-    createdAt: "2026-06-03 09:00",
-    isRead: true,
-  },
-  {
-    id: "7",
-    title: "OCR 기능 개선 안내",
-    content: "OCR 인식 정확도가 개선되었습니다.",
-    category: "시스템",
-    createdAt: "2026-06-01 13:30",
-    isRead: true,
-  },
-];
+interface NoticeForm {
+  title: string;
+  content: string;
+  category: string;
+}
+
+const EMPTY_FORM: NoticeForm = { title: "", content: "", category: "일반" };
+
+const CATEGORIES = ["일반", "정산", "EDI", "제약사", "재위탁", "시스템"];
+
+const inputClassName =
+  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
+
+function toStr(value: unknown): string {
+  return value == null ? "" : String(value);
+}
+
+function normalizeRow(row: Record<string, unknown>): Notice {
+  return {
+    id: toStr(row.id),
+    title: toStr(row.title),
+    content: toStr(row.content ?? row.body),
+    category: toStr(row.category ?? row.type),
+    createdAt: toStr(row.created_at).slice(0, 16).replace("T", " "),
+    isConfirmed: Boolean(row.is_confirmed ?? row.is_read),
+  };
+}
 
 export function NoticesContent() {
-  const [notices, setNotices] = useState(INITIAL_NOTICES);
+  const supabase = useMemo(() => createClient(), []);
+
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<NoticeTab>("unread");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [form, setForm] = useState<NoticeForm>(EMPTY_FORM);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const loadNotices = useMemo(
+    () => async () => {
+      const { data, error } = await supabase
+        .from("notices")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        toast.error("공지를 불러오지 못했습니다: " + error.message);
+        setNotices([]);
+      } else {
+        setNotices(
+          ((data as Record<string, unknown>[]) ?? []).map(normalizeRow),
+        );
+      }
+      setIsLoading(false);
+    },
+    [supabase],
+  );
+
+  useEffect(() => {
+    loadNotices();
+  }, [loadNotices]);
 
   const filteredNotices = useMemo(() => {
     return notices.filter((n) =>
-      activeTab === "unread" ? !n.isRead : n.isRead,
+      activeTab === "unread" ? !n.isConfirmed : n.isConfirmed,
     );
   }, [notices, activeTab]);
 
-  const unreadCount = notices.filter((n) => !n.isRead).length;
+  const unreadCount = notices.filter((n) => !n.isConfirmed).length;
 
-  const markAllRead = () => {
-    setNotices((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  const handleConfirm = async (notice: Notice) => {
+    const { error } = await supabase
+      .from("notices")
+      .update({ is_confirmed: true })
+      .eq("id", notice.id);
+
+    if (error) {
+      toast.error("확인 처리 실패: " + error.message);
+      return;
+    }
+
+    setNotices((prev) =>
+      prev.map((n) => (n.id === notice.id ? { ...n, isConfirmed: true } : n)),
+    );
+    toast.success("확인 처리되었습니다.");
+  };
+
+  const markAllConfirmed = async () => {
+    if (unreadCount === 0) {
+      toast.info("미확인 공지가 없습니다.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("notices")
+      .update({ is_confirmed: true })
+      .eq("is_confirmed", false);
+
+    if (error) {
+      toast.error("전체 확인 처리 실패: " + error.message);
+      return;
+    }
+
+    setNotices((prev) => prev.map((n) => ({ ...n, isConfirmed: true })));
     toast.success("모든 공지를 확인 처리했습니다.");
   };
 
-  const deleteAll = () => {
-    setNotices((prev) =>
-      activeTab === "unread"
-        ? prev.filter((n) => n.isRead)
-        : [],
-    );
-    toast.success(
-      activeTab === "unread"
-        ? "미확인 공지를 모두 삭제했습니다."
-        : "확인한 공지를 모두 삭제했습니다.",
-    );
+  const deleteAll = async () => {
+    if (notices.length === 0) {
+      toast.info("삭제할 공지가 없습니다.");
+      return;
+    }
+    if (
+      !window.confirm(
+        `전체 공지 ${notices.length}건을 삭제하시겠습니까?\n삭제 후에는 복구할 수 없습니다.`,
+      )
+    ) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("notices")
+      .delete()
+      .not("id", "is", null);
+
+    if (error) {
+      toast.error("전체 삭제 실패: " + error.message);
+      return;
+    }
+
+    setNotices([]);
+    toast.success("전체 공지를 삭제했습니다.");
   };
 
-  const toggleRead = (id: string) => {
-    setNotices((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: !n.isRead } : n)),
-    );
+  const openCreateModal = () => {
+    setForm(EMPTY_FORM);
+    setIsModalOpen(true);
   };
 
-  const handleCreate = () => {
-    toast.info("공지 작성 기능은 준비 중입니다.");
+  const closeModal = () => {
+    if (isSaving) return;
+    setIsModalOpen(false);
+  };
+
+  const handleCreate = async () => {
+    if (!form.title.trim()) {
+      toast.error("제목을 입력해주세요.");
+      return;
+    }
+    if (!form.content.trim()) {
+      toast.error("내용을 입력해주세요.");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const { error } = await supabase.from("notices").insert({
+        title: form.title.trim(),
+        content: form.content.trim(),
+        category: form.category,
+        is_confirmed: false,
+      });
+
+      if (error) {
+        toast.error("공지 등록 실패: " + error.message);
+        return;
+      }
+
+      toast.success("공지가 등록되었습니다.");
+      setIsModalOpen(false);
+      setActiveTab("unread");
+      await loadNotices();
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -160,7 +241,7 @@ export function NoticesContent() {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={markAllRead}
+            onClick={markAllConfirmed}
             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
           >
             <CheckCheck className="size-4" />
@@ -176,7 +257,7 @@ export function NoticesContent() {
           </button>
           <button
             type="button"
-            onClick={handleCreate}
+            onClick={openCreateModal}
             className="inline-flex items-center gap-1.5 rounded-lg bg-[#4f6ef7] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
           >
             <PenLine className="size-4" />
@@ -200,7 +281,16 @@ export function NoticesContent() {
               </tr>
             </thead>
             <tbody>
-              {filteredNotices.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-5 py-12 text-center text-sm text-slate-500"
+                  >
+                    불러오는 중...
+                  </td>
+                </tr>
+              ) : filteredNotices.length === 0 ? (
                 <tr>
                   <td
                     colSpan={5}
@@ -218,16 +308,16 @@ export function NoticesContent() {
                     className={cn(
                       "border-b border-slate-100 last:border-b-0",
                       index % 2 === 1 && "bg-slate-50/40",
-                      !notice.isRead && "bg-[rgba(79,110,247,0.03)]",
+                      !notice.isConfirmed && "bg-[rgba(79,110,247,0.03)]",
                     )}
                   >
                     <td className="px-5 py-3.5">
                       <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-                        {notice.category}
+                        {notice.category || "일반"}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 font-medium text-slate-900">
-                      {!notice.isRead && (
+                      {!notice.isConfirmed && (
                         <span className="mr-1.5 inline-block size-1.5 rounded-full bg-[#4f6ef7]" />
                       )}
                       {notice.title}
@@ -236,16 +326,20 @@ export function NoticesContent() {
                       {notice.content}
                     </td>
                     <td className="px-5 py-3.5 text-slate-600">
-                      {notice.createdAt}
+                      {notice.createdAt || "-"}
                     </td>
                     <td className="px-5 py-3.5 text-center">
-                      <button
-                        type="button"
-                        onClick={() => toggleRead(notice.id)}
-                        className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
-                      >
-                        {notice.isRead ? "미확인으로" : "확인"}
-                      </button>
+                      {notice.isConfirmed ? (
+                        <span className="text-xs text-slate-400">확인됨</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleConfirm(notice)}
+                          className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                        >
+                          확인
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -254,6 +348,100 @@ export function NoticesContent() {
           </table>
         </div>
       </section>
+
+      {/* 공지 작성 모달 */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+          onClick={closeModal}
+        >
+          <div
+            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="text-base font-semibold text-slate-900">
+                공지 작성
+              </h2>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                aria-label="닫기"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-slate-700">
+                  구분
+                </label>
+                <select
+                  value={form.category}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, category: e.target.value }))
+                  }
+                  className={inputClassName}
+                >
+                  {CATEGORIES.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-slate-700">
+                  제목 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  value={form.title}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, title: e.target.value }))
+                  }
+                  placeholder="공지 제목"
+                  className={inputClassName}
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-slate-700">
+                  내용 <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={form.content}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, content: e.target.value }))
+                  }
+                  placeholder="공지 내용"
+                  rows={4}
+                  className={cn(inputClassName, "resize-none")}
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeModal}
+                disabled={isSaving}
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 disabled:opacity-50"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleCreate}
+                disabled={isSaving}
+                className="inline-flex h-10 items-center justify-center rounded-lg bg-[#4f6ef7] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSaving ? "등록 중..." : "등록"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
