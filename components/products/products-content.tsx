@@ -26,8 +26,8 @@ interface Product {
   pharmaCompanyId: string;
   pharmaName: string;
   unitPrice: number;
-  commissionRate: number | null;
-  extraCommissionRate: number | null;
+  commission_rate: number | null;
+  extra_commission_rate: number | null;
   isActive: boolean;
 }
 
@@ -69,11 +69,6 @@ function toNumber(value: unknown): number | null {
   return Number.isFinite(num) ? num : null;
 }
 
-function formatRate(value: number | null): string {
-  if (value == null) return "-";
-  return `${value}%`;
-}
-
 function normalizeRow(row: Record<string, unknown>): Product {
   const pharma = row.pharma_companies as { id?: string; name?: string } | null;
   return {
@@ -83,8 +78,8 @@ function normalizeRow(row: Record<string, unknown>): Product {
     pharmaCompanyId: toStr(row.pharma_company_id ?? pharma?.id),
     pharmaName: toStr(pharma?.name),
     unitPrice: toNumber(row.unit_price ?? row.price) ?? 0,
-    commissionRate: toNumber(row.commission_rate),
-    extraCommissionRate: toNumber(row.extra_commission_rate),
+    commission_rate: toNumber(row.commission_rate),
+    extra_commission_rate: toNumber(row.extra_commission_rate),
     isActive: row.is_active !== false && row.is_active !== "false",
   };
 }
@@ -130,7 +125,9 @@ export function ProductsContent() {
       const [productsResult, pharmaResult] = await Promise.all([
         supabase
           .from("products")
-          .select("*, pharma_companies(id, name)")
+          .select(
+            "id, insurance_code, name, pharma_company_id, unit_price, commission_rate, extra_commission_rate, is_active, pharma_companies(id, name)",
+          )
           .order("name", { ascending: true }),
         supabase
           .from("pharma_companies")
@@ -203,10 +200,10 @@ export function ProductsContent() {
       pharmaCompanyId: product.pharmaCompanyId,
       unitPrice: String(product.unitPrice),
       commissionRate:
-        product.commissionRate != null ? String(product.commissionRate) : "",
+        product.commission_rate != null ? String(product.commission_rate) : "",
       extraCommissionRate:
-        product.extraCommissionRate != null
-          ? String(product.extraCommissionRate)
+        product.extra_commission_rate != null
+          ? String(product.extra_commission_rate)
           : "",
       isActive: product.isActive,
     });
@@ -391,10 +388,14 @@ export function ProductsContent() {
                       {product.unitPrice.toLocaleString("ko-KR")}원
                     </td>
                     <td className="min-w-[96px] whitespace-nowrap px-5 py-3.5 text-right tabular-nums text-slate-700">
-                      {formatRate(product.commissionRate)}
+                      {product.commission_rate != null
+                        ? `${product.commission_rate}%`
+                        : "-"}
                     </td>
                     <td className="min-w-[96px] whitespace-nowrap px-5 py-3.5 text-right tabular-nums text-slate-700">
-                      {formatRate(product.extraCommissionRate)}
+                      {product.extra_commission_rate != null
+                        ? `${product.extra_commission_rate}%`
+                        : "-"}
                     </td>
                     <td className="px-5 py-3.5">
                       <span
