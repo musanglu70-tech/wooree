@@ -24,9 +24,7 @@ function toStr(value: unknown): string {
 
 function normalizeRow(row: Record<string, unknown>): SettlementFile {
   const pharma = row.pharma_companies as { name?: string } | null;
-  const month = toStr(
-    row.settlement_month ?? row.month ?? row.settlement_date,
-  );
+  const month = toStr(row.settlement_month);
 
   return {
     id: toStr(row.id),
@@ -34,9 +32,7 @@ function normalizeRow(row: Record<string, unknown>): SettlementFile {
     filePath: toStr(row.file_path ?? row.path ?? row.storage_path),
     pharma: toStr(pharma?.name ?? row.pharma_company_name ?? row.pharma_name),
     month: month.length >= 7 ? month.slice(0, 7) : month,
-    uploadedAt: toStr(row.created_at ?? row.uploaded_at)
-      .slice(0, 16)
-      .replace("T", " "),
+    uploadedAt: toStr(row.uploaded_at).slice(0, 16).replace("T", " "),
     status: toStr(row.status),
   };
 }
@@ -80,8 +76,8 @@ export function ByPharmaContent() {
     () => async () => {
       const { data, error } = await supabase
         .from("settlement_files")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*, pharma_companies(name)")
+        .order("uploaded_at", { ascending: false });
 
       if (error) {
         toast.error("정산자료를 불러오지 못했습니다: " + error.message);
