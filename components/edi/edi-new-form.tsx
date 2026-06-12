@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Download,
+  Loader2,
   Plus,
   RotateCcw,
   Save,
@@ -17,6 +18,7 @@ import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 import { ProductCodeInput } from "@/components/edi/product-code-input";
 import { createRxRow, rowAmount, type RxRow, type RxType } from "@/types/edi";
+import type { OcrPrescriptionResult } from "@/types/ocr";
 
 interface PharmaCompany {
   id: string;
@@ -25,6 +27,54 @@ interface PharmaCompany {
 
 function monthToDate(month: string): string | null {
   return month ? `${month}-01` : null;
+}
+
+function readFileAsBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== "string") {
+        reject(new Error("파일을 읽을 수 없습니다."));
+        return;
+      }
+      const base64 = result.split(",")[1];
+      if (!base64) {
+        reject(new Error("파일 인코딩에 실패했습니다."));
+        return;
+      }
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error("파일을 읽을 수 없습니다."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function buildRowsFromOcrItems(
+  items: OcrPrescriptionResult["items"],
+): RxRow[] {
+  if (items.length === 0) {
+    return Array.from({ length: 5 }, createRxRow);
+  }
+
+  const mapped = items.map((item) => {
+    const quantity = item.quantity || 1;
+    const unitPrice =
+      item.amount > 0 ? Math.round(item.amount / quantity) : 0;
+
+    return {
+      ...createRxRow(),
+      code: item.code,
+      name: item.name,
+      price: String(unitPrice),
+      inN: String(quantity),
+      outN: "0",
+      type: "처방" as RxType,
+    };
+  });
+
+  if (mapped.length >= 5) return mapped;
+  return [...mapped, ...Array.from({ length: 5 - mapped.length }, createRxRow)];
 }
 
 const CARD =
@@ -60,6 +110,8 @@ export function EdiNewForm() {
   const [excelPharma, setExcelPharma] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
   const [ocrFiles, setOcrFiles] = useState<File[]>([]);
+  const [isOcrLoading, setIsOcrLoading] = useState(false);
+  const [ocrPreview, setOcrPreview] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const ocrInputRef = useRef<HTMLInputElement>(null);
@@ -120,7 +172,69 @@ export function EdiNewForm() {
 
   const resetOcr = () => {
     setOcrFiles([]);
+    setOcrPreview("");
     if (ocrInputRef.current) ocrInputRef.current.value = "";
+  };
+
+  const applyOcrResult = (result: OcrPrescriptionResult) => {
+    if (result.hospitalName) {
+      setHospitalName(result.hospitalName);
+    }
+
+    if (result.prescriptionDate) {
+      setPrescriptionMonth(result.prescriptionDate.slice(0, 7));
+    }
+
+    const memoParts: string[] = [];
+    if (result.patientName) memoParts.push(`환자: ${result.patientName}`);
+    if (result.doctorName) memoParts.push(`의사: ${result.doctorName}`);
+    if (memoParts.length > 0) {
+      setMemo(memoParts.join(" / "));
+    }
+
+    setRows(buildRowsFromOcrItems(result.items));
+    setOcrPreview(result.rawText.slice(0, 500));
+  };
+
+  const handleRunOcr = async () => {
+    if (ocrFiles.length === 0) {
+      toast.error("처방전 파일을 선택해주세요.");
+      return;
+    }
+
+    setIsOcrLoading(true);
+
+    try {
+      const file = ocrFiles[0];
+      const imageBase64 = await readFileAsBase64(file);
+
+      const response = await fetch("/api/ocr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageBase64,
+          mimeType: file.type || "image/jpeg",
+        }),
+      });
+
+      const result = (await response.json()) as OcrPrescriptionResult & {
+        message?: string;
+      };
+
+      if (!response.ok) {
+        toast.error(result.message ?? "OCR 처리에 실패했습니다.");
+        return;
+      }
+
+      applyOcrResult(result);
+      toast.success("처방전 정보가 자동 입력되었습니다.");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "OCR 처리 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsOcrLoading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -217,7 +331,106 @@ export function EdiNewForm() {
 
   return (
     <div className="space-y-4">
-      {/* 1. 엑셀 일괄 업로드 */}
+      {/* 1. 처방전 OCR 자동입력 */}
+      <section className={CARD}>
+        <h2 className="mb-1 text-sm font-semibold text-slate-900">
+          처방전 사진 업로드 (OCR 자동입력)
+        </h2>
+        <p className="mb-4 text-xs text-slate-500">
+          처방전 이미지 또는 PDF를 업로드하면 Google Vision OCR로 정보를
+          추출합니다.
+        </p>
+
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => !isOcrLoading && ocrInputRef.current?.click()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") ocrInputRef.current?.click();
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragOver(true);
+          }}
+          onDragLeave={() => setIsDragOver(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragOver(false);
+            handleOcrFiles(e.dataTransfer.files);
+          }}
+          className={cn(
+            "cursor-pointer rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors",
+            isDragOver
+              ? "border-[#4f6ef7] bg-[rgba(79,110,247,0.06)]"
+              : "border-slate-200 bg-slate-50 hover:border-[#4f6ef7] hover:bg-[rgba(79,110,247,0.04)]",
+            isOcrLoading && "pointer-events-none opacity-60",
+          )}
+        >
+          <Upload className="mx-auto mb-2 size-8 text-[#4f6ef7]" />
+          <p className="text-sm text-slate-700">
+            클릭하거나 파일을 드래그하세요
+          </p>
+          <p className="mt-1 text-xs text-slate-400">
+            이미지(JPG, PNG), PDF 지원
+          </p>
+          {ocrFiles.length > 0 && (
+            <p className="mt-3 text-xs font-medium text-[#4f6ef7]">
+              {ocrFiles[0].name}
+              {ocrFiles.length > 1 ? ` 외 ${ocrFiles.length - 1}개` : ""}
+            </p>
+          )}
+        </div>
+        <input
+          ref={ocrInputRef}
+          type="file"
+          accept="image/*,.pdf,application/pdf"
+          className="hidden"
+          onChange={(e) => handleOcrFiles(e.target.files)}
+        />
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleRunOcr}
+            disabled={isOcrLoading || ocrFiles.length === 0}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#4f6ef7] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isOcrLoading ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Scan className="size-3.5" />
+            )}
+            {isOcrLoading ? "OCR 처리 중..." : "업로드 및 OCR 실행"}
+          </button>
+          <button
+            type="button"
+            onClick={resetOcr}
+            disabled={isOcrLoading}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-slate-300 disabled:opacity-50"
+          >
+            <RotateCcw className="size-3.5" />
+            초기화
+          </button>
+        </div>
+
+        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500">
+          {isOcrLoading ? (
+            <span className="inline-flex items-center gap-2">
+              <Loader2 className="size-3.5 animate-spin text-[#4f6ef7]" />
+              처방전을 분석하고 있습니다...
+            </span>
+          ) : ocrPreview ? (
+            <pre className="max-h-32 overflow-auto whitespace-pre-wrap text-slate-600">
+              {ocrPreview}
+              {ocrPreview.length >= 500 ? "..." : ""}
+            </pre>
+          ) : (
+            "OCR 결과가 여기에 표시됩니다. 추출된 데이터는 아래 폼에 자동 입력됩니다."
+          )}
+        </div>
+      </section>
+
+      {/* 2. 엑셀 일괄 업로드 */}
       <section className={CARD}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -264,7 +477,7 @@ export function EdiNewForm() {
         </div>
       </section>
 
-      {/* 2. 기본 정보 */}
+      {/* 3. 기본 정보 */}
       <section className={CARD}>
         <h2 className="mb-4 text-sm font-semibold text-slate-900">기본 정보</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -324,86 +537,6 @@ export function EdiNewForm() {
               onChange={(e) => setSettlementMonth(e.target.value)}
             />
           </div>
-        </div>
-      </section>
-
-      {/* 3. OCR 자동입력 */}
-      <section className={CARD}>
-        <h2 className="mb-1 text-sm font-semibold text-slate-900">
-          OCR 자동입력
-        </h2>
-        <p className="mb-4 text-xs text-slate-500">
-          이미지/PDF 업로드 → 처방입력 자동 추출
-        </p>
-
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => ocrInputRef.current?.click()}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") ocrInputRef.current?.click();
-          }}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragOver(true);
-          }}
-          onDragLeave={() => setIsDragOver(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsDragOver(false);
-            handleOcrFiles(e.dataTransfer.files);
-          }}
-          className={cn(
-            "cursor-pointer rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors",
-            isDragOver
-              ? "border-[#4f6ef7] bg-[rgba(79,110,247,0.06)]"
-              : "border-slate-200 bg-slate-50 hover:border-[#4f6ef7] hover:bg-[rgba(79,110,247,0.04)]",
-          )}
-        >
-          <Upload className="mx-auto mb-2 size-8 text-[#4f6ef7]" />
-          <p className="text-sm text-slate-700">
-            클릭하거나 파일을 드래그하세요
-          </p>
-          <p className="mt-1 text-xs text-slate-400">
-            이미지(JPG, PNG), PDF 지원 · 여러 장 동시 가능
-          </p>
-          {ocrFiles.length > 0 && (
-            <p className="mt-3 text-xs font-medium text-[#4f6ef7]">
-              {ocrFiles.length}개 파일 선택됨
-            </p>
-          )}
-        </div>
-        <input
-          ref={ocrInputRef}
-          type="file"
-          accept="image/*,.pdf"
-          multiple
-          className="hidden"
-          onChange={(e) => handleOcrFiles(e.target.files)}
-        />
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => toast.info("OCR 실행은 서버 연동 후 사용 가능합니다.")}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#4f6ef7] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
-          >
-            <Scan className="size-3.5" />
-            OCR 실행
-          </button>
-          <button
-            type="button"
-            onClick={resetOcr}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-slate-300"
-          >
-            <RotateCcw className="size-3.5" />
-            초기화
-          </button>
-        </div>
-
-        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500">
-          OCR 결과가 여기에 표시됩니다. 추출된 데이터는 아래 테이블에 자동
-          입력됩니다.
         </div>
       </section>
 

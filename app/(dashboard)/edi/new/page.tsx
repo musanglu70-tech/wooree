@@ -9,7 +9,7 @@ export default function EdiNewPage() {
             신규 입력
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            EDI 처방 데이터를 수기 입력하거나 엑셀·OCR로 등록합니다.
+            처방전 OCR 자동입력, 엑셀 업로드 또는 수기 입력으로 등록합니다.
           </p>
         </header>
 
