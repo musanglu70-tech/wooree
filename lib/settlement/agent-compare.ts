@@ -87,13 +87,16 @@ export function buildCompareRow(params: {
 } {
   const { ediAmount, settlementAmount, commissionRate } = params;
   const expectedCommission = Math.round((ediAmount * commissionRate) / 100);
-  const differenceAmount = ediAmount - settlementAmount;
+  const differenceAmount =
+    settlementAmount > 0 ? expectedCommission - settlementAmount : 0;
 
-  let matchStatus: SettlementMatchStatus = "mismatch";
+  let matchStatus: SettlementMatchStatus = "pending";
   if (settlementAmount <= 0) {
     matchStatus = "pending";
   } else if (Math.abs(differenceAmount) < 1) {
     matchStatus = "matched";
+  } else {
+    matchStatus = "mismatch";
   }
 
   return { expectedCommission, differenceAmount, matchStatus };

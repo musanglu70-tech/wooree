@@ -221,10 +221,29 @@ export function AgentContent() {
 
     void init();
 
+    const channel = supabase
+      .channel("settlement-agent-live")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "settlement_agent_conditions" },
+        () => {
+          void loadConditions();
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "settlement_results" },
+        () => {
+          void loadCompareResults(compareMonth);
+        },
+      )
+      .subscribe();
+
     return () => {
       active = false;
+      void supabase.removeChannel(channel);
     };
-  }, [supabase, compareMonth, loadCompareResults]);
+  }, [supabase, compareMonth, loadConditions, loadCompareResults]);
 
   const openAddModal = () => {
     setEditingId(null);
@@ -361,7 +380,9 @@ export function AgentContent() {
       const body = (await response.json()) as {
         message?: string;
         summary?: SettlementCompareSummary;
-        results?: SettlementCompareResult[];
+        results?: Array<
+          SettlementCompareResult & { conditionLabel?: string }
+        >;
       };
 
       if (!response.ok) {
@@ -369,8 +390,25 @@ export function AgentContent() {
         return;
       }
 
-      setSummary(body.summary ?? null);
-      setCompareResults(body.results ?? []);
+      if (body.summary) setSummary(body.summary);
+      if (body.results?.length) {
+        setCompareResults(
+          body.results.map((row) => ({
+            id: row.id,
+            conditionId: row.conditionId,
+            companyName: row.companyName,
+            pharmaName: row.pharmaName,
+            conditionType: row.conditionType,
+            commissionRate: row.commissionRate,
+            ediAmount: row.ediAmount,
+            settlementAmount: row.settlementAmount,
+            expectedCommission: row.expectedCommission,
+            differenceAmount: row.differenceAmount,
+            matchStatus: row.matchStatus,
+            comparedAt: row.comparedAt,
+          })),
+        );
+      }
       toast.success("AI 대조가 완료되었습니다.");
       await loadCompareResults(compareMonth);
     } catch (error) {
@@ -507,13 +545,14 @@ export function AgentContent() {
           <div>
             <h2 className="text-sm font-semibold text-slate-900">AI 자동 대조</h2>
             <p className="mt-1 text-xs text-slate-500">
-              활성 조건 기준으로 EDI 처방금액과 제약사 정산자료를 비교합니다
+              활성 조건 기준으로 처방월 EDI 금액과 제약사 정산파일 수수료를
+              비교합니다
             </p>
           </div>
           <div className="flex flex-wrap items-end gap-2">
             <div>
               <label className="mb-1.5 block text-xs font-medium text-slate-700">
-                정산월
+                처방월
               </label>
               <input
                 type="month"
@@ -578,10 +617,10 @@ export function AgentContent() {
                   EDI 금액
                 </th>
                 <th className="px-4 py-3 text-right font-medium text-slate-600">
-                  정산 금액
+                  예상 수수료
                 </th>
                 <th className="px-4 py-3 text-right font-medium text-slate-600">
-                  예상 수수료
+                  정산파일 금액
                 </th>
                 <th className="px-4 py-3 text-right font-medium text-slate-600">
                   차액
@@ -614,13 +653,13 @@ export function AgentContent() {
                     <td className="px-4 py-3 text-right tabular-nums">
                       {formatWon(row.ediAmount)}
                     </td>
+                    <td className="px-4 py-3 text-right tabular-nums text-[#4f6ef7]">
+                      {formatWon(row.expectedCommission)}
+                    </td>
                     <td className="px-4 py-3 text-right tabular-nums">
                       {row.settlementAmount > 0
                         ? formatWon(row.settlementAmount)
                         : "-"}
-                    </td>
-                    <td className="px-4 py-3 text-right tabular-nums text-[#4f6ef7]">
-                      {formatWon(row.expectedCommission)}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">
                       <span

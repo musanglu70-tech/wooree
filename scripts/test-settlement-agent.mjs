@@ -24,11 +24,12 @@ if (rx !== 54900) throw new Error("prescription_amount");
 
 const matched = buildCompareRow({
   ediAmount: 100000,
-  settlementAmount: 100000,
+  settlementAmount: 12000,
   commissionRate: 12,
 });
 if (matched.matchStatus !== "matched") throw new Error("matched status");
 if (matched.expectedCommission !== 12000) throw new Error("commission");
+if (matched.differenceAmount !== 0) throw new Error("difference");
 
 const pending = buildCompareRow({
   ediAmount: 100000,
