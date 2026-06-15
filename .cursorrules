@@ -167,4 +167,7 @@ toast.error('오류가 발생했습니다.')
 - 환경변수 하드코딩 금지
 - 클라이언트 컴포넌트에서 직접 Supabase admin 키 사용 금지
 - CSS 모듈 파일 새로 생성 금지 (Tailwind 사용)
-cursorrules.txt 표시 중입니다.
+
+## Git 규칙
+- 코드 수정 완료 후 항상 자동으로 git add, commit, push까지 실행
+- "push할까요?" 같은 확인 없이 바로 실행
