@@ -8,6 +8,7 @@ export interface OcrPrescriptionItem {
   totalAmount: number;
   unit: string;
   prescriptionCount: number;
+  needsReview?: boolean;
 }
 
 export interface OcrPrescriptionResult {
