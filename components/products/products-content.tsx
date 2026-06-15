@@ -180,6 +180,9 @@ export function ProductsContent() {
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
+  const rangeStart =
+    filteredProducts.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(currentPage * PAGE_SIZE, filteredProducts.length);
 
   const handleSearch = () => {
     setAppliedSearch(searchInput);
@@ -436,16 +439,11 @@ export function ProductsContent() {
           </table>
         </div>
 
-        <div className="flex items-center justify-between border-t border-slate-200 px-5 py-4">
-          <p className="text-xs text-slate-500">
-            전체 {filteredProducts.length}건 중{" "}
-            {filteredProducts.length === 0
-              ? 0
-              : (currentPage - 1) * PAGE_SIZE + 1}
-            –{Math.min(currentPage * PAGE_SIZE, filteredProducts.length)}건
-            표시
+        <div className="space-y-3 border-t border-slate-200 px-5 py-4">
+          <p className="whitespace-nowrap text-xs text-slate-500">
+            {`전체 ${filteredProducts.length.toLocaleString("ko-KR")}건 중 ${rangeStart}-${rangeEnd}건 표시`}
           </p>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center justify-end gap-1 overflow-x-auto pb-1">
             <button
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
