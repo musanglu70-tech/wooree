@@ -7,6 +7,8 @@ export interface RxRow {
   inN: string;
   outN: string;
   type: RxType;
+  commissionRate: number | null;
+  extraCommissionRate: number | null;
 }
 
 export function createRxRow(): RxRow {
@@ -17,6 +19,8 @@ export function createRxRow(): RxRow {
     inN: "0",
     outN: "0",
     type: "처방",
+    commissionRate: null,
+    extraCommissionRate: null,
   };
 }
 

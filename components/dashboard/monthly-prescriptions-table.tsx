@@ -50,12 +50,16 @@ function normalizeRow(row: Record<string, unknown>): MonthlyPrescriptionRow {
   return {
     id: toStr(row.id ?? row.prescription_id ?? crypto.randomUUID()),
     month: toMonth(
-      row.month ?? row.prescription_month ?? row.prescription_date,
+      row.prescription_month ?? row.month ?? row.prescription_date,
     ),
-    pharma: toStr(row.pharma_company_name ?? row.pharma_name ?? row.pharma),
+    pharma: toStr(
+      row.pharma_company_name ?? row.pharma_name ?? row.pharma ?? row.company_name,
+    ),
     company: toStr(row.company_name ?? row.company),
-    hospital: toStr(row.hospital_name ?? row.hospital),
-    amount: toNumber(row.total_amount ?? row.amount),
+    hospital: toStr(row.hospital_name ?? row.hospital ?? row.client),
+    amount: toNumber(
+      row.total_amount ?? row.amount ?? row.prescription_amount ?? row.sum_amount,
+    ),
     status: toStr(row.status),
   };
 }
@@ -90,6 +94,7 @@ export function MonthlyPrescriptionsTable() {
     supabase
       .from("v_monthly_prescriptions")
       .select("*")
+      .order("created_at", { ascending: false })
       .limit(10)
       .then(({ data, error }) => {
         if (!active) return;

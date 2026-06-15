@@ -77,14 +77,17 @@ function toNumber(value: unknown): number {
   return Number.isFinite(num) ? num : 0;
 }
 
-function normalizeStats(row: Record<string, unknown>): VDashboardStats {
+function normalizeStats(
+  row: Record<string, unknown>,
+  confirmedNotices = 0,
+): VDashboardStats {
   return {
-    unread_notices: toNumber(row.unread_notices ?? row.unconfirmed_notices),
-    confirmed_notices: toNumber(row.confirmed_notices),
+    unread_notices: toNumber(row.unconfirmed_notices ?? row.unread_notices),
+    confirmed_notices: toNumber(row.confirmed_notices ?? confirmedNotices),
     registered_hospitals: toNumber(row.registered_hospitals),
     registered_pharma: toNumber(row.registered_pharma),
     total_edi_count: toNumber(row.total_edi_count),
-    monthly_edi_count: toNumber(row.monthly_edi_count ?? row.this_month_edi),
+    monthly_edi_count: toNumber(row.this_month_edi ?? row.monthly_edi_count),
   };
 }
 
@@ -96,21 +99,29 @@ export function StatsCards() {
   useEffect(() => {
     let active = true;
 
-    supabase
-      .from("v_dashboard_stats")
-      .select("*")
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (!active) return;
-        if (error) {
-          toast.error("대시보드 통계를 불러오지 못했습니다: " + error.message);
-          setStats(DEFAULT_DASHBOARD_STATS);
-        } else if (!data) {
-          setStats(DEFAULT_DASHBOARD_STATS);
-        } else {
-          setStats(normalizeStats(data as Record<string, unknown>));
-        }
-      });
+    Promise.all([
+      supabase.from("v_dashboard_stats").select("*").maybeSingle(),
+      supabase
+        .from("notices")
+        .select("*", { count: "exact", head: true })
+        .eq("is_confirmed", true),
+    ]).then(([statsRes, confirmedRes]) => {
+      if (!active) return;
+
+      const { data, error } = statsRes;
+      const confirmedCount = confirmedRes.count ?? 0;
+
+      if (error) {
+        toast.error("대시보드 통계를 불러오지 못했습니다: " + error.message);
+        setStats(DEFAULT_DASHBOARD_STATS);
+      } else if (!data) {
+        setStats(normalizeStats({}, confirmedCount));
+      } else {
+        setStats(
+          normalizeStats(data as Record<string, unknown>, confirmedCount),
+        );
+      }
+    });
 
     return () => {
       active = false;

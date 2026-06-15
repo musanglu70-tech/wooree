@@ -618,12 +618,22 @@ export function EdiNewForm() {
                     <td className="px-1 py-1">
                       <ProductCodeInput
                         value={row.code}
-                        onChange={(code) => updateRow(index, { code })}
+                        onChange={(code) =>
+                          updateRow(index, {
+                            code,
+                            commissionRate: null,
+                            extraCommissionRate: null,
+                          })
+                        }
+                        commissionRate={row.commissionRate}
+                        extraCommissionRate={row.extraCommissionRate}
                         onSelect={(product) =>
                           updateRow(index, {
                             code: product.insuranceCode,
                             name: product.productName,
                             price: String(product.unitPrice),
+                            commissionRate: product.commissionRate,
+                            extraCommissionRate: product.extraCommissionRate,
                           })
                         }
                         className={tableInputClassName}
