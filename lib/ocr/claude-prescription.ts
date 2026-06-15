@@ -1,11 +1,21 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { OcrPrescriptionItem, OcrPrescriptionResult } from "@/types/ocr";
 
-/** Sonnet 우선, 실패 시 Haiku로 폴백 */
+/** Sonnet 우선, 실패 시 Haiku로 폴백 (2026-06 기준 활성 모델) */
 const CLAUDE_MODELS = [
-  "claude-3-5-sonnet-20241022",
-  "claude-3-haiku-20240307",
+  "claude-sonnet-4-6",
+  "claude-haiku-4-5-20251001",
 ] as const;
+
+function sanitizeBase64(data: string): string {
+  const trimmed = data.trim();
+  const commaIndex = trimmed.indexOf(",");
+  const raw =
+    trimmed.startsWith("data:") && commaIndex >= 0
+      ? trimmed.slice(commaIndex + 1)
+      : trimmed;
+  return raw.replace(/\s/g, "");
+}
 
 const EXTRACTION_PROMPT = `다음 의약품 관련 문서 이미지에서 데이터를 추출해주세요.
 처방전, 제약사 청구서, 병원 프로그램 화면 등 어떤 형식이든 인식하세요.
@@ -236,7 +246,8 @@ export async function extractPrescriptionWithClaude(
   }
 
   const client = new Anthropic({ apiKey });
-  const mediaBlock = buildMediaBlock(imageBase64, mimeType);
+  const cleanBase64 = sanitizeBase64(imageBase64);
+  const mediaBlock = buildMediaBlock(cleanBase64, mimeType);
 
   let response: Anthropic.Message | null = null;
   let lastError: unknown;
@@ -271,6 +282,7 @@ export async function extractPrescriptionWithClaude(
           type: error.type,
         });
         if (error.status === 404) continue;
+        if (error.status === 400 && /model/i.test(error.message)) continue;
       } else {
         console.error(`[OCR] Claude API 오류 (${model}):`, error);
       }
