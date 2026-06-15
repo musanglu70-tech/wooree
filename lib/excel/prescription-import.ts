@@ -168,5 +168,3 @@ export function countFilledPrescriptionRows(rows: RxRow[]): number {
     );
   }).length;
 }
-
-const TEMPLATE_HEADERS = [
