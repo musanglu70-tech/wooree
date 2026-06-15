@@ -50,6 +50,35 @@ function readFileAsBase64(file: File): Promise<string> {
   });
 }
 
+function findPharmaCompanyId(
+  name: string,
+  companies: PharmaCompany[],
+): string {
+  const trimmed = name.trim();
+  if (!trimmed) return "";
+
+  const normalize = (value: string) =>
+    value
+      .replace(/\s/g, "")
+      .replace(/^\(?주\)?|\(유\)/gi, "")
+      .toLowerCase();
+
+  const target = normalize(trimmed);
+
+  for (const company of companies) {
+    const candidate = normalize(company.name);
+    if (
+      candidate === target ||
+      candidate.includes(target) ||
+      target.includes(candidate)
+    ) {
+      return company.id;
+    }
+  }
+
+  return "";
+}
+
 function buildRowsFromOcrItems(
   items: OcrPrescriptionResult["items"],
 ): RxRow[] {
@@ -58,15 +87,47 @@ function buildRowsFromOcrItems(
   }
 
   const mapped = items.map((item) => {
+    const isPharmaFormat =
+      item.prescriptionCount > 0 &&
+      item.unitPrice > 0 &&
+      item.totalUsage > 0 &&
+      item.totalAmount > 0;
+
+    if (isPharmaFormat) {
+      return {
+        ...createRxRow(),
+        code: item.code,
+        name: item.name,
+        unit: item.unit,
+        prescriptionCount: String(item.prescriptionCount),
+        price: String(item.unitPrice),
+        totalUsage: String(item.totalUsage),
+        totalAmount: String(item.totalAmount),
+        inN: String(item.prescriptionCount),
+        outN: "0",
+        type: "처방" as RxType,
+      };
+    }
+
     const quantity = item.quantity || 1;
     const unitPrice =
-      item.amount > 0 ? Math.round(item.amount / quantity) : 0;
+      item.unitPrice > 0
+        ? item.unitPrice
+        : item.amount > 0
+          ? Math.round(item.amount / quantity)
+          : 0;
 
     return {
       ...createRxRow(),
       code: item.code,
       name: item.name,
+      unit: item.unit,
+      prescriptionCount: item.prescriptionCount
+        ? String(item.prescriptionCount)
+        : "0",
       price: String(unitPrice),
+      totalUsage: String(item.totalUsage || quantity),
+      totalAmount: String(item.totalAmount || item.amount),
       inN: String(quantity),
       outN: "0",
       type: "처방" as RxType,
@@ -181,6 +242,24 @@ export function EdiNewForm() {
       setHospitalName(result.hospitalName);
     }
 
+    if (result.pharmaCompanyName) {
+      const pharmaId = findPharmaCompanyId(
+        result.pharmaCompanyName,
+        pharmaCompanies,
+      );
+      if (pharmaId) {
+        setPharmaCompanyId(pharmaId);
+      } else {
+        toast.info(
+          `제약사 "${result.pharmaCompanyName}"를 목록에서 찾지 못했습니다. 직접 선택해주세요.`,
+        );
+      }
+    }
+
+    if (result.businessNumber) {
+      setBusinessNumber(result.businessNumber);
+    }
+
     if (result.prescriptionDate) {
       setPrescriptionMonth(result.prescriptionDate.slice(0, 7));
     }
@@ -291,6 +370,8 @@ export function EdiNewForm() {
           (row) =>
             row.name.trim() !== "" ||
             Number(row.price) > 0 ||
+            Number(row.totalUsage) > 0 ||
+            Number(row.totalAmount) > 0 ||
             Number(row.inN) > 0 ||
             Number(row.outN) > 0,
         )
@@ -555,7 +636,7 @@ export function EdiNewForm() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[880px] border-collapse text-xs">
+          <table className="w-full min-w-[1200px] border-collapse text-xs">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
                 <th className="w-16 px-2 py-2.5" />
@@ -568,8 +649,20 @@ export function EdiNewForm() {
                 <th className="px-2 py-2.5 text-left font-medium text-slate-500">
                   제품명
                 </th>
+                <th className="px-2 py-2.5 text-left font-medium text-slate-500">
+                  단위
+                </th>
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
+                  처방횟수
+                </th>
                 <th className="px-2 py-2.5 text-right font-medium text-slate-500">
                   단가
+                </th>
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
+                  총사용량
+                </th>
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
+                  총금액
                 </th>
                 <th className="px-2 py-2.5 text-right font-medium text-slate-500">
                   원내수량
@@ -646,7 +739,28 @@ export function EdiNewForm() {
                           updateRow(index, { name: e.target.value })
                         }
                         placeholder="제품명"
-                        className={cn(tableInputClassName, "min-w-[150px]")}
+                        className={cn(tableInputClassName, "min-w-[120px]")}
+                      />
+                    </td>
+                    <td className="px-1 py-1">
+                      <input
+                        value={row.unit}
+                        onChange={(e) =>
+                          updateRow(index, { unit: e.target.value })
+                        }
+                        placeholder="1캡슐"
+                        className={cn(tableInputClassName, "min-w-[56px]")}
+                      />
+                    </td>
+                    <td className="px-1 py-1">
+                      <input
+                        value={row.prescriptionCount}
+                        onChange={(e) =>
+                          updateRow(index, {
+                            prescriptionCount: e.target.value,
+                          })
+                        }
+                        className={cn(tableInputClassName, "text-right tabular-nums")}
                       />
                     </td>
                     <td className="px-1 py-1">
@@ -654,6 +768,24 @@ export function EdiNewForm() {
                         value={row.price}
                         onChange={(e) =>
                           updateRow(index, { price: e.target.value })
+                        }
+                        className={cn(tableInputClassName, "text-right tabular-nums")}
+                      />
+                    </td>
+                    <td className="px-1 py-1">
+                      <input
+                        value={row.totalUsage}
+                        onChange={(e) =>
+                          updateRow(index, { totalUsage: e.target.value })
+                        }
+                        className={cn(tableInputClassName, "text-right tabular-nums")}
+                      />
+                    </td>
+                    <td className="px-1 py-1">
+                      <input
+                        value={row.totalAmount}
+                        onChange={(e) =>
+                          updateRow(index, { totalAmount: e.target.value })
                         }
                         className={cn(tableInputClassName, "text-right tabular-nums")}
                       />
@@ -699,7 +831,7 @@ export function EdiNewForm() {
             </tbody>
             <tfoot>
               <tr className="bg-slate-50 font-semibold">
-                <td colSpan={8} className="px-2 py-2.5 text-right text-slate-600">
+                <td colSpan={12} className="px-2 py-2.5 text-right text-slate-600">
                   합계
                 </td>
                 <td className="px-2 py-2.5 text-right tabular-nums text-[#4f6ef7]">

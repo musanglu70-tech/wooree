@@ -3,6 +3,11 @@ export interface OcrPrescriptionItem {
   name: string;
   quantity: number;
   amount: number;
+  unitPrice: number;
+  totalUsage: number;
+  totalAmount: number;
+  unit: string;
+  prescriptionCount: number;
 }
 
 export interface OcrPrescriptionResult {
@@ -10,6 +15,8 @@ export interface OcrPrescriptionResult {
   doctorName: string;
   prescriptionDate: string;
   patientName: string;
+  pharmaCompanyName: string;
+  businessNumber: string;
   rawText: string;
   items: OcrPrescriptionItem[];
 }

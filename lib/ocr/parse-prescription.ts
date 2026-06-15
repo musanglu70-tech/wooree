@@ -7,8 +7,29 @@ const HOSPITAL_SUFFIX_REGEX =
 
 const HOSPITAL_LINE_REGEX = new RegExp(HOSPITAL_SUFFIX_REGEX.source);
 
+const UNIT_TOKEN_REGEX =
+  /^\d+(?:캡슐|정|병|포|매|개|시트|통|앰플|바이알|패치|크림|겔|현|관|pill|tab|cap)/i;
+
 const ITEM_SECTION_KEYWORDS =
-  /^(?:보험|EDI|코드|제품|약품|품명|수량|금액|단가|합계|총계|처방|조제|일수|횟수|용법|비고)/;
+  /^(?:보험|EDI|코드|제품|약품|품명|수량|금액|단가|합계|총계|처방|조제|일수|횟수|용법|비고|명칭|총사용량|총금액|청구코드|제약사별)/;
+
+const TABLE_HEADER_REGEX = /청구코드|명칭|처방횟수|총사용량|총금액/;
+
+const STAMP_HOSPITAL_REGEX =
+  /([\uAC00-\uD7A3A-Za-z0-9]+(?:의원|병원|클리닉|한의원))\s*([가-힣]{2,4})?[:：]?/g;
+
+interface ParsedTokens {
+  name: string;
+  unit: string;
+  numbers: number[];
+}
+
+interface PharmaNumericFields {
+  prescriptionCount: number;
+  unitPrice: number;
+  totalUsage: number;
+  totalAmount: number;
+}
 
 function normalizeDate(value: string): string {
   const match = value.match(
@@ -70,6 +91,17 @@ function extractHospitalName(text: string): {
   ]);
   if (labeled) return cleanHospitalName(labeled);
 
+  const stampMatches = [...text.matchAll(STAMP_HOSPITAL_REGEX)];
+  if (stampMatches.length > 0) {
+    const bestMatch =
+      stampMatches.find((match) => /\d/.test(match[1])) ?? stampMatches.at(-1);
+    if (bestMatch) {
+      return cleanHospitalName(
+        `${bestMatch[1]}${bestMatch[2] ? ` ${bestMatch[2]}` : ""}`,
+      );
+    }
+  }
+
   const line = text
     .split("\n")
     .map((value) => value.trim())
@@ -108,7 +140,48 @@ function extractPatientName(text: string): string {
   return match?.[1]?.trim() ?? "";
 }
 
+function extractPharmaCompanyName(text: string): string {
+  const explicitMatch = text.match(/제약사\s*[:：]\s*([^\n\r]+)/i);
+  if (explicitMatch?.[1]) return explicitMatch[1].trim();
+
+  const labeled = extractLabeledValue(text, [
+    "제약사명",
+    "공급업체",
+    "제조사",
+  ]);
+  if (labeled) return labeled.trim();
+
+  return "";
+}
+
+function extractBusinessNumber(text: string): string {
+  const labeled = extractLabeledValue(text, ["사업자", "사업자번호", "사업자등록번호"]);
+  if (labeled) {
+    const match = labeled.match(/\d{3}-\d{2}-\d{4,6}/);
+    if (match) return match[0];
+  }
+
+  const match = text.match(/\b(\d{3}-\d{2}-\d{4,6})\b/);
+  return match?.[1] ?? "";
+}
+
 function extractPrescriptionDate(text: string): string {
+  const inquiry = extractLabeledValue(text, [
+    "조회일",
+    "조회 일",
+    "청구월",
+    "정산월",
+    "처방월",
+  ]);
+  if (inquiry) {
+    const monthMatch = inquiry.match(/(\d{4})-(\d{2})-\d{2}/);
+    if (monthMatch) {
+      return `${monthMatch[1]}-${monthMatch[2]}-01`;
+    }
+    const normalized = normalizeDate(inquiry);
+    if (normalized) return normalized;
+  }
+
   const labeled = extractLabeledValue(text, [
     "처방일",
     "처방일자",
@@ -118,6 +191,13 @@ function extractPrescriptionDate(text: string): string {
   if (labeled) {
     const normalized = normalizeDate(labeled);
     if (normalized) return normalized;
+  }
+
+  const rangeMatch = text.match(
+    /(\d{4})-(\d{2})-\d{2}\s*[~～\-]\s*(\d{4})-(\d{2})-\d{2}/,
+  );
+  if (rangeMatch) {
+    return `${rangeMatch[1]}-${rangeMatch[2]}-01`;
   }
 
   const match = text.match(
@@ -138,50 +218,119 @@ function parseNumericToken(token: string): number | null {
   return Number.isFinite(num) ? num : null;
 }
 
+function isUnitToken(token: string): boolean {
+  return UNIT_TOKEN_REGEX.test(token);
+}
+
+function startsWithInsuranceCode(line: string): boolean {
+  const cleaned = line.replace(/^\d+[\.\)]\s*/, "").trim();
+  return /^\d{9}(?:\s|$)/.test(cleaned);
+}
+
+function isTableHeaderLine(line: string): boolean {
+  return TABLE_HEADER_REGEX.test(line);
+}
+
+function isSummaryOnlyLine(line: string): boolean {
+  const cleaned = line.replace(/^\d+[\.\)]\s*/, "").trim();
+  if (startsWithInsuranceCode(cleaned)) return false;
+  if (/[\uAC00-\uD7A3]/.test(cleaned)) return false;
+
+  return /^[\d,\s.]+$/.test(cleaned);
+}
+
 function isItemContinuationLine(line: string): boolean {
   if (!line) return false;
   if (INSURANCE_CODE_REGEX.test(line)) return false;
   if (ITEM_SECTION_KEYWORDS.test(line)) return false;
   if (HOSPITAL_LINE_REGEX.test(line)) return false;
-  if (/^(?:환자|성명|처방일|조제일|발행일|의사|담당)/.test(line)) return false;
+  if (/^(?:환자|성명|처방일|조제일|발행일|의사|담당|제약사)/.test(line)) return false;
 
   return /[\uAC00-\uD7A3a-zA-Z]/.test(line) || /\d/.test(line);
 }
 
-function parseItemSegment(segment: string, code: string): OcrPrescriptionItem | null {
+function tokenizeItemSegment(segment: string, code: string): ParsedTokens {
   const normalized = segment
     .replace(INSURANCE_CODE_REGEX, " ")
     .replace(/^\d+[\.\)]\s*/, "")
     .replace(/\s+/g, " ")
     .trim();
 
-  if (!normalized) return null;
-
   const tokens = normalized.split(" ").filter(Boolean);
   const nameTokens: string[] = [];
+  let unit = "";
   const numbers: number[] = [];
+  const codeNumber = Number(code);
 
   for (const token of tokens) {
     const numeric = parseNumericToken(token);
-    if (numeric != null) {
+    if (numeric != null && numeric !== codeNumber) {
       numbers.push(numeric);
       continue;
     }
 
-    if (/[\uAC00-\uD7A3a-zA-Z]/.test(token)) {
+    if (numbers.length === 0 && isUnitToken(token)) {
+      unit = token;
+      continue;
+    }
+
+    if (numbers.length === 0 && /[\uAC00-\uD7A3a-zA-Z0-9]/.test(token)) {
       nameTokens.push(
         token.replace(/[^\uAC00-\uD7A3a-zA-Z0-9+\-()./%]/g, ""),
       );
     }
   }
 
-  const name = nameTokens.join(" ").trim();
+  return {
+    name: nameTokens.join(" ").trim(),
+    unit,
+    numbers,
+  };
+}
+
+function matchesPharmaAmount(fields: PharmaNumericFields): boolean {
+  return fields.unitPrice * fields.totalUsage === fields.totalAmount;
+}
+
+function extractPharmaFields(numbers: number[]): PharmaNumericFields | null {
+  if (numbers.length < 4) return null;
+
+  const lastFour = numbers.slice(-4);
+  const fields: PharmaNumericFields = {
+    prescriptionCount: lastFour[0],
+    unitPrice: lastFour[1],
+    totalUsage: lastFour[2],
+    totalAmount: lastFour[3],
+  };
+
+  if (matchesPharmaAmount(fields)) return fields;
+
+  if (numbers.length === 4) return null;
+
+  for (let index = 0; index <= numbers.length - 4; index += 1) {
+    const candidate: PharmaNumericFields = {
+      prescriptionCount: numbers[index],
+      unitPrice: numbers[index + 1],
+      totalUsage: numbers[index + 2],
+      totalAmount: numbers[index + 3],
+    };
+    if (matchesPharmaAmount(candidate)) return candidate;
+  }
+
+  return null;
+}
+
+function buildLegacyItem(
+  code: string,
+  name: string,
+  unit: string,
+  numbers: number[],
+): OcrPrescriptionItem | null {
   const codeNumber = Number(code);
+  const usableNumbers = numbers.filter((num) => num !== codeNumber);
 
   let quantity = 1;
   let amount = 0;
-
-  const usableNumbers = numbers.filter((num) => num !== codeNumber);
 
   if (usableNumbers.length >= 2) {
     quantity = usableNumbers[usableNumbers.length - 2];
@@ -195,6 +344,8 @@ function parseItemSegment(segment: string, code: string): OcrPrescriptionItem | 
   if (quantity <= 0) quantity = 1;
   if (amount === codeNumber) amount = 0;
 
+  const unitPrice = quantity > 0 && amount > 0 ? Math.round(amount / quantity) : 0;
+
   if (!name && amount === 0 && quantity <= 1) return null;
 
   return {
@@ -202,7 +353,44 @@ function parseItemSegment(segment: string, code: string): OcrPrescriptionItem | 
     name,
     quantity,
     amount,
+    unitPrice,
+    totalUsage: quantity,
+    totalAmount: amount,
+    unit,
+    prescriptionCount: 0,
   };
+}
+
+function buildPharmaItem(
+  code: string,
+  name: string,
+  unit: string,
+  fields: PharmaNumericFields,
+): OcrPrescriptionItem | null {
+  if (!name.trim() || fields.totalAmount === 0) return null;
+
+  return {
+    code,
+    name,
+    quantity: fields.totalUsage,
+    amount: fields.totalAmount,
+    unitPrice: fields.unitPrice,
+    totalUsage: fields.totalUsage,
+    totalAmount: fields.totalAmount,
+    unit,
+    prescriptionCount: fields.prescriptionCount,
+  };
+}
+
+function parseItemSegment(segment: string, code: string): OcrPrescriptionItem | null {
+  const { name, unit, numbers } = tokenizeItemSegment(segment, code);
+  const pharmaFields = extractPharmaFields(numbers);
+
+  if (pharmaFields) {
+    return buildPharmaItem(code, name, unit, pharmaFields);
+  }
+
+  return buildLegacyItem(code, name, unit, numbers);
 }
 
 function parseItems(text: string): OcrPrescriptionItem[] {
@@ -216,6 +404,10 @@ function parseItems(text: string): OcrPrescriptionItem[] {
 
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index].replace(/^\d+[\.\)]\s*/, "");
+    if (isTableHeaderLine(line)) continue;
+    if (isSummaryOnlyLine(line)) continue;
+    if (!startsWithInsuranceCode(line)) continue;
+
     const codeMatch = line.match(INSURANCE_CODE_REGEX);
     if (!codeMatch) continue;
 
@@ -256,6 +448,8 @@ export function parsePrescriptionText(text: string): OcrPrescriptionResult {
     doctorName: extractDoctorName(normalized, trailingDoctor),
     prescriptionDate: extractPrescriptionDate(normalized),
     patientName: extractPatientName(normalized),
+    pharmaCompanyName: extractPharmaCompanyName(normalized),
+    businessNumber: extractBusinessNumber(normalized),
     rawText: normalized,
     items: parseItems(normalized),
   };
