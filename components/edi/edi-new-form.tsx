@@ -43,8 +43,7 @@ function monthToDate(month: string): string | null {
   return month ? `${month}-01` : null;
 }
 
-
-function monthToDate(month: string): string | null {
+function findPharmaCompanyId(
   name: string,
   companies: PharmaCompany[],
 ): string {
