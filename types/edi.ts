@@ -13,6 +13,10 @@ export interface RxRow {
   type: RxType;
   commissionRate: number | null;
   extraCommissionRate: number | null;
+  /** 보험코드가 products 마스터에 없을 때 */
+  needsReview?: boolean;
+  /** products 마스터와 매칭됨 */
+  masterMatched?: boolean;
 }
 
 export function createRxRow(): RxRow {

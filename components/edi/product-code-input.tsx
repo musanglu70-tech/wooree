@@ -18,6 +18,7 @@ interface ProductCodeInputProps {
   onSelect: (product: ProductSuggestion) => void;
   commissionRate?: number | null;
   extraCommissionRate?: number | null;
+  needsReview?: boolean;
   className?: string;
 }
 
@@ -66,12 +67,29 @@ function toNumber(value: unknown): number {
   return Number.isFinite(num) ? num : 0;
 }
 
+function mapApiProduct(product: {
+  insurance_code: string;
+  name: string;
+  unit_price: number;
+  commission_rate: number | null;
+  extra_commission_rate: number | null;
+}): ProductSuggestion {
+  return {
+    insuranceCode: product.insurance_code,
+    productName: product.name,
+    unitPrice: product.unit_price,
+    commissionRate: product.commission_rate,
+    extraCommissionRate: product.extra_commission_rate,
+  };
+}
+
 export function ProductCodeInput({
   value,
   onChange,
   onSelect,
   commissionRate,
   extraCommissionRate,
+  needsReview,
   className,
 }: ProductCodeInputProps) {
   const supabase = useMemo(() => createClient(), []);
@@ -138,17 +156,24 @@ export function ProductCodeInput({
     const keyword = value.trim();
     if (!keyword) return;
 
-    const { data } = await supabase
-      .from("products")
-      .select(
-        "insurance_code, name, unit_price, commission_rate, extra_commission_rate",
-      )
-      .eq("insurance_code", keyword)
-      .eq("is_active", true)
-      .maybeSingle();
+    const response = await fetch(
+      `/api/products/by-code?code=${encodeURIComponent(keyword)}`,
+    );
 
-    if (data) {
-      onSelect(mapProductRow(data as Record<string, unknown>));
+    if (!response.ok) return;
+
+    const body = (await response.json()) as {
+      product?: {
+        insurance_code: string;
+        name: string;
+        unit_price: number;
+        commission_rate: number | null;
+        extra_commission_rate: number | null;
+      };
+    };
+
+    if (body.product) {
+      onSelect(mapApiProduct(body.product));
     }
   };
 
@@ -156,15 +181,30 @@ export function ProductCodeInput({
 
   return (
     <div ref={containerRef} className="relative flex items-center gap-1">
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => {
-          if (suggestions.length > 0) setIsOpen(true);
-        }}
-        onBlur={() => {
-          void tryExactMatch();
-        }}
+      <div
+        className={cn(
+          "relative flex min-w-0 flex-1 items-center rounded-md",
+          needsReview && "bg-amber-100 ring-1 ring-amber-300",
+        )}
+      >
+        {needsReview ? (
+          <span
+            className="pointer-events-none absolute left-1 text-amber-600"
+            title="확인필요"
+            aria-hidden
+          >
+            ⚠️
+          </span>
+        ) : null}
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => {
+            if (suggestions.length > 0) setIsOpen(true);
+          }}
+          onBlur={() => {
+            void tryExactMatch();
+          }}
         onKeyDown={(e) => {
           if (!isOpen || suggestions.length === 0) return;
           if (e.key === "ArrowDown") {
@@ -180,8 +220,13 @@ export function ProductCodeInput({
             setIsOpen(false);
           }
         }}
-        className={cn(className, rateLabel && "min-w-0 flex-1")}
-      />
+          className={cn(
+            className,
+            rateLabel && "min-w-0 flex-1",
+            needsReview && "pl-6",
+          )}
+        />
+      </div>
 
       {rateLabel ? (
         <span className="shrink-0 whitespace-nowrap text-[10px] font-medium text-[#c8a882]">

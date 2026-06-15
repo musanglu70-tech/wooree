@@ -23,7 +23,15 @@ import {
   parsePrescriptionExcel,
 } from "@/lib/excel/prescription-import";
 import { createRxRow, rowAmount, type RxRow, type RxType } from "@/types/edi";
+import {
+  buildOcrRunSummary,
+  countFileNeedsReview,
+  enrichRowsWithMaster,
+  isRowNeedsReview,
+  isRowZeroAmount,
+} from "@/lib/edi/ocr-master-match";
 import type { OcrPrescriptionResult } from "@/types/ocr";
+import type { OcrRunSummary } from "@/types/ocr-summary";
 
 interface PharmaCompany {
   id: string;
@@ -176,7 +184,7 @@ export function EdiNewForm() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [ocrFiles, setOcrFiles] = useState<File[]>([]);
   const [isOcrLoading, setIsOcrLoading] = useState(false);
-  const [ocrPreview, setOcrPreview] = useState("");
+  const [ocrSummary, setOcrSummary] = useState<OcrRunSummary | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isExcelUploading, setIsExcelUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -238,11 +246,16 @@ export function EdiNewForm() {
 
   const resetOcr = () => {
     setOcrFiles([]);
-    setOcrPreview("");
+    setOcrSummary(null);
     if (ocrInputRef.current) ocrInputRef.current.value = "";
   };
 
-  const applyOcrResult = (result: OcrPrescriptionResult) => {
+  const applyOcrHeaderFields = (
+    result: OcrPrescriptionResult,
+    isFirst: boolean,
+  ) => {
+    if (!isFirst) return;
+
     if (result.hospitalName) {
       setHospitalName(result.hospitalName);
     }
@@ -275,9 +288,6 @@ export function EdiNewForm() {
     if (memoParts.length > 0) {
       setMemo(memoParts.join(" / "));
     }
-
-    setRows(buildRowsFromOcrItems(result.items));
-    setOcrPreview(result.rawText.slice(0, 500));
   };
 
   const handleRunOcr = async () => {
@@ -287,31 +297,86 @@ export function EdiNewForm() {
     }
 
     setIsOcrLoading(true);
+    setOcrSummary(null);
 
     try {
-      const file = ocrFiles[0];
-      const imageBase64 = await readFileAsBase64(file);
+      const allRows: RxRow[] = [];
+      const fileResults: OcrRunSummary["files"] = [];
+      let resolvedPharmaId = pharmaCompanyId;
 
-      const response = await fetch("/api/ocr", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imageBase64,
-          mimeType: file.type || "image/jpeg",
-        }),
-      });
+      for (let index = 0; index < ocrFiles.length; index += 1) {
+        const file = ocrFiles[index];
+        const imageBase64 = await readFileAsBase64(file);
 
-      const result = (await response.json()) as OcrPrescriptionResult & {
-        message?: string;
-      };
+        const response = await fetch("/api/ocr", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            imageBase64,
+            mimeType: file.type || "image/jpeg",
+          }),
+        });
 
-      if (!response.ok) {
-        toast.error(result.message ?? "OCR 처리에 실패했습니다.");
+        const result = (await response.json()) as OcrPrescriptionResult & {
+          message?: string;
+        };
+
+        if (!response.ok) {
+          toast.error(
+            `[${index + 1}] ${file.name}: ${result.message ?? "OCR 처리에 실패했습니다."}`,
+          );
+          continue;
+        }
+
+        applyOcrHeaderFields(result, index === 0);
+
+        if (index === 0 && result.pharmaCompanyName) {
+          resolvedPharmaId =
+            findPharmaCompanyId(result.pharmaCompanyName, pharmaCompanies) ||
+            resolvedPharmaId;
+        }
+
+        const fileRows = buildRowsFromOcrItems(result.items);
+        allRows.push(...fileRows);
+
+        fileResults.push({
+          index: index + 1,
+          fileName: file.name,
+          extracted: result.items.length,
+          needsReview: 0,
+        });
+      }
+
+      if (allRows.length === 0) {
+        toast.error("추출된 처방 항목이 없습니다.");
         return;
       }
 
-      applyOcrResult(result);
-      toast.success("처방전 정보가 자동 입력되었습니다.");
+      const hasPharma = Boolean(resolvedPharmaId || pharmaCompanyId);
+      const { rows: enrichedRows, master } = await enrichRowsWithMaster(
+        allRows,
+        { hasPharma },
+      );
+
+      let rowOffset = 0;
+      const enrichedFileResults = fileResults.map((file) => {
+        const slice = enrichedRows.slice(rowOffset, rowOffset + file.extracted);
+        rowOffset += file.extracted;
+        return {
+          ...file,
+          needsReview: countFileNeedsReview(slice),
+        };
+      });
+
+      const summary = buildOcrRunSummary({
+        fileResults: enrichedFileResults,
+        pharmaMissing: !hasPharma,
+        master,
+      });
+
+      setRows(enrichedRows);
+      setOcrSummary(summary);
+      toast.success(summary.lines[0]);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "OCR 처리 중 오류가 발생했습니다.",
@@ -543,19 +608,32 @@ export function EdiNewForm() {
           </button>
         </div>
 
-        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500">
+        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
           {isOcrLoading ? (
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex items-center gap-2 text-slate-500">
               <Loader2 className="size-3.5 animate-spin text-[#4f6ef7]" />
               처방전을 분석하고 있습니다...
             </span>
-          ) : ocrPreview ? (
-            <pre className="max-h-32 overflow-auto whitespace-pre-wrap text-slate-600">
-              {ocrPreview}
-              {ocrPreview.length >= 500 ? "..." : ""}
-            </pre>
+          ) : ocrSummary ? (
+            <ul className="space-y-1">
+              {ocrSummary.lines.map((line, index) => (
+                <li
+                  key={index}
+                  className={cn(
+                    line.startsWith("⚠️") && "font-medium text-amber-700",
+                    line.startsWith("✅") && "text-slate-700",
+                    index === 0 && "font-semibold text-slate-900",
+                  )}
+                >
+                  {line}
+                </li>
+              ))}
+            </ul>
           ) : (
-            "OCR 결과가 여기에 표시됩니다. 추출된 데이터는 아래 폼에 자동 입력됩니다."
+            <span className="text-slate-500">
+              OCR 결과가 여기에 표시됩니다. 추출된 데이터는 아래 폼에 자동
+              입력됩니다.
+            </span>
           )}
         </div>
       </section>
@@ -735,11 +813,19 @@ export function EdiNewForm() {
             <tbody>
               {rows.map((row, index) => {
                 const amount = rowAmount(row);
+                const zeroAmount = isRowZeroAmount(row);
+                const needsReview = isRowNeedsReview(row);
+                const zeroAmountCellClass = zeroAmount
+                  ? "bg-red-100 ring-1 ring-red-200"
+                  : "";
 
                 return (
                   <tr
                     key={index}
-                    className="border-b border-slate-100 hover:bg-slate-50/60"
+                    className={cn(
+                      "border-b border-slate-100 hover:bg-slate-50/60",
+                      zeroAmount && "bg-red-50/40",
+                    )}
                   >
                     <td className="px-1 py-1">
                       <div className="flex gap-0.5">
@@ -765,11 +851,14 @@ export function EdiNewForm() {
                     <td className="px-1 py-1">
                       <ProductCodeInput
                         value={row.code}
+                        needsReview={needsReview}
                         onChange={(code) =>
                           updateRow(index, {
                             code,
                             commissionRate: null,
                             extraCommissionRate: null,
+                            needsReview: false,
+                            masterMatched: false,
                           })
                         }
                         commissionRate={row.commissionRate}
@@ -784,6 +873,8 @@ export function EdiNewForm() {
                                 : String(product.unitPrice),
                             commissionRate: product.commissionRate,
                             extraCommissionRate: product.extraCommissionRate,
+                            needsReview: false,
+                            masterMatched: true,
                           })
                         }
                         className={tableInputClassName}
@@ -820,7 +911,7 @@ export function EdiNewForm() {
                         className={cn(tableInputClassName, "text-right tabular-nums")}
                       />
                     </td>
-                    <td className="px-1 py-1">
+                    <td className={cn("px-1 py-1", zeroAmountCellClass)}>
                       <input
                         value={row.price}
                         onChange={(e) =>
@@ -838,7 +929,7 @@ export function EdiNewForm() {
                         className={cn(tableInputClassName, "text-right tabular-nums")}
                       />
                     </td>
-                    <td className="px-1 py-1">
+                    <td className={cn("px-1 py-1", zeroAmountCellClass)}>
                       <input
                         value={row.totalAmount}
                         onChange={(e) =>
@@ -879,7 +970,12 @@ export function EdiNewForm() {
                         <option value="조제">조제</option>
                       </select>
                     </td>
-                    <td className="px-2 py-1.5 text-right font-semibold tabular-nums text-[#4f6ef7]">
+                    <td
+                      className={cn(
+                        "px-2 py-1.5 text-right font-semibold tabular-nums text-[#4f6ef7]",
+                        zeroAmountCellClass,
+                      )}
+                    >
                       {amount ? formatWon(amount) : "0"}
                     </td>
                   </tr>
