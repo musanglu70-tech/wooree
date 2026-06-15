@@ -239,6 +239,56 @@ function isSummaryOnlyLine(line: string): boolean {
   return /^[\d,\s.]+$/.test(cleaned);
 }
 
+function isVerticalItemPartLine(line: string): boolean {
+  const cleaned = line.replace(/^\d+[\.\)]\s*/, "").trim();
+  if (!cleaned) return false;
+  if (startsWithInsuranceCode(cleaned)) return false;
+  if (isTableHeaderLine(cleaned)) return false;
+  if (ITEM_SECTION_KEYWORDS.test(cleaned)) return false;
+  if (HOSPITAL_LINE_REGEX.test(cleaned)) return false;
+  if (/[\uAC00-\uD7A3].*(?:의원|병원|클리닉)/.test(cleaned)) return false;
+  if (/^\d{3}-\d{2}-\d/.test(cleaned)) return false;
+  if (/^(?:보건업|충북|서울|경기|주소)/.test(cleaned)) return false;
+
+  if (isUnitToken(cleaned)) return true;
+  if (/^[\d,.\s]+$/.test(cleaned)) return true;
+
+  return false;
+}
+
+function mergeItemSegment(
+  lines: string[],
+  startIndex: number,
+  code: string,
+): { segment: string; nextIndex: number } {
+  let segment = lines[startIndex].slice(lines[startIndex].indexOf(code));
+  let nextIndex = startIndex + 1;
+  let numericPartCount = 0;
+
+  while (nextIndex < lines.length && nextIndex <= startIndex + 12) {
+    const nextLine = lines[nextIndex].replace(/^\d+[\.\)]\s*/, "").trim();
+    if (!nextLine) {
+      nextIndex += 1;
+      continue;
+    }
+
+    const canContinue =
+      isVerticalItemPartLine(nextLine) || isItemContinuationLine(nextLine);
+    if (!canContinue) break;
+
+    if (isVerticalItemPartLine(nextLine) && /^[\d,.\s]+$/.test(nextLine)) {
+      numericPartCount += 1;
+    }
+
+    segment += ` ${nextLine}`;
+    nextIndex += 1;
+
+    if (numericPartCount >= 4) break;
+  }
+
+  return { segment, nextIndex };
+}
+
 function isItemContinuationLine(line: string): boolean {
   if (!line) return false;
   if (INSURANCE_CODE_REGEX.test(line)) return false;
@@ -414,16 +464,7 @@ function parseItems(text: string): OcrPrescriptionItem[] {
     const code = codeMatch[1];
     if (seen.has(code)) continue;
 
-    let segment = line.slice(line.indexOf(code));
-    let nextIndex = index + 1;
-
-    while (nextIndex < lines.length && nextIndex <= index + 2) {
-      const nextLine = lines[nextIndex];
-      if (!isItemContinuationLine(nextLine)) break;
-
-      segment += ` ${nextLine}`;
-      nextIndex += 1;
-    }
+    const { segment, nextIndex } = mergeItemSegment(lines, index, code);
 
     const item = parseItemSegment(segment, code);
     if (item) {
