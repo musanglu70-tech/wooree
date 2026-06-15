@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   Download,
@@ -17,6 +17,11 @@ import { formatWon } from "@/lib/edi/constants";
 import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 import { ProductCodeInput } from "@/components/edi/product-code-input";
+import {
+  countFilledPrescriptionRows,
+  downloadPrescriptionUploadTemplate,
+  parsePrescriptionExcel,
+} from "@/lib/excel/prescription-import";
 import { createRxRow, rowAmount, type RxRow, type RxType } from "@/types/edi";
 import type { OcrPrescriptionResult } from "@/types/ocr";
 
@@ -173,6 +178,7 @@ export function EdiNewForm() {
   const [isOcrLoading, setIsOcrLoading] = useState(false);
   const [ocrPreview, setOcrPreview] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isExcelUploading, setIsExcelUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const ocrInputRef = useRef<HTMLInputElement>(null);
 
@@ -313,6 +319,50 @@ export function EdiNewForm() {
     } finally {
       setIsOcrLoading(false);
     }
+  };
+
+  const applyExcelRows = useCallback(
+    (nextRows: RxRow[]) => {
+      setRows(nextRows);
+      if (excelPharma) {
+        setPharmaCompanyId(excelPharma);
+      }
+      toast.success(`${nextRows.length}개 품목 업로드 완료`);
+    },
+    [excelPharma],
+  );
+
+  const handleDownloadTemplate = () => {
+    downloadPrescriptionUploadTemplate();
+  };
+
+  const handleExcelUpload = async (file: File) => {
+    setIsExcelUploading(true);
+    try {
+      const buffer = await file.arrayBuffer();
+      const parsedRows = parsePrescriptionExcel(buffer);
+      const filledCount = countFilledPrescriptionRows(rows);
+
+      if (filledCount > 0) {
+        const confirmed = window.confirm(
+          `기존 입력된 ${filledCount}개 행이 있습니다. 덮어쓸까요?`,
+        );
+        if (!confirmed) return;
+      }
+
+      applyExcelRows(parsedRows);
+    } catch {
+      toast.error("올바른 형식의 파일이 아닙니다");
+    } finally {
+      setIsExcelUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleExcelFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    void handleExcelUpload(file);
   };
 
   const handleSave = async () => {
@@ -524,7 +574,7 @@ export function EdiNewForm() {
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={() => toast.info("양식 다운로드는 준비 중입니다.")}
+              onClick={handleDownloadTemplate}
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
             >
               <Download className="size-3.5" />
@@ -541,17 +591,22 @@ export function EdiNewForm() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#4f6ef7] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
+              disabled={isExcelUploading}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#4f6ef7] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Upload className="size-3.5" />
-              엑셀 업로드
+              {isExcelUploading ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Upload className="size-3.5" />
+              )}
+              {isExcelUploading ? "업로드 중..." : "엑셀 업로드"}
             </button>
             <input
               ref={fileInputRef}
               type="file"
-              accept=".xlsx,.xls,.csv"
+              accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
               className="hidden"
-              onChange={() => toast.info("엑셀 업로드는 서버 연동 후 사용 가능합니다.")}
+              onChange={handleExcelFileChange}
             />
           </div>
         </div>
