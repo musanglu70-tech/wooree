@@ -1,7 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { OcrPrescriptionItem, OcrPrescriptionResult } from "@/types/ocr";
 
-const CLAUDE_MODEL = "claude-3-5-haiku-20241022";
+/** Sonnet 우선, 실패 시 Haiku로 폴백 */
+const CLAUDE_MODELS = [
+  "claude-3-5-sonnet-20241022",
+  "claude-3-haiku-20240307",
+] as const;
 
 const EXTRACTION_PROMPT = `다음 의약품 관련 문서 이미지에서 데이터를 추출해주세요.
 처방전, 제약사 청구서, 병원 프로그램 화면 등 어떤 형식이든 인식하세요.
@@ -228,28 +232,57 @@ export async function extractPrescriptionWithClaude(
 ): Promise<{ payload: ClaudePrescriptionPayload | null; rawText: string }> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    throw new Error("ANTHROPIC_API_KEY가 설정되지 않았습니다.");
+    throw new Error("ANTHROPIC_API_KEY 미설정");
   }
 
   const client = new Anthropic({ apiKey });
   const mediaBlock = buildMediaBlock(imageBase64, mimeType);
 
-  const response = await client.messages.create({
-    model: CLAUDE_MODEL,
-    max_tokens: 4096,
-    messages: [
-      {
-        role: "user",
-        content: [
-          mediaBlock,
+  let response: Anthropic.Message | null = null;
+  let lastError: unknown;
+
+  for (const model of CLAUDE_MODELS) {
+    try {
+      console.log(`[OCR] Claude API 호출 — model: ${model}`);
+      response = await client.messages.create({
+        model,
+        max_tokens: 4096,
+        messages: [
           {
-            type: "text",
-            text: EXTRACTION_PROMPT,
+            role: "user",
+            content: [
+              mediaBlock,
+              {
+                type: "text",
+                text: EXTRACTION_PROMPT,
+              },
+            ],
           },
         ],
-      },
-    ],
-  });
+      });
+      console.log(`[OCR] Claude API 성공 — model: ${model}`);
+      break;
+    } catch (error) {
+      lastError = error;
+      if (error instanceof Anthropic.APIError) {
+        console.error(`[OCR] Claude API 오류 (${model}):`, {
+          status: error.status,
+          message: error.message,
+          type: error.type,
+        });
+        if (error.status === 404) continue;
+      } else {
+        console.error(`[OCR] Claude API 오류 (${model}):`, error);
+      }
+      throw error;
+    }
+  }
+
+  if (!response) {
+    throw lastError instanceof Error
+      ? lastError
+      : new Error("Claude API 호출에 실패했습니다.");
+  }
 
   const rawText = response.content
     .filter((block) => block.type === "text")

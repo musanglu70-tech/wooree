@@ -321,12 +321,17 @@ export function EdiNewForm() {
 
         const result = (await response.json()) as OcrPrescriptionResult & {
           message?: string;
+          error?: string;
+          details?: string;
         };
 
         if (!response.ok) {
-          toast.error(
-            `[${index + 1}] ${file.name}: ${result.message ?? "OCR 처리에 실패했습니다."}`,
-          );
+          const errMsg =
+            result.details ??
+            result.message ??
+            result.error ??
+            "OCR 처리에 실패했습니다.";
+          toast.error(`[${index + 1}] ${file.name}: ${errMsg}`);
           continue;
         }
 
