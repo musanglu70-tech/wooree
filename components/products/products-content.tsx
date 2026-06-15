@@ -53,6 +53,35 @@ const EMPTY_FORM: ProductForm = {
 
 const PAGE_SIZE = 10;
 
+type PaginationItem =
+  | { kind: "page"; page: number }
+  | { kind: "ellipsis"; key: string };
+
+function getPaginationItems(
+  current: number,
+  total: number,
+  siblingCount = 2,
+): PaginationItem[] {
+  if (total <= 1) return [{ kind: "page", page: 1 }];
+
+  const pages = new Set<number>([1, total]);
+  for (let i = current - siblingCount; i <= current + siblingCount; i++) {
+    if (i >= 1 && i <= total) pages.add(i);
+  }
+
+  const sorted = [...pages].sort((a, b) => a - b);
+  const items: PaginationItem[] = [];
+
+  sorted.forEach((page, index) => {
+    if (index > 0 && page - sorted[index - 1] > 1) {
+      items.push({ kind: "ellipsis", key: `ellipsis-${sorted[index - 1]}-${page}` });
+    }
+    items.push({ kind: "page", page });
+  });
+
+  return items;
+}
+
 const inputClassName =
   "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
@@ -183,6 +212,10 @@ export function ProductsContent() {
   const rangeStart =
     filteredProducts.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(currentPage * PAGE_SIZE, filteredProducts.length);
+  const paginationItems = useMemo(
+    () => getPaginationItems(currentPage, totalPages),
+    [currentPage, totalPages],
+  );
 
   const handleSearch = () => {
     setAppliedSearch(searchInput);
@@ -443,7 +476,7 @@ export function ProductsContent() {
           <p className="whitespace-nowrap text-xs text-slate-500">
             {`전체 ${filteredProducts.length.toLocaleString("ko-KR")}건 중 ${rangeStart}-${rangeEnd}건 표시`}
           </p>
-          <div className="flex items-center justify-end gap-1 overflow-x-auto pb-1">
+          <div className="flex flex-wrap items-center justify-end gap-1">
             <button
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -453,20 +486,27 @@ export function ProductsContent() {
             >
               <ChevronLeft className="size-4" />
             </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (pageNum) => (
+            {paginationItems.map((item) =>
+              item.kind === "ellipsis" ? (
+                <span
+                  key={item.key}
+                  className="flex size-8 items-center justify-center text-xs text-slate-400"
+                >
+                  ...
+                </span>
+              ) : (
                 <button
-                  key={pageNum}
+                  key={item.page}
                   type="button"
-                  onClick={() => setPage(pageNum)}
+                  onClick={() => setPage(item.page)}
                   className={cn(
                     "flex size-8 items-center justify-center rounded-lg text-xs font-medium transition-colors",
-                    pageNum === currentPage
+                    item.page === currentPage
                       ? "bg-[#4f6ef7] text-white"
                       : "border border-slate-200 text-slate-600 hover:border-[#4f6ef7] hover:text-[#4f6ef7]",
                   )}
                 >
-                  {pageNum}
+                  {item.page}
                 </button>
               ),
             )}
