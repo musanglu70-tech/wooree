@@ -1,6 +1,6 @@
 import type { OcrPrescriptionItem, OcrPrescriptionResult } from "@/types/ocr";
 
-const INSURANCE_CODE_REGEX = /(?<!\d)(\d{9})(?!\d)/;
+const INSURANCE_CODE_REGEX = /(?<!\d)(\d{9}|[A-Z]\d{8})(?!\d)/i;
 
 const HOSPITAL_SUFFIX_REGEX =
   /(?:가정의원|요양병원|한의원|정형외과|마취통증의학과|영상의학과|재활의학과|산부인과|이비인후과|신경과|비뇨기과|피부과|소아과|안과|내과|외과|치과|의원|병원|클리닉|센터)/;
@@ -224,11 +224,38 @@ function isUnitToken(token: string): boolean {
 
 function startsWithInsuranceCode(line: string): boolean {
   const cleaned = line.replace(/^\d+[\.\)]\s*/, "").trim();
-  return /^\d{9}(?:\s|$)/.test(cleaned);
+  return /^(?:\d{9}|[A-Z]\d{8})(?:\s|$)/i.test(cleaned);
+}
+
+function isPharmaDetailHeader(line: string): boolean {
+  if (!/청구코드|원구코드/.test(line)) return false;
+  if (!/명칭/.test(line)) return false;
+  return /처방횟수|총사용량|총금액|단가/.test(line);
+}
+
+function isPharmaCompanySummaryRow(line: string): boolean {
+  const cleaned = line.replace(/^\d+[\.\)]\s*/, "").trim();
+  return /^[\uAC00-\uD7A3]+(?:약품|제약)(?:\(주\))?\s+[\d,]+/.test(cleaned);
+}
+
+/** 제약사별처방통계 — 하단 상세표만 파싱 (상단 요약표 제외) */
+function focusDetailTableText(text: string): string {
+  const lines = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  for (let index = 0; index < lines.length; index += 1) {
+    if (isPharmaDetailHeader(lines[index])) {
+      return lines.slice(index + 1).join("\n");
+    }
+  }
+
+  return text;
 }
 
 function isTableHeaderLine(line: string): boolean {
-  return TABLE_HEADER_REGEX.test(line);
+  return isPharmaDetailHeader(line) || TABLE_HEADER_REGEX.test(line);
 }
 
 function isSummaryOnlyLine(line: string): boolean {
@@ -339,6 +366,9 @@ function tokenizeItemSegment(segment: string, code: string): ParsedTokens {
 }
 
 function matchesPharmaAmount(fields: PharmaNumericFields): boolean {
+  if (fields.totalAmount === 0) {
+    return fields.prescriptionCount > 0 && fields.totalUsage > 0;
+  }
   return fields.unitPrice * fields.totalUsage === fields.totalAmount;
 }
 
@@ -417,7 +447,8 @@ function buildPharmaItem(
   unit: string,
   fields: PharmaNumericFields,
 ): OcrPrescriptionItem | null {
-  if (!name.trim() || fields.totalAmount === 0) return null;
+  if (!name.trim()) return null;
+  if (fields.prescriptionCount <= 0 && fields.totalUsage <= 0) return null;
 
   return {
     code,
@@ -444,7 +475,8 @@ function parseItemSegment(segment: string, code: string): OcrPrescriptionItem | 
 }
 
 function parseItems(text: string): OcrPrescriptionItem[] {
-  const lines = text
+  const focused = focusDetailTableText(text);
+  const lines = focused
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
@@ -456,6 +488,7 @@ function parseItems(text: string): OcrPrescriptionItem[] {
     const line = lines[index].replace(/^\d+[\.\)]\s*/, "");
     if (isTableHeaderLine(line)) continue;
     if (isSummaryOnlyLine(line)) continue;
+    if (isPharmaCompanySummaryRow(line)) continue;
     if (!startsWithInsuranceCode(line)) continue;
 
     const codeMatch = line.match(INSURANCE_CODE_REGEX);

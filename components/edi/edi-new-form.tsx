@@ -88,10 +88,7 @@ function buildRowsFromOcrItems(
 
   const mapped = items.map((item) => {
     const isPharmaFormat =
-      item.prescriptionCount > 0 &&
-      item.unitPrice > 0 &&
-      item.totalUsage > 0 &&
-      item.totalAmount > 0;
+      item.prescriptionCount > 0 && item.totalUsage > 0;
 
     if (isPharmaFormat) {
       return {
@@ -103,7 +100,7 @@ function buildRowsFromOcrItems(
         price: String(item.unitPrice),
         totalUsage: String(item.totalUsage),
         totalAmount: String(item.totalAmount),
-        inN: String(item.prescriptionCount),
+        inN: String(item.totalUsage),
         outN: "0",
         type: "처방" as RxType,
       };
@@ -134,8 +131,10 @@ function buildRowsFromOcrItems(
     };
   });
 
-  if (mapped.length >= 5) return mapped;
-  return [...mapped, ...Array.from({ length: 5 - mapped.length }, createRxRow)];
+  if (mapped.length === 0) {
+    return Array.from({ length: 5 }, createRxRow);
+  }
+  return mapped;
 }
 
 const CARD =
@@ -723,8 +722,11 @@ export function EdiNewForm() {
                         onSelect={(product) =>
                           updateRow(index, {
                             code: product.insuranceCode,
-                            name: product.productName,
-                            price: String(product.unitPrice),
+                            name: row.name || product.productName,
+                            price:
+                              Number(row.price) > 0
+                                ? row.price
+                                : String(product.unitPrice),
                             commissionRate: product.commissionRate,
                             extraCommissionRate: product.extraCommissionRate,
                           })
