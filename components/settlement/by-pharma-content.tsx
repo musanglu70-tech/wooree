@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Building2, Download, FolderOpen, Upload } from "lucide-react";
+import { Building2, Download, FolderOpen, Mail, Upload } from "lucide-react";
 import { toast } from "sonner";
+import {
+  SendEmailModal,
+  type SettlementEmailTarget,
+} from "@/components/settlement/send-email-modal";
 import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 
@@ -99,6 +103,12 @@ export function ByPharmaContent() {
     () => new Date().toISOString().slice(0, 7),
   );
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+
+  const [emailTarget, setEmailTarget] = useState<SettlementEmailTarget | null>(
+    null,
+  );
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   const loadFiles = useMemo(
     () => async () => {
@@ -221,6 +231,67 @@ export function ByPharmaContent() {
     }
 
     window.open(data.signedUrl, "_blank");
+  };
+
+  const openEmailModal = (file: SettlementFile) => {
+    setEmailTarget({
+      id: file.id,
+      fileName: file.fileName,
+      pharma: file.pharma,
+      month: file.month,
+    });
+    setIsEmailModalOpen(true);
+  };
+
+  const closeEmailModal = () => {
+    if (isSendingEmail) return;
+    setIsEmailModalOpen(false);
+    setEmailTarget(null);
+  };
+
+  const handleSendEmail = async (to: string) => {
+    if (!emailTarget) return;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+      toast.error("올바른 이메일 주소를 입력해주세요.");
+      return;
+    }
+
+    setIsSendingEmail(true);
+
+    try {
+      const response = await fetch("/api/reports/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to,
+          settlementFileId: emailTarget.id,
+        }),
+      });
+
+      const body = (await response.json()) as {
+        error?: string;
+        details?: string;
+        success?: boolean;
+      };
+
+      if (!response.ok) {
+        toast.error(body.details ?? body.error ?? "이메일 발송에 실패했습니다.");
+        return;
+      }
+
+      toast.success(`${to}로 정산 안내 메일을 발송했습니다.`);
+      setIsEmailModalOpen(false);
+      setEmailTarget(null);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "이메일 발송 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   return (
@@ -365,7 +436,15 @@ export function ByPharmaContent() {
                       <StatusBadge status={file.status} />
                     </td>
                     <td className="px-5 py-3.5">
-                      <div className="flex items-center justify-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => openEmailModal(file)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                        >
+                          <Mail className="size-3.5" />
+                          이메일 발송
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleDownload(file)}
@@ -383,6 +462,14 @@ export function ByPharmaContent() {
           </table>
         </div>
       </section>
+
+      <SendEmailModal
+        open={isEmailModalOpen}
+        target={emailTarget}
+        isSending={isSendingEmail}
+        onClose={closeEmailModal}
+        onSubmit={handleSendEmail}
+      />
     </div>
   );
 }
