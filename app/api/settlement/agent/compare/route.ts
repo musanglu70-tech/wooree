@@ -113,7 +113,10 @@ export async function POST(request: Request) {
       const { amount: settlementAmount, fileId } = pickSettlementAmount(
         ((settlementFiles as Record<string, unknown>[]) ?? []).map((file) => ({
           id: toStr(file.id),
-          total_amount: file.total_amount,
+          total_amount:
+            file.total_amount == null || file.total_amount === ""
+              ? null
+              : toNumber(file.total_amount),
         })),
       );
 
