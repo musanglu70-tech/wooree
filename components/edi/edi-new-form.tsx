@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatWon } from "@/lib/edi/constants";
+import { prepareImageForOcr } from "@/lib/edi/prepare-ocr-image";
 import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 import { ProductCodeInput } from "@/components/edi/product-code-input";
@@ -42,28 +43,8 @@ function monthToDate(month: string): string | null {
   return month ? `${month}-01` : null;
 }
 
-function readFileAsBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result !== "string") {
-        reject(new Error("파일을 읽을 수 없습니다."));
-        return;
-      }
-      const base64 = result.split(",")[1];
-      if (!base64) {
-        reject(new Error("파일 인코딩에 실패했습니다."));
-        return;
-      }
-      resolve(base64);
-    };
-    reader.onerror = () => reject(new Error("파일을 읽을 수 없습니다."));
-    reader.readAsDataURL(file);
-  });
-}
 
-function findPharmaCompanyId(
+function monthToDate(month: string): string | null {
   name: string,
   companies: PharmaCompany[],
 ): string {
@@ -308,14 +289,14 @@ export function EdiNewForm() {
 
       for (let index = 0; index < ocrFiles.length; index += 1) {
         const file = ocrFiles[index];
-        const imageBase64 = await readFileAsBase64(file);
+        const { base64: imageBase64, mimeType } = await prepareImageForOcr(file);
 
         const response = await fetch("/api/ocr", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             imageBase64,
-            mimeType: file.type || "image/jpeg",
+            mimeType: mimeType || "image/jpeg",
           }),
         });
 

@@ -4,7 +4,10 @@ import {
   extractPrescriptionWithClaude,
   mapClaudePayloadToResult,
 } from "@/lib/ocr/claude-prescription";
+import { prepareOcrImagePayload } from "@/lib/ocr/image-payload";
 import { parsePrescriptionText } from "@/lib/ocr/parse-prescription";
+
+export const maxDuration = 60;
 
 interface OcrRequestBody {
   imageBase64?: string;
@@ -13,6 +16,40 @@ interface OcrRequestBody {
 
 function ocrErrorResponse(details: string, status = 500) {
   return NextResponse.json({ error: "OCR 실패", details }, { status });
+}
+
+function logOcrError(error: unknown) {
+  if (error instanceof Anthropic.APIError) {
+    console.error(
+      "[OCR] Anthropic API error:",
+      JSON.stringify(
+        {
+          status: error.status,
+          message: error.message,
+          type: error.type,
+          name: error.name,
+          error: error.error,
+        },
+        null,
+        2,
+      ),
+    );
+    return;
+  }
+
+  if (error instanceof Error) {
+    console.error(
+      "[OCR] error:",
+      JSON.stringify(
+        { message: error.message, name: error.name, stack: error.stack },
+        null,
+        2,
+      ),
+    );
+    return;
+  }
+
+  console.error("[OCR] error:", JSON.stringify(error, null, 2));
 }
 
 export async function POST(request: Request) {
@@ -26,18 +63,26 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json()) as OcrRequestBody;
-    const imageBase64 = body.imageBase64?.trim();
-    const mimeType = body.mimeType?.trim() || "image/jpeg";
+    const rawBase64 = body.imageBase64?.trim();
 
-    if (!imageBase64) {
+    if (!rawBase64) {
       return NextResponse.json(
         { error: "OCR 실패", details: "imageBase64가 필요합니다." },
         { status: 400 },
       );
     }
 
+    const { base64, mimeType, byteLength } = prepareOcrImagePayload(
+      rawBase64,
+      body.mimeType,
+    );
+
+    console.log(
+      `[OCR] 요청 수신 — mimeType: ${mimeType}, size: ${(byteLength / 1024).toFixed(0)}KB`,
+    );
+
     const { payload, rawText } = await extractPrescriptionWithClaude(
-      imageBase64,
+      base64,
       mimeType,
     );
 
@@ -60,24 +105,16 @@ export async function POST(request: Request) {
       { status: 422 },
     );
   } catch (error) {
-    console.error("[OCR] Claude Vision API error:", error);
-
-    if (error instanceof Anthropic.APIError) {
-      console.error("[OCR] Anthropic API details:", {
-        status: error.status,
-        message: error.message,
-        type: error.type,
-      });
-    } else if (error instanceof Error) {
-      console.error("[OCR] message:", error.message);
-      console.error("[OCR] stack:", error.stack);
-    }
+    logOcrError(error);
 
     const details =
       error instanceof Error
         ? error.message
         : "OCR 처리 중 오류가 발생했습니다.";
 
-    return ocrErrorResponse(details);
+    const status =
+      error instanceof Error && details.includes("5MB") ? 400 : 500;
+
+    return ocrErrorResponse(details, status);
   }
 }

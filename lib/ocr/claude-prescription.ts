@@ -1,5 +1,9 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { OcrPrescriptionItem, OcrPrescriptionResult } from "@/types/ocr";
+import {
+  type AnthropicImageMediaType,
+  type OcrMediaType,
+} from "@/lib/ocr/image-payload";
 
 /** Sonnet 우선, 실패 시 Haiku로 폴백 (2026-06 기준 활성 모델) */
 const CLAUDE_MODELS = [
@@ -7,43 +11,34 @@ const CLAUDE_MODELS = [
   "claude-haiku-4-5-20251001",
 ] as const;
 
-function sanitizeBase64(data: string): string {
-  const trimmed = data.trim();
-  const commaIndex = trimmed.indexOf(",");
-  const raw =
-    trimmed.startsWith("data:") && commaIndex >= 0
-      ? trimmed.slice(commaIndex + 1)
-      : trimmed;
-  return raw.replace(/\s/g, "");
-}
+const EXTRACTION_PROMPT = `이 이미지는 의약품 처방전, 제약사별처방통계, 병원 EDI 화면 캡처입니다.
+표에서 모든 품목 행을 빠짐없이 추출하세요.
 
-const EXTRACTION_PROMPT = `다음 의약품 관련 문서 이미지에서 데이터를 추출해주세요.
-처방전, 제약사 청구서, 병원 프로그램 화면 등 어떤 형식이든 인식하세요.
-
-반드시 아래 JSON 형식으로만 응답:
+반드시 유효한 JSON만 출력 (마크다운·설명 금지):
 {
-  "pharmaName": string | null,
-  "hospitalName": string | null,
-  "doctorName": string | null,
-  "prescriptionMonth": string | null,
-  "items": [{
-    "code": string,
-    "name": string,
-    "unit": string,
-    "prescriptionCount": number,
-    "unitPrice": number,
-    "totalUsage": number,
-    "totalAmount": number,
-    "needsReview": boolean
-  }]
+  "pharmaName": "제약사명 또는 null",
+  "hospitalName": "병의원명 또는 null",
+  "doctorName": "의사명 또는 null",
+  "prescriptionMonth": "YYYY-MM 또는 null",
+  "items": [
+    {
+      "code": "650200400",
+      "name": "제품명",
+      "unit": "1정",
+      "prescriptionCount": 3,
+      "unitPrice": 366,
+      "totalUsage": 150,
+      "totalAmount": 54900,
+      "needsReview": false
+    }
+  ]
 }
 
 규칙:
-- 보험코드(청구코드)는 9자리 숫자 또는 A로 시작하는 9자리 영숫자
-- prescriptionMonth는 YYYY-MM 형식
-- 숫자 필드는 쉼표 없이 숫자만
-- 인식 불확실한 항목은 needsReview: true
-- JSON 외 다른 텍스트는 출력하지 마세요`;
+- code: 9자리 숫자 또는 A+8자리 (청구코드/보험코드)
+- 제약사별처방통계 하단 상세표(청구코드·명칭·처방횟수·단가·총사용량·총금액) 우선
+- 숫자는 쉼표 없이 정수
+- 항목을 하나도 못 찾으면 items: [] 로 반환`;
 
 export interface ClaudePrescriptionPayload {
   pharmaName: string | null;
@@ -62,23 +57,11 @@ export interface ClaudePrescriptionPayload {
   }[];
 }
 
-function normalizeMimeType(mimeType: string): string {
-  const normalized = mimeType.trim().toLowerCase();
-  if (normalized === "image/jpg") return "image/jpeg";
-  return normalized || "image/jpeg";
-}
-
-function isImageMimeType(mimeType: string): boolean {
-  return mimeType.startsWith("image/");
-}
-
 function buildMediaBlock(
   imageBase64: string,
-  mimeType: string,
+  mimeType: OcrMediaType,
 ): Anthropic.Messages.ContentBlockParam {
-  const mediaType = normalizeMimeType(mimeType);
-
-  if (mediaType === "application/pdf") {
+  if (mimeType === "application/pdf") {
     return {
       type: "document",
       source: {
@@ -89,35 +72,42 @@ function buildMediaBlock(
     };
   }
 
-  if (!isImageMimeType(mediaType)) {
-    throw new Error(`지원하지 않는 파일 형식입니다: ${mimeType}`);
-  }
-
   return {
     type: "image",
     source: {
       type: "base64",
-      media_type: mediaType as
-        | "image/jpeg"
-        | "image/png"
-        | "image/gif"
-        | "image/webp",
+      media_type: mimeType as AnthropicImageMediaType,
       data: imageBase64,
     },
   };
 }
 
+function pickField(row: Record<string, unknown>, keys: string[]): unknown {
+  for (const key of keys) {
+    const value = row[key];
+    if (value != null && value !== "") return value;
+  }
+  return undefined;
+}
+
+function repairJsonText(text: string): string {
+  return text
+    .replace(/,\s*([}\]])/g, "$1")
+    .replace(/'/g, '"')
+    .replace(/\bundefined\b/g, "null");
+}
+
 export function extractJsonFromText(text: string): string {
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fenced?.[1]) return fenced[1].trim();
+  if (fenced?.[1]) return repairJsonText(fenced[1].trim());
 
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
   if (start >= 0 && end > start) {
-    return text.slice(start, end + 1);
+    return repairJsonText(text.slice(start, end + 1));
   }
 
-  return text.trim();
+  return repairJsonText(text.trim());
 }
 
 function toNumber(value: unknown): number {
@@ -165,18 +155,34 @@ export function parseClaudePrescriptionPayload(
     const items = rawItems
       .map((entry) => {
         const row = entry as Record<string, unknown>;
-        const code = toStringOrEmpty(row.code).toUpperCase();
-        const name = toStringOrEmpty(row.name);
+        const code = toStringOrEmpty(
+          pickField(row, [
+            "code",
+            "청구코드",
+            "보험코드",
+            "insuranceCode",
+            "insurance_code",
+          ]),
+        ).toUpperCase();
+        const name = toStringOrEmpty(
+          pickField(row, ["name", "명칭", "제품명", "productName"]),
+        );
         if (!code && !name) return null;
 
         return {
           code,
           name,
-          unit: toStringOrEmpty(row.unit),
-          prescriptionCount: toNumber(row.prescriptionCount),
-          unitPrice: toNumber(row.unitPrice),
-          totalUsage: toNumber(row.totalUsage),
-          totalAmount: toNumber(row.totalAmount),
+          unit: toStringOrEmpty(pickField(row, ["unit", "단위"])),
+          prescriptionCount: toNumber(
+            pickField(row, ["prescriptionCount", "처방횟수"]),
+          ),
+          unitPrice: toNumber(pickField(row, ["unitPrice", "단가"])),
+          totalUsage: toNumber(
+            pickField(row, ["totalUsage", "총사용량", "수량"]),
+          ),
+          totalAmount: toNumber(
+            pickField(row, ["totalAmount", "총금액", "금액"]),
+          ),
           needsReview: Boolean(row.needsReview),
         };
       })
@@ -185,13 +191,35 @@ export function parseClaudePrescriptionPayload(
       );
 
     return {
-      pharmaName: toStringOrEmpty(parsed.pharmaName) || null,
-      hospitalName: toStringOrEmpty(parsed.hospitalName) || null,
-      doctorName: toStringOrEmpty(parsed.doctorName) || null,
-      prescriptionMonth: toStringOrEmpty(parsed.prescriptionMonth) || null,
+      pharmaName:
+        toStringOrEmpty(
+          pickField(parsed, ["pharmaName", "제약사명", "제약사", "pharma_name"]),
+        ) || null,
+      hospitalName:
+        toStringOrEmpty(
+          pickField(parsed, [
+            "hospitalName",
+            "병의원명",
+            "병원명",
+            "hospital_name",
+          ]),
+        ) || null,
+      doctorName:
+        toStringOrEmpty(
+          pickField(parsed, ["doctorName", "의사명", "doctor_name"]),
+        ) || null,
+      prescriptionMonth:
+        toStringOrEmpty(
+          pickField(parsed, [
+            "prescriptionMonth",
+            "처방월",
+            "prescription_month",
+          ]),
+        ) || null,
       items,
     };
-  } catch {
+  } catch (error) {
+    console.error("[OCR] JSON 파싱 실패:", error);
     return null;
   }
 }
@@ -238,7 +266,7 @@ export function mapClaudePayloadToResult(
 
 export async function extractPrescriptionWithClaude(
   imageBase64: string,
-  mimeType: string,
+  mimeType: OcrMediaType,
 ): Promise<{ payload: ClaudePrescriptionPayload | null; rawText: string }> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -246,8 +274,7 @@ export async function extractPrescriptionWithClaude(
   }
 
   const client = new Anthropic({ apiKey });
-  const cleanBase64 = sanitizeBase64(imageBase64);
-  const mediaBlock = buildMediaBlock(cleanBase64, mimeType);
+  const mediaBlock = buildMediaBlock(imageBase64, mimeType);
 
   let response: Anthropic.Message | null = null;
   let lastError: unknown;
@@ -257,7 +284,9 @@ export async function extractPrescriptionWithClaude(
       console.log(`[OCR] Claude API 호출 — model: ${model}`);
       response = await client.messages.create({
         model,
-        max_tokens: 4096,
+        max_tokens: 8192,
+        system:
+          "You extract structured prescription data from Korean medical documents. Respond with valid JSON only.",
         messages: [
           {
             role: "user",
@@ -276,11 +305,20 @@ export async function extractPrescriptionWithClaude(
     } catch (error) {
       lastError = error;
       if (error instanceof Anthropic.APIError) {
-        console.error(`[OCR] Claude API 오류 (${model}):`, {
-          status: error.status,
-          message: error.message,
-          type: error.type,
-        });
+        console.error(
+          `[OCR] Claude API 오류 (${model}):`,
+          JSON.stringify(
+            {
+              status: error.status,
+              message: error.message,
+              type: error.type,
+              name: error.name,
+              error: error.error,
+            },
+            null,
+            2,
+          ),
+        );
         if (error.status === 404) continue;
         if (error.status === 400 && /model/i.test(error.message)) continue;
       } else {
@@ -303,11 +341,17 @@ export async function extractPrescriptionWithClaude(
     .trim();
 
   if (!rawText) {
+    console.warn("[OCR] Claude 응답 텍스트 없음");
     return { payload: null, rawText: "" };
   }
 
+  const payload = parseClaudePrescriptionPayload(rawText);
+  if (!payload?.items.length) {
+    console.warn("[OCR] 파싱 결과 items 없음 — rawText 앞 500자:", rawText.slice(0, 500));
+  }
+
   return {
-    payload: parseClaudePrescriptionPayload(rawText),
+    payload,
     rawText,
   };
 }
