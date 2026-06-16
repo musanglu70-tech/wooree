@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight, LogOut } from "lucide-react";
+import { ChevronDown, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   ADMIN_BOTTOM_MENU,
@@ -47,46 +47,47 @@ export function DashboardSidebar() {
   };
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[220px] shrink-0 flex-col md:flex"
-      style={{ background: "linear-gradient(180deg, #0f1623 0%, #0d1117 100%)" }}>
-
-      {/* Header */}
-      <div className="px-4 pt-5 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white text-[12px] font-black tracking-tight shadow-lg"
-            style={{ background: "linear-gradient(135deg, #4f6ef7 0%, #7c3aed 100%)" }}>
-            우리
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-[13px] font-bold text-white leading-tight">CSO(주)우리메디텍</p>
-            <p className="text-[10px] font-semibold mt-0.5"
-              style={{ background: "linear-gradient(90deg, #60a5fa, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              EDI 관리 시스템
-            </p>
-          </div>
+    <aside
+      className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col md:flex"
+      style={{ background: "#111827", borderRight: "1px solid #1f2937" }}
+    >
+      {/* 로고 */}
+      <div className="flex items-center gap-3 px-5 py-5" style={{ borderBottom: "1px solid #1f2937" }}>
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white text-[12px] font-black"
+          style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)" }}
+        >
+          우리
         </div>
-        <div className="mt-4 h-px w-full" style={{ background: "linear-gradient(90deg, rgba(79,110,247,0.5), transparent)" }} />
+        <div>
+          <p className="text-[13px] font-bold text-white leading-snug">CSO(주)우리메디텍</p>
+          <p className="text-[11px] font-medium mt-0.5" style={{ color: "#60a5fa" }}>EDI 관리 시스템</p>
+        </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 pb-3 space-y-0.5">
+      {/* 네비게이션 */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         {MENU_GROUPS.map((group, groupIndex) => {
+          /* 라벨 없는 그룹 (대시보드, 공지 등 최상위 메뉴) */
           if (!group.label) {
             return (
-              <div key={`group-${groupIndex}`} className="mb-2 space-y-0.5">
+              <div key={`group-${groupIndex}`} className="mb-3 space-y-0.5">
                 {group.items.map((item) => {
                   const Icon = item.icon;
                   const isActive = isActivePath(pathname, item.href);
                   return (
-                    <Link key={item.href} href={item.href}
+                    <Link
+                      key={item.href}
+                      href={item.href}
                       className={cn(
-                        "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-150",
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-semibold transition-all",
                         isActive
-                          ? "text-white shadow-md"
-                          : "text-[#6b7fa3] hover:text-white hover:bg-white/5",
+                          ? "text-white"
+                          : "text-[#9ca3af] hover:text-white hover:bg-white/5"
                       )}
-                      style={isActive ? { background: "linear-gradient(135deg, #4f6ef7, #6d28d9)" } : {}}>
-                      <Icon className={cn("size-[16px] shrink-0", isActive ? "text-white" : "text-[#4f6ef7]")} strokeWidth={isActive ? 2.5 : 1.75} />
+                      style={isActive ? { background: "linear-gradient(90deg, #2563eb, #7c3aed)", boxShadow: "0 2px 8px rgba(37,99,235,0.35)" } : {}}
+                    >
+                      <Icon className="size-[17px] shrink-0" strokeWidth={isActive ? 2.5 : 2} />
                       {item.label}
                     </Link>
                   );
@@ -99,51 +100,62 @@ export function DashboardSidebar() {
           const hasActive = group.items.some((item) => isActivePath(pathname, item.href));
 
           return (
-            <div key={group.label} className="mb-0.5">
+            <div key={group.label}>
+              {/* 그룹 헤더 버튼 */}
               <button
                 type="button"
                 onClick={() => toggleGroup(group.label!)}
                 className={cn(
-                  "flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-all duration-150",
+                  "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-bold transition-all",
                   hasActive
-                    ? "bg-white/5 text-white"
-                    : "text-[#4a5e7a] hover:bg-white/5 hover:text-[#8fa8cc]",
-                )}>
-                {/* Color dot for each group */}
-                <span className={cn("h-1.5 w-1.5 rounded-full shrink-0 transition-all", hasActive ? "opacity-100" : "opacity-40")}
-                  style={{ background: hasActive ? "linear-gradient(135deg, #4f6ef7, #7c3aed)" : "#4a5e7a" }} />
+                    ? "text-white bg-white/5"
+                    : "text-[#9ca3af] hover:text-white hover:bg-white/5"
+                )}
+              >
+                <span
+                  className="h-2 w-2 rounded-full shrink-0"
+                  style={{ background: hasActive ? "#3b82f6" : "#374151" }}
+                />
                 <span className="flex-1 text-left">{group.label}</span>
-                <ChevronRight
-                  className={cn("size-3.5 shrink-0 transition-transform duration-200 ease-out", isOpen && "rotate-90")}
+                <ChevronDown
+                  className={cn("size-4 shrink-0 transition-transform duration-200", isOpen && "-rotate-180")}
                   strokeWidth={2.5}
-                  style={{ color: hasActive ? "#60a5fa" : "#334155" }}
+                  style={{ color: hasActive ? "#60a5fa" : "#4b5563" }}
                 />
               </button>
 
-              <div className={cn(
-                "overflow-hidden transition-all duration-200 ease-out",
-                isOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0",
-              )}>
-                <div className="ml-3 mt-0.5 space-y-0.5 border-l pl-2"
-                  style={{ borderColor: "rgba(79,110,247,0.2)" }}>
+              {/* 서브메뉴 */}
+              <div
+                className={cn(
+                  "overflow-hidden transition-all duration-200",
+                  isOpen ? "max-h-96 opacity-100 mt-0.5 mb-1" : "max-h-0 opacity-0"
+                )}
+              >
+                <div className="ml-4 space-y-0.5 border-l-2 pl-3" style={{ borderColor: hasActive ? "#2563eb" : "#1f2937" }}>
                   {group.items.map((item) => {
                     const Icon = item.icon;
                     const isActive = isActivePath(pathname, item.href);
                     return (
-                      <Link key={item.href} href={item.href}
+                      <Link
+                        key={item.href}
+                        href={item.href}
                         className={cn(
-                          "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-all duration-150",
+                          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all",
                           isActive
-                            ? "text-white shadow-sm"
-                            : "text-[#6b7fa3] hover:bg-white/5 hover:text-white",
+                            ? "text-white"
+                            : "text-[#9ca3af] hover:text-white hover:bg-white/5"
                         )}
-                        style={isActive ? { background: "linear-gradient(135deg, rgba(79,110,247,0.8), rgba(109,40,217,0.8))" } : {}}>
+                        style={isActive ? { background: "rgba(37,99,235,0.25)", color: "#93c5fd" } : {}}
+                      >
                         <Icon
-                          className={cn("size-[15px] shrink-0", isActive ? "text-white" : "text-[#334d6e]")}
+                          className="size-[15px] shrink-0"
                           strokeWidth={isActive ? 2.5 : 1.75}
+                          style={{ color: isActive ? "#60a5fa" : "#6b7280" }}
                         />
-                        <span className="truncate">{item.label}</span>
-                        {isActive && <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-white/70" />}
+                        <span>{item.label}</span>
+                        {isActive && (
+                          <span className="ml-auto h-1.5 w-1.5 rounded-full bg-blue-400 shrink-0" />
+                        )}
                       </Link>
                     );
                   })}
@@ -154,29 +166,30 @@ export function DashboardSidebar() {
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="px-3 pb-4">
-        <div className="mb-2 h-px" style={{ background: "linear-gradient(90deg, rgba(79,110,247,0.3), transparent)" }} />
-        <div className="space-y-0.5">
-          {isAdmin && (
-            <Link href={ADMIN_BOTTOM_MENU.href}
-              className={cn(
-                "flex items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium transition-all duration-150",
-                isActivePath(pathname, ADMIN_BOTTOM_MENU.href)
-                  ? "text-white"
-                  : "text-[#6b7fa3] hover:bg-white/5 hover:text-white",
-              )}
-              style={isActivePath(pathname, ADMIN_BOTTOM_MENU.href) ? { background: "linear-gradient(135deg, #4f6ef7, #6d28d9)" } : {}}>
-              <ADMIN_BOTTOM_MENU.icon className="size-[15px] shrink-0 text-[#4f6ef7]" strokeWidth={1.75} />
-              {ADMIN_BOTTOM_MENU.label}
-            </Link>
-          )}
-          <button type="button"
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-[13px] font-medium text-[#4a5e7a] transition-all hover:bg-white/5 hover:text-[#6b7fa3]">
-            <LogOut className="size-[15px] shrink-0" strokeWidth={1.75} />
-            로그아웃
-          </button>
-        </div>
+      {/* 하단 */}
+      <div className="px-3 pb-4" style={{ borderTop: "1px solid #1f2937", paddingTop: "12px" }}>
+        {isAdmin && (
+          <Link
+            href={ADMIN_BOTTOM_MENU.href}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-semibold transition-all mb-0.5",
+              isActivePath(pathname, ADMIN_BOTTOM_MENU.href)
+                ? "text-white"
+                : "text-[#9ca3af] hover:text-white hover:bg-white/5"
+            )}
+            style={isActivePath(pathname, ADMIN_BOTTOM_MENU.href) ? { background: "linear-gradient(90deg, #2563eb, #7c3aed)" } : {}}
+          >
+            <ADMIN_BOTTOM_MENU.icon className="size-[17px] shrink-0" strokeWidth={2} style={{ color: "#60a5fa" }} />
+            {ADMIN_BOTTOM_MENU.label}
+          </Link>
+        )}
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-semibold text-[#6b7280] transition-all hover:bg-white/5 hover:text-[#9ca3af]"
+        >
+          <LogOut className="size-[17px] shrink-0" strokeWidth={2} />
+          로그아웃
+        </button>
       </div>
     </aside>
   );
