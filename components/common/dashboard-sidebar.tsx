@@ -107,20 +107,19 @@ export function DashboardSidebar() {
                 onClick={() => toggleGroup(group.label!)}
                 className={cn(
                   "flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-[14px] font-bold transition-all",
-                  hasActive
-                    ? "text-white bg-white/5"
-                    : "text-[#9ca3af] hover:text-white hover:bg-white/5"
+                  hasActive ? "text-white" : "text-[#9ca3af] hover:text-white hover:bg-white/5"
                 )}
+                style={hasActive ? { background: "linear-gradient(90deg, #2563eb, #7c3aed)", boxShadow: "0 2px 8px rgba(37,99,235,0.35)" } : {}}
               >
                 <span
-                  className="h-2 w-2 rounded-full shrink-0"
-                  style={{ background: hasActive ? "#3b82f6" : "#374151" }}
+                  className="h-2 w-2 rounded-full shrink-0 bg-white/80"
+                  style={!hasActive ? { background: "#374151" } : {}}
                 />
                 <span className="flex-1 text-left">{group.label}</span>
                 <ChevronDown
                   className={cn("size-4 shrink-0 transition-transform duration-200", isOpen && "-rotate-180")}
                   strokeWidth={2.5}
-                  style={{ color: hasActive ? "#60a5fa" : "#4b5563" }}
+                  style={{ color: hasActive ? "rgba(255,255,255,0.8)" : "#4b5563" }}
                 />
               </button>
 
