@@ -47,12 +47,12 @@ export function DashboardSidebar() {
   };
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col border-r border-[rgba(255,255,255,0.06)] bg-[#1a1f2e] md:flex">
+    <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col border-r border-[rgba(255,255,255,0.08)] bg-[#1a1f2e] md:flex">
       <div className="px-5 py-6">
-        <p className="text-[15px] font-semibold tracking-tight text-white">
+        <p className="text-[16px] font-bold tracking-tight text-white">
           CSO(주)우리메디텍
         </p>
-        <p className="mt-1 text-[11px] font-medium tracking-wide text-[#8892a4]">
+        <p className="mt-1 text-[12px] font-medium tracking-wide text-[#7eb8ff]">
           EDI 관리 시스템
         </p>
       </div>
@@ -61,7 +61,7 @@ export function DashboardSidebar() {
         {MENU_GROUPS.map((group, groupIndex) => {
           if (!group.label) {
             return (
-              <ul key={`group-${groupIndex}`} className="space-y-0.5 mb-2">
+              <ul key={`group-${groupIndex}`} className="space-y-0.5 mb-3">
                 {group.items.map((item) => {
                   const Icon = item.icon;
                   const isActive = isActivePath(pathname, item.href);
@@ -70,16 +70,16 @@ export function DashboardSidebar() {
                       <Link
                         href={item.href}
                         className={cn(
-                          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-150",
+                          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors duration-150",
                           isActive
                             ? "bg-[#4f6ef7] text-white"
-                            : "text-[#8892a4] hover:bg-[rgba(79,110,247,0.12)] hover:text-[#c5cdd9]",
+                            : "text-[#c0cce0] hover:bg-[rgba(79,110,247,0.15)] hover:text-white",
                         )}
                       >
                         <Icon
                           className={cn(
-                            "size-4 shrink-0",
-                            isActive ? "text-white" : "text-[#8892a4]",
+                            "size-[18px] shrink-0",
+                            isActive ? "text-white" : "text-[#7eb8ff]",
                           )}
                           strokeWidth={1.75}
                         />
@@ -103,19 +103,20 @@ export function DashboardSidebar() {
                 type="button"
                 onClick={() => toggleGroup(group.label!)}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold tracking-wide transition-colors duration-150",
+                  "flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-[12px] font-bold tracking-wider uppercase transition-colors duration-150",
                   hasActive
-                    ? "text-[#c5cdd9]"
-                    : "text-[#5c6678] hover:text-[#8892a4]",
+                    ? "text-[#7eb8ff]"
+                    : "text-[#8499b5] hover:text-[#c0cce0]",
                 )}
               >
                 <span>{group.label}</span>
                 <ChevronDown
                   className={cn(
-                    "size-3.5 transition-transform duration-200",
+                    "size-4 transition-transform duration-200",
                     isOpen ? "rotate-180" : "rotate-0",
+                    hasActive ? "text-[#7eb8ff]" : "text-[#8499b5]",
                   )}
-                  strokeWidth={2}
+                  strokeWidth={2.5}
                 />
               </button>
 
@@ -133,16 +134,16 @@ export function DashboardSidebar() {
                       <Link
                         href={item.href}
                         className={cn(
-                          "flex items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-[13px] font-medium transition-colors duration-150",
+                          "flex items-center gap-3 rounded-lg pl-6 pr-3 py-2.5 text-[14px] font-medium transition-colors duration-150",
                           isActive
                             ? "bg-[#4f6ef7] text-white"
-                            : "text-[#8892a4] hover:bg-[rgba(79,110,247,0.12)] hover:text-[#c5cdd9]",
+                            : "text-[#c0cce0] hover:bg-[rgba(79,110,247,0.15)] hover:text-white",
                         )}
                       >
                         <Icon
                           className={cn(
-                            "size-4 shrink-0",
-                            isActive ? "text-white" : "text-[#8892a4]",
+                            "size-[18px] shrink-0",
+                            isActive ? "text-white" : "text-[#7eb8ff]",
                           )}
                           strokeWidth={1.75}
                         />
@@ -157,23 +158,23 @@ export function DashboardSidebar() {
         })}
       </nav>
 
-      <div className="border-t border-[rgba(255,255,255,0.06)] px-3 py-4">
+      <div className="border-t border-[rgba(255,255,255,0.08)] px-3 py-4">
         {isAdmin && (
           <Link
             href={ADMIN_BOTTOM_MENU.href}
             className={cn(
-              "mb-2 flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-150",
+              "mb-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors duration-150",
               isActivePath(pathname, ADMIN_BOTTOM_MENU.href)
                 ? "bg-[#4f6ef7] text-white"
-                : "text-[#8892a4] hover:bg-[rgba(79,110,247,0.12)] hover:text-[#c5cdd9]",
+                : "text-[#c0cce0] hover:bg-[rgba(79,110,247,0.15)] hover:text-white",
             )}
           >
             <ADMIN_BOTTOM_MENU.icon
               className={cn(
-                "size-4 shrink-0",
+                "size-[18px] shrink-0",
                 isActivePath(pathname, ADMIN_BOTTOM_MENU.href)
                   ? "text-white"
-                  : "text-[#8892a4]",
+                  : "text-[#7eb8ff]",
               )}
               strokeWidth={1.75}
             />
@@ -182,9 +183,9 @@ export function DashboardSidebar() {
         )}
         <button
           type="button"
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-[#8892a4] transition-colors duration-150 hover:text-white"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#c0cce0] transition-colors duration-150 hover:text-white"
         >
-          <LogOut className="size-4 shrink-0" strokeWidth={1.75} />
+          <LogOut className="size-[18px] shrink-0 text-[#7eb8ff]" strokeWidth={1.75} />
           로그아웃
         </button>
       </div>
