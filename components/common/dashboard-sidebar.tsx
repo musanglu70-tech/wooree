@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { ChevronDown, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
 import {
   ADMIN_BOTTOM_MENU,
   MENU_GROUPS,
@@ -15,6 +16,36 @@ export function DashboardSidebar() {
   const pathname = usePathname();
   const { isAdmin } = useUserProfile();
 
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    for (const group of MENU_GROUPS) {
+      if (!group.label) continue;
+      const isActive = group.items.some((item) =>
+        isActivePath(pathname, item.href),
+      );
+      init[group.label] = isActive;
+    }
+    return init;
+  });
+
+  useEffect(() => {
+    setOpenGroups((prev) => {
+      const next = { ...prev };
+      for (const group of MENU_GROUPS) {
+        if (!group.label) continue;
+        const isActive = group.items.some((item) =>
+          isActivePath(pathname, item.href),
+        );
+        if (isActive) next[group.label] = true;
+      }
+      return next;
+    });
+  }, [pathname]);
+
+  const toggleGroup = (label: string) => {
+    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
+
   return (
     <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col border-r border-[rgba(255,255,255,0.06)] bg-[#1a1f2e] md:flex">
       <div className="px-5 py-6">
@@ -26,47 +57,104 @@ export function DashboardSidebar() {
         </p>
       </div>
 
-      <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-4">
-        {MENU_GROUPS.map((group, groupIndex) => (
-          <div key={group.label ?? `group-${groupIndex}`}>
-            {group.label && (
-              <p className="mb-1.5 px-3 text-[10px] font-semibold tracking-wide text-[#5c6678]">
-                {group.label}
-              </p>
-            )}
-            <ul className="space-y-0.5">
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                const isActive = isActivePath(pathname, item.href);
-                const isSubMenu = group.label !== null;
-
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-2.5 rounded-lg py-2 text-[13px] font-medium transition-colors duration-150",
-                        isSubMenu ? "pl-6 pr-3" : "px-3",
-                        isActive
-                          ? "bg-[#4f6ef7] text-white"
-                          : "text-[#8892a4] hover:bg-[rgba(79,110,247,0.12)] hover:text-[#c5cdd9]",
-                      )}
-                    >
-                      <Icon
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-4">
+        {MENU_GROUPS.map((group, groupIndex) => {
+          if (!group.label) {
+            return (
+              <ul key={`group-${groupIndex}`} className="space-y-0.5 mb-2">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = isActivePath(pathname, item.href);
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
                         className={cn(
-                          "size-4 shrink-0",
-                          isActive ? "text-white" : "text-[#8892a4]",
+                          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-150",
+                          isActive
+                            ? "bg-[#4f6ef7] text-white"
+                            : "text-[#8892a4] hover:bg-[rgba(79,110,247,0.12)] hover:text-[#c5cdd9]",
                         )}
-                        strokeWidth={1.75}
-                      />
-                      <span className="truncate">{item.label}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
+                      >
+                        <Icon
+                          className={cn(
+                            "size-4 shrink-0",
+                            isActive ? "text-white" : "text-[#8892a4]",
+                          )}
+                          strokeWidth={1.75}
+                        />
+                        <span className="truncate">{item.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            );
+          }
+
+          const isOpen = openGroups[group.label] ?? false;
+          const hasActive = group.items.some((item) =>
+            isActivePath(pathname, item.href),
+          );
+
+          return (
+            <div key={group.label} className="mb-1">
+              <button
+                type="button"
+                onClick={() => toggleGroup(group.label!)}
+                className={cn(
+                  "flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold tracking-wide transition-colors duration-150",
+                  hasActive
+                    ? "text-[#c5cdd9]"
+                    : "text-[#5c6678] hover:text-[#8892a4]",
+                )}
+              >
+                <span>{group.label}</span>
+                <ChevronDown
+                  className={cn(
+                    "size-3.5 transition-transform duration-200",
+                    isOpen ? "rotate-180" : "rotate-0",
+                  )}
+                  strokeWidth={2}
+                />
+              </button>
+
+              <ul
+                className={cn(
+                  "space-y-0.5 overflow-hidden transition-all duration-200",
+                  isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
+                )}
+              >
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = isActivePath(pathname, item.href);
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-2.5 rounded-lg pl-6 pr-3 py-2 text-[13px] font-medium transition-colors duration-150",
+                          isActive
+                            ? "bg-[#4f6ef7] text-white"
+                            : "text-[#8892a4] hover:bg-[rgba(79,110,247,0.12)] hover:text-[#c5cdd9]",
+                        )}
+                      >
+                        <Icon
+                          className={cn(
+                            "size-4 shrink-0",
+                            isActive ? "text-white" : "text-[#8892a4]",
+                          )}
+                          strokeWidth={1.75}
+                        />
+                        <span className="truncate">{item.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
       </nav>
 
       <div className="border-t border-[rgba(255,255,255,0.06)] px-3 py-4">
