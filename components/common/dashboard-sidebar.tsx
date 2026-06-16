@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, LogOut } from "lucide-react";
+import { ChevronRight, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   ADMIN_BOTTOM_MENU,
@@ -47,17 +47,19 @@ export function DashboardSidebar() {
   };
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col border-r border-[rgba(255,255,255,0.08)] bg-[#1a1f2e] md:flex">
-      <div className="px-5 py-6">
-        <p className="text-[16px] font-bold tracking-tight text-white">
-          CSO(주)우리메디텍
-        </p>
-        <p className="mt-1 text-[12px] font-medium tracking-wide text-[#7eb8ff]">
-          EDI 관리 시스템
-        </p>
+    <aside className="sticky top-0 hidden h-screen w-[220px] shrink-0 flex-col bg-[#0f1117] md:flex">
+      {/* Logo area */}
+      <div className="flex items-center gap-2.5 px-5 py-5 border-b border-white/5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#4f6ef7] text-white text-[11px] font-bold shrink-0">
+          우리
+        </div>
+        <div>
+          <p className="text-[13px] font-semibold text-white leading-tight">CSO(주)우리메디텍</p>
+          <p className="text-[10px] text-[#4f6ef7] font-medium mt-0.5">EDI 관리 시스템</p>
+        </div>
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-4">
+      <nav className="flex-1 overflow-y-auto py-3 px-2.5">
         {MENU_GROUPS.map((group, groupIndex) => {
           if (!group.label) {
             return (
@@ -70,20 +72,14 @@ export function DashboardSidebar() {
                       <Link
                         href={item.href}
                         className={cn(
-                          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors duration-150",
+                          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-150",
                           isActive
-                            ? "bg-[#4f6ef7] text-white"
-                            : "text-[#c0cce0] hover:bg-[rgba(79,110,247,0.15)] hover:text-white",
+                            ? "bg-[#4f6ef7] text-white shadow-lg shadow-[#4f6ef7]/20"
+                            : "text-[#94a3b8] hover:bg-white/5 hover:text-white",
                         )}
                       >
-                        <Icon
-                          className={cn(
-                            "size-[18px] shrink-0",
-                            isActive ? "text-white" : "text-[#7eb8ff]",
-                          )}
-                          strokeWidth={1.75}
-                        />
-                        <span className="truncate">{item.label}</span>
+                        <Icon className="size-[16px] shrink-0" strokeWidth={isActive ? 2 : 1.75} />
+                        <span>{item.label}</span>
                       </Link>
                     </li>
                   );
@@ -98,94 +94,102 @@ export function DashboardSidebar() {
           );
 
           return (
-            <div key={group.label} className="mb-2">
+            <div key={group.label} className="mb-1.5">
               <button
                 type="button"
                 onClick={() => toggleGroup(group.label!)}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors duration-150",
+                  "flex w-full items-center justify-between rounded-lg px-3 py-2 transition-all duration-150",
                   hasActive
-                    ? "bg-[rgba(79,110,247,0.1)] text-white"
-                    : "text-[#a0b4cc] hover:text-white",
+                    ? "text-white"
+                    : "text-[#64748b] hover:text-[#94a3b8] hover:bg-white/5",
                 )}
               >
-                <span className="text-[13px] font-bold tracking-wide">{group.label}</span>
-                <ChevronDown
+                <div className="flex items-center gap-2">
+                  {hasActive && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#4f6ef7] shrink-0" />
+                  )}
+                  <span className={cn(
+                    "text-[12px] font-semibold tracking-wide",
+                    !hasActive && "ml-[14px]",
+                  )}>
+                    {group.label}
+                  </span>
+                </div>
+                <ChevronRight
                   className={cn(
-                    "size-4 shrink-0 transition-transform duration-200",
-                    isOpen ? "rotate-180" : "rotate-0",
-                    hasActive ? "text-[#7eb8ff]" : "text-[#a0b4cc]",
+                    "size-3.5 transition-transform duration-200",
+                    isOpen && "rotate-90",
+                    hasActive ? "text-[#4f6ef7]" : "text-[#475569]",
                   )}
                   strokeWidth={2.5}
                 />
               </button>
 
-              <ul
+              <div
                 className={cn(
-                  "mt-0.5 space-y-0.5 overflow-hidden border-l border-[rgba(79,110,247,0.25)] ml-3 pl-2 transition-all duration-200",
-                  isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
+                  "overflow-hidden transition-all duration-200",
+                  isOpen ? "max-h-96 opacity-100 mt-0.5" : "max-h-0 opacity-0",
                 )}
               >
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = isActivePath(pathname, item.href);
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[14px] font-medium transition-colors duration-150",
-                          isActive
-                            ? "bg-[#4f6ef7] text-white"
-                            : "text-[#c0cce0] hover:bg-[rgba(79,110,247,0.15)] hover:text-white",
-                        )}
-                      >
-                        <Icon
+                <ul className="space-y-0.5 pl-3 border-l-2 border-white/5 ml-3">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = isActivePath(pathname, item.href);
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
                           className={cn(
-                            "size-[17px] shrink-0",
-                            isActive ? "text-white" : "text-[#7eb8ff]",
+                            "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-all duration-150",
+                            isActive
+                              ? "bg-[#4f6ef7] text-white shadow-lg shadow-[#4f6ef7]/20"
+                              : "text-[#94a3b8] hover:bg-white/5 hover:text-white",
                           )}
-                          strokeWidth={1.75}
-                        />
-                        <span className="truncate">{item.label}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+                        >
+                          <Icon
+                            className={cn(
+                              "size-[15px] shrink-0",
+                              isActive ? "text-white" : "text-[#64748b]",
+                            )}
+                            strokeWidth={isActive ? 2 : 1.75}
+                          />
+                          <span className="truncate">{item.label}</span>
+                          {isActive && (
+                            <span className="ml-auto h-1.5 w-1.5 rounded-full bg-white/60 shrink-0" />
+                          )}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             </div>
           );
         })}
       </nav>
 
-      <div className="border-t border-[rgba(255,255,255,0.08)] px-3 py-4">
+      {/* Bottom section */}
+      <div className="border-t border-white/5 px-2.5 py-3 space-y-0.5">
         {isAdmin && (
           <Link
             href={ADMIN_BOTTOM_MENU.href}
             className={cn(
-              "mb-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors duration-150",
+              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-all duration-150",
               isActivePath(pathname, ADMIN_BOTTOM_MENU.href)
                 ? "bg-[#4f6ef7] text-white"
-                : "text-[#c0cce0] hover:bg-[rgba(79,110,247,0.15)] hover:text-white",
+                : "text-[#94a3b8] hover:bg-white/5 hover:text-white",
             )}
           >
-            <ADMIN_BOTTOM_MENU.icon
-              className={cn(
-                "size-[18px] shrink-0",
-                isActivePath(pathname, ADMIN_BOTTOM_MENU.href)
-                  ? "text-white"
-                  : "text-[#7eb8ff]",
-              )}
-              strokeWidth={1.75}
-            />
+            <ADMIN_BOTTOM_MENU.icon className="size-[16px] shrink-0" strokeWidth={1.75} />
             {ADMIN_BOTTOM_MENU.label}
           </Link>
         )}
         <button
           type="button"
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium text-[#c0cce0] transition-colors duration-150 hover:text-white"
+          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-[#64748b] transition-all duration-150 hover:bg-white/5 hover:text-[#94a3b8]"
         >
-          <LogOut className="size-[18px] shrink-0 text-[#7eb8ff]" strokeWidth={1.75} />
+          <LogOut className="size-[16px] shrink-0" strokeWidth={1.75} />
           로그아웃
         </button>
       </div>
