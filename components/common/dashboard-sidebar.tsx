@@ -98,23 +98,23 @@ export function DashboardSidebar() {
           );
 
           return (
-            <div key={group.label} className="mb-1">
+            <div key={group.label} className="mb-2">
               <button
                 type="button"
                 onClick={() => toggleGroup(group.label!)}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-[12px] font-bold tracking-wider uppercase transition-colors duration-150",
+                  "flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors duration-150",
                   hasActive
-                    ? "text-[#7eb8ff]"
-                    : "text-[#8499b5] hover:text-[#c0cce0]",
+                    ? "bg-[rgba(79,110,247,0.1)] text-white"
+                    : "text-[#a0b4cc] hover:text-white",
                 )}
               >
-                <span>{group.label}</span>
+                <span className="text-[13px] font-bold tracking-wide">{group.label}</span>
                 <ChevronDown
                   className={cn(
-                    "size-4 transition-transform duration-200",
+                    "size-4 shrink-0 transition-transform duration-200",
                     isOpen ? "rotate-180" : "rotate-0",
-                    hasActive ? "text-[#7eb8ff]" : "text-[#8499b5]",
+                    hasActive ? "text-[#7eb8ff]" : "text-[#a0b4cc]",
                   )}
                   strokeWidth={2.5}
                 />
@@ -122,7 +122,7 @@ export function DashboardSidebar() {
 
               <ul
                 className={cn(
-                  "space-y-0.5 overflow-hidden transition-all duration-200",
+                  "mt-0.5 space-y-0.5 overflow-hidden border-l border-[rgba(79,110,247,0.25)] ml-3 pl-2 transition-all duration-200",
                   isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
                 )}
               >
@@ -134,7 +134,7 @@ export function DashboardSidebar() {
                       <Link
                         href={item.href}
                         className={cn(
-                          "flex items-center gap-3 rounded-lg pl-6 pr-3 py-2.5 text-[14px] font-medium transition-colors duration-150",
+                          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[14px] font-medium transition-colors duration-150",
                           isActive
                             ? "bg-[#4f6ef7] text-white"
                             : "text-[#c0cce0] hover:bg-[rgba(79,110,247,0.15)] hover:text-white",
@@ -142,7 +142,7 @@ export function DashboardSidebar() {
                       >
                         <Icon
                           className={cn(
-                            "size-[18px] shrink-0",
+                            "size-[17px] shrink-0",
                             isActive ? "text-white" : "text-[#7eb8ff]",
                           )}
                           strokeWidth={1.75}
