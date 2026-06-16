@@ -35,10 +35,10 @@ export function SendEmailModal({
   onClose,
   onSubmit,
 }: SendEmailModalProps) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("woorimedi2018@gmail.com");
 
   useEffect(() => {
-    if (open) setEmail("");
+    if (open) setEmail("woorimedi2018@gmail.com");
   }, [open, target?.id]);
 
   if (!open || !target) return null;

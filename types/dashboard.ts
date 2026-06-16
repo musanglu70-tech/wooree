@@ -5,6 +5,16 @@ export interface VDashboardStats {
   registered_pharma: number;
   total_edi_count: number;
   monthly_edi_count: number;
+  monthly_edi_amount: number;
+  unsettled_count: number;
+}
+
+export interface PharmaDashboardStat {
+  pharmaCompanyId: string;
+  pharmaName: string;
+  monthlyCount: number;
+  monthlyAmount: number;
+  unsettledCount: number;
 }
 
 export const DEFAULT_DASHBOARD_STATS: VDashboardStats = {
@@ -14,4 +24,6 @@ export const DEFAULT_DASHBOARD_STATS: VDashboardStats = {
   registered_pharma: 0,
   total_edi_count: 0,
   monthly_edi_count: 0,
+  monthly_edi_amount: 0,
+  unsettled_count: 0,
 };

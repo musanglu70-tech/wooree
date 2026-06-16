@@ -1,4 +1,4 @@
-const FROM_EMAIL = "noreply@wooree.vercel.app";
+const FROM_EMAIL = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
 
 export interface SettlementReportEmailParams {
   pharmaName: string;

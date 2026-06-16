@@ -1,4 +1,5 @@
 import { MonthlyPrescriptionsTable } from "@/components/dashboard/monthly-prescriptions-table";
+import { PharmaStatsTable } from "@/components/dashboard/pharma-stats-table";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 
 export default function DashboardPage() {
@@ -15,6 +16,19 @@ export default function DashboardPage() {
         </header>
 
         <StatsCards />
+
+        <section className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-200 px-6 py-4">
+            <h2 className="text-base font-semibold text-slate-900">
+              제약사별 현황
+            </h2>
+            <p className="mt-0.5 text-sm text-slate-500">
+              이번 달 EDI 건수·금액 및 미정산 건수
+            </p>
+          </div>
+
+          <PharmaStatsTable />
+        </section>
 
         <section className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-200 px-6 py-4">

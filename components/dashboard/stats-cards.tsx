@@ -7,11 +7,15 @@ import {
   Building2,
   CalendarDays,
   CheckCircle2,
+  CircleDollarSign,
   Files,
   Pill,
+  Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { StatsCardsSkeleton } from "@/components/dashboard/stats-cards-skeleton";
+import { fetchDashboardStats } from "@/lib/dashboard/load-stats";
+import { formatWon } from "@/lib/edi/constants";
 import { createClient } from "@/lib/supabase/browser";
 import {
   DEFAULT_DASHBOARD_STATS,
@@ -25,6 +29,7 @@ interface StatCardConfig {
   icon: LucideIcon;
   iconClassName: string;
   iconBgClassName: string;
+  format?: "number" | "won";
 }
 
 const STAT_CARD_CONFIG: StatCardConfig[] = [
@@ -70,25 +75,28 @@ const STAT_CARD_CONFIG: StatCardConfig[] = [
     iconClassName: "text-[#4f6ef7]",
     iconBgClassName: "bg-[rgba(79,110,247,0.1)]",
   },
+  {
+    label: "이번달 EDI 금액",
+    key: "monthly_edi_amount",
+    icon: CircleDollarSign,
+    iconClassName: "text-[#4f6ef7]",
+    iconBgClassName: "bg-[rgba(79,110,247,0.1)]",
+    format: "won",
+  },
+  {
+    label: "미정산",
+    key: "unsettled_count",
+    icon: Wallet,
+    iconClassName: "text-amber-700",
+    iconBgClassName: "bg-amber-50",
+  },
 ];
 
-function toNumber(value: unknown): number {
-  const num = Number(value);
-  return Number.isFinite(num) ? num : 0;
-}
-
-function normalizeStats(
-  row: Record<string, unknown>,
-  confirmedNotices = 0,
-): VDashboardStats {
-  return {
-    unread_notices: toNumber(row.unconfirmed_notices ?? row.unread_notices),
-    confirmed_notices: toNumber(row.confirmed_notices ?? confirmedNotices),
-    registered_hospitals: toNumber(row.registered_hospitals),
-    registered_pharma: toNumber(row.registered_pharma),
-    total_edi_count: toNumber(row.total_edi_count),
-    monthly_edi_count: toNumber(row.this_month_edi ?? row.monthly_edi_count),
-  };
+function formatValue(value: number, format?: "number" | "won") {
+  if (format === "won") {
+    return formatWon(value);
+  }
+  return value.toLocaleString("ko-KR");
 }
 
 export function StatsCards() {
@@ -99,29 +107,16 @@ export function StatsCards() {
   useEffect(() => {
     let active = true;
 
-    Promise.all([
-      supabase.from("v_dashboard_stats").select("*").maybeSingle(),
-      supabase
-        .from("notices")
-        .select("*", { count: "exact", head: true })
-        .eq("is_confirmed", true),
-    ]).then(([statsRes, confirmedRes]) => {
-      if (!active) return;
-
-      const { data, error } = statsRes;
-      const confirmedCount = confirmedRes.count ?? 0;
-
-      if (error) {
-        toast.error("대시보드 통계를 불러오지 못했습니다: " + error.message);
+    fetchDashboardStats(supabase)
+      .then((data) => {
+        if (!active) return;
+        setStats(data);
+      })
+      .catch(() => {
+        if (!active) return;
+        toast.error("대시보드 통계를 불러오지 못했습니다.");
         setStats(DEFAULT_DASHBOARD_STATS);
-      } else if (!data) {
-        setStats(normalizeStats({}, confirmedCount));
-      } else {
-        setStats(
-          normalizeStats(data as Record<string, unknown>, confirmedCount),
-        );
-      }
-    });
+      });
 
     return () => {
       active = false;
@@ -133,7 +128,7 @@ export function StatsCards() {
   }
 
   return (
-    <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6">
+    <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-4">
       {STAT_CARD_CONFIG.map((card) => {
         const Icon = card.icon;
         const value = stats[card.key];
@@ -154,8 +149,13 @@ export function StatsCards() {
                 strokeWidth={1.75}
               />
             </div>
-            <p className="text-2xl font-semibold tracking-tight text-slate-900">
-              {value.toLocaleString("ko-KR")}
+            <p
+              className={cn(
+                "font-semibold tracking-tight text-slate-900",
+                card.format === "won" ? "text-xl" : "text-2xl",
+              )}
+            >
+              {formatValue(value, card.format)}
             </p>
             <p className="mt-1 text-sm text-slate-500">{card.label}</p>
           </div>
