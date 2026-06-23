@@ -383,9 +383,9 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── 왼쪽: 원본 첨부파일 ── */}
-        <div className="flex w-[44%] shrink-0 flex-col bg-[#1a1208]" style={{ borderRight: "2px solid #3d3020" }}>
+        <div className="flex w-[42%] shrink-0 flex-col bg-[#120d05]" style={{ borderLeft: "3px solid #c4973d", borderRight: "2px solid #3d3020" }}>
           {/* 패널 헤더 */}
-          <div className="flex h-12 shrink-0 items-center gap-2 border-b border-[#3d3020] bg-[#221808] px-3">
+          <div className="flex h-10 shrink-0 items-center gap-2 bg-[#1e1409] px-3" style={{ borderBottom: "1px solid #c4973d" }}>
             <span className="shrink-0 text-xs font-medium text-[#c4973d]">📎 원본 첨부파일</span>
             <div className="flex flex-1 items-center justify-end gap-0.5">
               {/* 페이지 이동 */}
@@ -448,34 +448,41 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           </div>
 
           {/* 첨부파일 영역 */}
-          <div className="flex flex-1 items-center justify-center overflow-auto">
+          <div className="relative flex flex-1 overflow-auto">
             {attachmentUrls.length > 0 && attachmentUrls[attachmentIndex] ? (
-              attachmentUrls[attachmentIndex].toLowerCase().includes(".pdf") ? (
-                <iframe src={attachmentUrls[attachmentIndex]} className="h-full w-full" title="처방전" />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={attachmentUrls[attachmentIndex]}
-                  alt="처방전"
-                  style={{ transform: `scale(${imageScale})`, transformOrigin: "center center", transition: "transform 0.15s ease", filter: `grayscale(${isBlackWhite ? 1 : 0}) contrast(${imageContrast})` }}
-                  className="max-h-full max-w-full object-contain"
-                />
-              )
+              <div className="flex flex-1 items-center justify-center">
+                {attachmentUrls[attachmentIndex].toLowerCase().includes(".pdf") ? (
+                  <iframe src={attachmentUrls[attachmentIndex]} className="h-full w-full" title="처방전" />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={attachmentUrls[attachmentIndex]}
+                    alt="처방전"
+                    style={{ transform: `scale(${imageScale})`, transformOrigin: "center center", transition: "transform 0.15s ease", filter: `grayscale(${isBlackWhite ? 1 : 0}) contrast(${imageContrast})` }}
+                    className="max-h-full max-w-full object-contain"
+                  />
+                )}
+              </div>
             ) : (
               <button
                 type="button"
                 onClick={() => attachmentInputRef.current?.click()}
                 disabled={isUploading}
-                className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-[#3d3020] p-8 transition-colors hover:border-[#c4973d] hover:bg-[#2c2416] disabled:opacity-50"
+                className="flex flex-1 flex-col items-center justify-center gap-4 transition-colors hover:bg-[#1e1409] disabled:opacity-50"
+                style={{ border: "none", background: "transparent" }}
               >
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#2c2416] text-[#4a3a28]">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl" style={{ border: "2px dashed #3d3020" }}>
                   {isUploading
-                    ? <Loader2 className="size-8 animate-spin text-[#c4973d]" />
-                    : <Upload className="size-8 text-[#4a3a28]" />
+                    ? <Loader2 className="size-10 animate-spin" style={{ color: "#c4973d" }} />
+                    : <Upload className="size-10" style={{ color: "#3d3020" }} />
                   }
                 </div>
-                <p className="text-sm text-[#4a3a28]">{isUploading ? "업로드 중..." : "첨부파일 없음"}</p>
-                <p className="text-xs text-[#3d3020]">클릭하여 파일 첨부</p>
+                <div className="text-center">
+                  <p className="text-sm font-medium" style={{ color: "#4a3a28" }}>
+                    {isUploading ? "업로드 중..." : "첨부파일 없음"}
+                  </p>
+                  <p className="mt-1 text-xs" style={{ color: "#2e2214" }}>클릭하여 처방전 이미지 첨부</p>
+                </div>
               </button>
             )}
           </div>
