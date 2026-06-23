@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   Download,
   Loader2,
+  Mail,
   Plus,
   RotateCcw,
   Save,
@@ -417,6 +418,81 @@ export function EdiNewForm() {
     void handleExcelUpload(file);
   };
 
+  const handleEmailImport = async () => {
+    setIsEmailImporting(true);
+    setEmailImportMessage(null);
+
+    try {
+      const res = await fetch("/api/email-import");
+      const data = (await res.json()) as {
+        message?: string;
+        error?: string;
+        results?: Array<{
+          messageId: string;
+          sender: string;
+          subject: string;
+          attachment: string;
+          status: "success" | "error" | "skipped";
+          data?: {
+            type: string;
+            rows?: number;
+            items?: RxRow[];
+            pharmaCompanyName?: string;
+            hospitalName?: string;
+            businessNumber?: string;
+            prescriptionDate?: string;
+          };
+          error?: string;
+        }>;
+      };
+
+      if (!res.ok) {
+        toast.error(data.error ?? "이메일 가져오기 실패");
+        setEmailImportMessage(data.error ?? "오류가 발생했습니다.");
+        return;
+      }
+
+      const results = data.results ?? [];
+      const successes = results.filter((r) => r.status === "success");
+
+      if (successes.length === 0) {
+        const msg = data.message ?? "처리된 이메일이 없습니다.";
+        toast.info(msg);
+        setEmailImportMessage(msg);
+        return;
+      }
+
+      // 첫 번째 성공 결과를 폼에 적용
+      const first = successes[0];
+      const firstData = first.data;
+
+      if (firstData) {
+        if (firstData.pharmaCompanyName) {
+          const pharmaId = findPharmaCompanyId(firstData.pharmaCompanyName, pharmaCompanies);
+          if (pharmaId) setPharmaCompanyId(pharmaId);
+        }
+        if (firstData.hospitalName) setHospitalName(firstData.hospitalName);
+        if (firstData.businessNumber) setBusinessNumber(firstData.businessNumber);
+        if (firstData.prescriptionDate) {
+          setPrescriptionMonth(firstData.prescriptionDate.slice(0, 7));
+        }
+        if (firstData.items && firstData.items.length > 0) {
+          setRows(firstData.items);
+        }
+      }
+
+      const msg = data.message ?? `${successes.length}건 이메일에서 가져오기 완료`;
+      toast.success(msg);
+      setEmailImportMessage(msg);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "이메일 가져오기 중 오류 발생";
+      toast.error(msg);
+      setEmailImportMessage(msg);
+    } finally {
+      setIsEmailImporting(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!pharmaCompanyId) {
       toast.error("제약사를 선택해주세요.");
@@ -623,6 +699,38 @@ export function EdiNewForm() {
             </span>
           )}
         </div>
+      </section>
+
+      {/* 2. 이메일에서 가져오기 */}
+      <section className={CARD}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">
+              이메일에서 가져오기
+            </h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Gmail 받은편지함의 첨부파일(엑셀/이미지)을 자동으로 읽어 입력합니다
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void handleEmailImport()}
+            disabled={isEmailImporting}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#4f6ef7] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isEmailImporting ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Mail className="size-3.5" />
+            )}
+            {isEmailImporting ? "이메일 확인 중..." : "Gmail에서 가져오기"}
+          </button>
+        </div>
+        {emailImportMessage && (
+          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
+            {emailImportMessage}
+          </div>
+        )}
       </section>
 
       {/* 2. 엑셀 일괄 업로드 */}
