@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ClipboardCheck, Search } from "lucide-react";
 import { toast } from "sonner";
 import { formatWon } from "@/lib/edi/constants";
@@ -50,10 +51,10 @@ function formatMonthLabel(month: string) {
 
 export function EdiInspectContent() {
   const supabase = useMemo(() => createClient(), []);
+  const router = useRouter();
 
   const [items, setItems] = useState<InspectItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const [filterMonth, setFilterMonth] = useState("");
   const [filterPharma, setFilterPharma] = useState("");
@@ -103,27 +104,6 @@ export function EdiInspectContent() {
 
   const handleSearch = () => {
     setApplied({ month: filterMonth, pharma: filterPharma });
-  };
-
-  const handleConfirm = async (item: InspectItem) => {
-    setConfirmingId(item.id);
-
-    try {
-      const { error } = await supabase
-        .from("prescriptions")
-        .update({ status: "confirmed" })
-        .eq("id", item.id);
-
-      if (error) {
-        toast.error("확정 처리에 실패했습니다: " + error.message);
-        return;
-      }
-
-      setItems((prev) => prev.filter((row) => row.id !== item.id));
-      toast.success(`'${item.hospital}' 처방이 확정되었습니다.`);
-    } finally {
-      setConfirmingId(null);
-    }
   };
 
   return (
@@ -242,12 +222,11 @@ export function EdiInspectContent() {
                     <td className="px-5 py-3.5 text-center">
                       <button
                         type="button"
-                        disabled={confirmingId === item.id}
-                        onClick={() => handleConfirm(item)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-[#4f6ef7] px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+                        onClick={() => router.push(`/edi/inspect/${item.id}`)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-[#4f6ef7] px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
                       >
                         <ClipboardCheck className="size-3.5" />
-                        {confirmingId === item.id ? "처리 중..." : "확정"}
+                        확정
                       </button>
                     </td>
                   </tr>
