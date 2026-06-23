@@ -298,10 +298,10 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
   if (!prescription) return null;
 
   return (
-    <div className="flex h-full flex-col overflow-hidden" style={{ fontFamily: "sans-serif" }}>
+    <div className="flex h-full flex-col gap-2.5 overflow-hidden p-2.5" style={{ fontFamily: "sans-serif", background: "#efeae1" }}>
 
-      {/* ── 상단 바 ── */}
-      <div className="flex h-12 shrink-0 items-center gap-2 border-b border-[#e2d8c3] bg-[#faf6ef] px-4">
+      {/* ── 상단 바 (세션 1) ── */}
+      <div className="flex h-12 shrink-0 items-center gap-2 rounded-lg border border-[#e2d8c3] bg-[#faf6ef] px-4 shadow-sm">
         {/* 검수 태그 */}
         <span className="flex shrink-0 items-center gap-1 px-1 text-sm font-semibold text-[#4a3a28]">
           🔍 검수
@@ -380,10 +380,10 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
       </div>
 
       {/* ── 메인 두 패널 ── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 gap-2 overflow-hidden">
 
-        {/* ── 왼쪽: 원본 첨부파일 ── */}
-        <div className="flex w-[48%] shrink-0 flex-col" style={{ background: "#faf6ef", borderRight: "1px solid #e2d8c3" }}>
+        {/* ── 왼쪽: 원본 첨부파일 (세션 2) ── */}
+        <div className="flex w-[48%] shrink-0 flex-col overflow-hidden rounded-lg border border-[#e2d8c3] shadow-sm" style={{ background: "#faf6ef" }}>
           {/* 패널 헤더 */}
           <div className="flex h-10 shrink-0 items-center gap-2 px-3" style={{ background: "#f3ecdf", borderBottom: "1px solid #e2d8c3" }}>
             <span className="shrink-0 text-xs font-semibold text-[#5a4a32]">📎 원본 첨부파일</span>
@@ -490,8 +490,8 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           </div>
         </div>
 
-        {/* ── 오른쪽: 입력 데이터 검수 ── */}
-        <div className="flex flex-1 flex-col overflow-hidden bg-[#fdf8f0]">
+        {/* ── 오른쪽: 입력 데이터 검수 (세션 3) ── */}
+        <div className="flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e2d8c3] bg-[#fdf8f0] shadow-sm">
 
           {/* 폼 헤더 */}
           <div className="flex h-10 shrink-0 items-center justify-between border-b border-[#e8d9bc] bg-[#f5ede0] px-5">
