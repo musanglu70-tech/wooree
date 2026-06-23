@@ -491,11 +491,11 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
         </div>
 
         {/* ── 오른쪽: 입력 데이터 검수 (세션 3) ── */}
-        <div className="flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e2d8c3] bg-[#fdf8f0] shadow-sm">
+        <div className="flex flex-1 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
 
           {/* 폼 헤더 */}
-          <div className="flex h-10 shrink-0 items-center justify-between border-b border-[#e8d9bc] bg-[#f5ede0] px-5">
-            <span className="text-sm font-semibold text-[#5a3e1b]">📋 입력 데이터 검수</span>
+          <div className="flex h-10 shrink-0 items-center justify-between border-b border-gray-200 bg-gray-50 px-5">
+            <span className="text-sm font-semibold text-slate-800">📋 입력 데이터 검수</span>
             <span
               className="rounded-full px-3 py-0.5 text-xs font-semibold"
               style={{
@@ -647,7 +647,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           </div>
 
           {/* 하단 버튼 */}
-          <div className="shrink-0 border-t border-[#e8d9bc] bg-[#f5ede0] p-4">
+          <div className="shrink-0 border-t border-gray-200 bg-gray-50 p-4">
             <div className="flex gap-2">
               <button
                 type="button"

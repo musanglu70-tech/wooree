@@ -67,7 +67,7 @@ function monthToSettlementDate(month: string): string {
 
 function StatusBadge({ status }: { status: string }) {
   if (!status) {
-    return <span className="text-[#b5a080]">-</span>;
+    return <span className="text-slate-400">-</span>;
   }
 
   const label =
@@ -87,7 +87,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 const inputClassName =
-  "h-10 w-full rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 text-sm text-[#2c1f0e] outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
+  "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
 export function ByPharmaContent() {
   const supabase = useMemo(() => createClient(), []);
@@ -296,13 +296,13 @@ export function ByPharmaContent() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 shadow-sm">
-        <h2 className="mb-4 text-sm font-semibold text-[#2c1f0e]">
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="mb-4 text-sm font-semibold text-slate-900">
           정산자료 업로드
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+            <label className="mb-1.5 block text-xs font-medium text-slate-700">
               제약사 <span className="text-red-500">*</span>
             </label>
             <select
@@ -319,7 +319,7 @@ export function ByPharmaContent() {
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+            <label className="mb-1.5 block text-xs font-medium text-slate-700">
               정산월 <span className="text-red-500">*</span>
             </label>
             <input
@@ -330,7 +330,7 @@ export function ByPharmaContent() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+            <label className="mb-1.5 block text-xs font-medium text-slate-700">
               파일 <span className="text-red-500">*</span>
             </label>
             <input
@@ -340,7 +340,7 @@ export function ByPharmaContent() {
               onChange={(e) => handleFileSelect(e.target.files)}
               className={cn(
                 inputClassName,
-                "cursor-pointer file:mr-3 file:rounded-md file:border-0 file:bg-[#eee3cc] file:px-2 file:py-1 file:text-xs file:font-medium file:text-[#5a3e1b]",
+                "cursor-pointer file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-2 file:py-1 file:text-xs file:font-medium file:text-slate-700",
               )}
             />
           </div>
@@ -357,31 +357,31 @@ export function ByPharmaContent() {
           </div>
         </div>
         {pendingFile && (
-          <p className="mt-3 text-xs text-[#9a7c4e]">
+          <p className="mt-3 text-xs text-slate-500">
             선택된 파일: {pendingFile.name}
           </p>
         )}
       </section>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-[#9a7c4e]">
+        <p className="text-sm text-slate-500">
           전체 {files.length.toLocaleString("ko-KR")}건
         </p>
       </div>
 
-      <section className="overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead>
-              <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">파일명</th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">제약사</th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">정산월</th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">
+              <tr className="border-b border-slate-200 bg-slate-50">
+                <th className="px-5 py-3 font-medium text-slate-600">파일명</th>
+                <th className="px-5 py-3 font-medium text-slate-600">제약사</th>
+                <th className="px-5 py-3 font-medium text-slate-600">정산월</th>
+                <th className="px-5 py-3 font-medium text-slate-600">
                   업로드일
                 </th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">상태</th>
-                <th className="px-5 py-3 text-center font-medium text-[#7a5c2e]">
+                <th className="px-5 py-3 font-medium text-slate-600">상태</th>
+                <th className="px-5 py-3 text-center font-medium text-slate-600">
                   액션
                 </th>
               </tr>
@@ -391,7 +391,7 @@ export function ByPharmaContent() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                    className="px-5 py-12 text-center text-sm text-slate-500"
                   >
                     불러오는 중...
                   </td>
@@ -400,6 +400,76 @@ export function ByPharmaContent() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                    className="px-5 py-12 text-center text-sm text-slate-500"
                   >
-                    등록된 정산자료가 없습니�
+                    등록된 정산자료가 없습니다.
+                  </td>
+                </tr>
+              ) : (
+                files.map((file, index) => (
+                  <tr
+                    key={file.id}
+                    className={cn(
+                      "border-b border-slate-100 last:border-b-0",
+                      index % 2 === 1 && "bg-slate-50/40",
+                    )}
+                  >
+                    <td className="px-5 py-3.5 font-medium text-slate-900">
+                      <span className="inline-flex items-center gap-2">
+                        <FolderOpen className="size-4 text-slate-400" />
+                        {file.fileName || "-"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-slate-700">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Building2 className="size-3.5 text-slate-400" />
+                        {file.pharma || "-"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-slate-700">
+                      {formatMonthLabel(file.month)}
+                    </td>
+                    <td className="px-5 py-3.5 text-slate-600">
+                      {file.uploadedAt || "-"}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <StatusBadge status={file.status} />
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => openEmailModal(file)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                        >
+                          <Mail className="size-3.5" />
+                          이메일 발송
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDownload(file)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                        >
+                          <Download className="size-3.5" />
+                          다운로드
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <SendEmailModal
+        open={isEmailModalOpen}
+        target={emailTarget}
+        isSending={isSendingEmail}
+        onClose={closeEmailModal}
+        onSubmit={handleSendEmail}
+      />
+    </div>
+  );
+}

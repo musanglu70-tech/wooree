@@ -134,13 +134,13 @@ function buildRowsFromOcrItems(
 }
 
 const CARD =
-  "rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 shadow-sm";
+  "rounded-xl border border-slate-200 bg-white p-5 shadow-sm";
 
 const inputClassName =
-  "w-full rounded-lg border border-[#d4c5a9] bg-[#fdf8f0] px-3 py-2 text-sm text-[#2c1f0e] outline-none transition-colors placeholder:text-[#b5a080] focus:border-[#c4973d] focus:ring-2 focus:ring-[#c4973d]/20";
+  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
 const tableInputClassName =
-  "w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-xs hover:border-[#d4c5a9] focus:border-[#c4973d] focus:bg-[#fdf8f0] focus:outline-none focus:ring-2 focus:ring-[#c4973d]/12";
+  "w-full rounded-md border border-transparent bg-transparent px-1.5 py-1 text-xs hover:border-slate-200 focus:border-[#4f6ef7] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#4f6ef7]/12";
 
 function FieldLabel({
   children,
@@ -150,7 +150,7 @@ function FieldLabel({
   required?: boolean;
 }) {
   return (
-    <label className="mb-1.5 block text-xs font-medium text-[#7a5c2e]">
+    <label className="mb-1.5 block text-xs font-medium text-slate-700">
       {children}
       {required && <span className="text-red-500"> *</span>}
     </label>
@@ -612,10 +612,10 @@ export function EdiNewForm() {
     <div className="space-y-4">
       {/* 1. 처방전 AI 자동입력 */}
       <section className={CARD}>
-        <h2 className="mb-1 text-sm font-semibold text-[#2c1f0e]">
+        <h2 className="mb-1 text-sm font-semibold text-slate-900">
           처방전 사진 업로드(AI 자동입력)
         </h2>
-        <p className="mb-4 text-xs text-[#9a7c4e]">
+        <p className="mb-4 text-xs text-slate-500">
           처방전 이미지 또는 PDF를 업로드하면 AI가 자동으로 정보를
           추출합니다.
         </p>
@@ -640,20 +640,20 @@ export function EdiNewForm() {
           className={cn(
             "cursor-pointer rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors",
             isDragOver
-              ? "border-[#c4973d] bg-[rgba(196,151,61,0.06)]"
-              : "border-[#e8d9bc] bg-[#f5ede0] hover:border-[#c4973d] hover:bg-[rgba(196,151,61,0.04)]",
+              ? "border-[#4f6ef7] bg-[rgba(79,110,247,0.06)]"
+              : "border-slate-200 bg-slate-50 hover:border-[#4f6ef7] hover:bg-[rgba(79,110,247,0.04)]",
             isOcrLoading && "pointer-events-none opacity-60",
           )}
         >
-          <Upload className="mx-auto mb-2 size-8 text-[#c4973d]" />
-          <p className="text-sm text-[#5a3e1b]">
+          <Upload className="mx-auto mb-2 size-8 text-[#4f6ef7]" />
+          <p className="text-sm text-slate-700">
             클릭하거나 파일을 드래그하세요
           </p>
-          <p className="mt-1 text-xs text-[#b5a080]">
+          <p className="mt-1 text-xs text-slate-400">
             이미지(JPG, PNG), PDF 지원
           </p>
           {ocrFiles.length > 0 && (
-            <p className="mt-3 text-xs font-medium text-[#c4973d]">
+            <p className="mt-3 text-xs font-medium text-[#4f6ef7]">
               {ocrFiles[0].name}
               {ocrFiles.length > 1 ? ` 외 ${ocrFiles.length - 1}개` : ""}
             </p>
@@ -685,17 +685,17 @@ export function EdiNewForm() {
             type="button"
             onClick={resetOcr}
             disabled={isOcrLoading}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 py-2 text-xs font-medium text-[#5a3e1b] transition-colors hover:border-slate-300 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-slate-300 disabled:opacity-50"
           >
             <RotateCcw className="size-3.5" />
             초기화
           </button>
         </div>
 
-        <div className="mt-3 rounded-lg border border-[#e8d9bc] bg-[#f5ede0] px-4 py-3 text-xs text-[#7a5c2e]">
+        <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
           {isOcrLoading ? (
-            <span className="inline-flex items-center gap-2 text-[#9a7c4e]">
-              <Loader2 className="size-3.5 animate-spin text-[#c4973d]" />
+            <span className="inline-flex items-center gap-2 text-slate-500">
+              <Loader2 className="size-3.5 animate-spin text-[#4f6ef7]" />
               처방전을 분석하고 있습니다...
             </span>
           ) : ocrSummary ? (
@@ -705,8 +705,8 @@ export function EdiNewForm() {
                   key={index}
                   className={cn(
                     line.startsWith("⚠️") && "font-medium text-amber-700",
-                    line.startsWith("✅") && "text-[#5a3e1b]",
-                    index === 0 && "font-semibold text-[#2c1f0e]",
+                    line.startsWith("✅") && "text-slate-700",
+                    index === 0 && "font-semibold text-slate-900",
                   )}
                 >
                   {line}
@@ -714,7 +714,7 @@ export function EdiNewForm() {
               ))}
             </ul>
           ) : (
-            <span className="text-[#9a7c4e]">
+            <span className="text-slate-500">
               OCR 결과가 여기에 표시됩니다. 추출된 데이터는 아래 폼에 자동
               입력됩니다.
             </span>
@@ -726,10 +726,10 @@ export function EdiNewForm() {
       <section className={CARD}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-sm font-semibold text-[#2c1f0e]">
+            <h2 className="text-sm font-semibold text-slate-900">
               이메일에서 가져오기
             </h2>
-            <p className="mt-1 text-xs text-[#9a7c4e]">
+            <p className="mt-1 text-xs text-slate-500">
               Gmail 받은편지함의 첨부파일(엑셀/이미지)을 자동으로 읽어 입력합니다
             </p>
           </div>
@@ -748,7 +748,7 @@ export function EdiNewForm() {
           </button>
         </div>
         {emailImportMessage && (
-          <div className="mt-3 rounded-lg border border-[#e8d9bc] bg-[#f5ede0] px-4 py-3 text-xs text-[#7a5c2e]">
+          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
             {emailImportMessage}
           </div>
         )}
@@ -758,10 +758,10 @@ export function EdiNewForm() {
       <section className={CARD}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="text-sm font-semibold text-[#2c1f0e]">
+            <h2 className="text-sm font-semibold text-slate-900">
               엑셀 일괄 업로드
             </h2>
-            <p className="mt-1 text-xs text-[#9a7c4e]">
+            <p className="mt-1 text-xs text-slate-500">
               여러 병의원을 엑셀 파일 한 장으로 한번에 저장
             </p>
           </div>
@@ -769,7 +769,7 @@ export function EdiNewForm() {
             <button
               type="button"
               onClick={handleDownloadTemplate}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 py-2 text-xs font-medium text-[#5a3e1b] transition-colors hover:border-[#c4973d] hover:text-[#c4973d]"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
             >
               <Download className="size-3.5" />
               양식 다운로드
@@ -808,7 +808,7 @@ export function EdiNewForm() {
 
       {/* 3. 기본 정보 */}
       <section className={CARD}>
-        <h2 className="mb-4 text-sm font-semibold text-[#2c1f0e]">기본 정보</h2>
+        <h2 className="mb-4 text-sm font-semibold text-slate-900">기본 정보</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div>
             <FieldLabel required>제약사명</FieldLabel>
@@ -872,7 +872,7 @@ export function EdiNewForm() {
       {/* 4. 처방입력 테이블 */}
       <section className={CARD}>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold text-[#2c1f0e]">처방입력</h2>
+          <h2 className="text-sm font-semibold text-slate-900">처방입력</h2>
           <button
             type="button"
             onClick={addRow}
@@ -886,42 +886,42 @@ export function EdiNewForm() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1200px] border-collapse text-xs">
             <thead>
-              <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
+              <tr className="border-b border-slate-200 bg-slate-50">
                 <th className="w-16 px-2 py-2.5" />
-                <th className="px-2 py-2.5 text-left font-medium text-[#9a7c4e]">
+                <th className="px-2 py-2.5 text-left font-medium text-slate-500">
                   순번
                 </th>
-                <th className="px-2 py-2.5 text-left font-medium text-[#9a7c4e]">
+                <th className="px-2 py-2.5 text-left font-medium text-slate-500">
                   보험코드
                 </th>
-                <th className="px-2 py-2.5 text-left font-medium text-[#9a7c4e]">
+                <th className="px-2 py-2.5 text-left font-medium text-slate-500">
                   제품명
                 </th>
-                <th className="px-2 py-2.5 text-left font-medium text-[#9a7c4e]">
+                <th className="px-2 py-2.5 text-left font-medium text-slate-500">
                   단위
                 </th>
-                <th className="px-2 py-2.5 text-right font-medium text-[#9a7c4e]">
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
                   처방횟수
                 </th>
-                <th className="px-2 py-2.5 text-right font-medium text-[#9a7c4e]">
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
                   단가
                 </th>
-                <th className="px-2 py-2.5 text-right font-medium text-[#9a7c4e]">
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
                   총사용량
                 </th>
-                <th className="px-2 py-2.5 text-right font-medium text-[#9a7c4e]">
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
                   총금액
                 </th>
-                <th className="px-2 py-2.5 text-right font-medium text-[#9a7c4e]">
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
                   원내수량
                 </th>
-                <th className="px-2 py-2.5 text-right font-medium text-[#9a7c4e]">
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
                   원외수량
                 </th>
-                <th className="px-2 py-2.5 text-left font-medium text-[#9a7c4e]">
+                <th className="px-2 py-2.5 text-left font-medium text-slate-500">
                   처방/조제
                 </th>
-                <th className="px-2 py-2.5 text-right font-medium text-[#9a7c4e]">
+                <th className="px-2 py-2.5 text-right font-medium text-slate-500">
                   처방금액
                 </th>
               </tr>
@@ -939,7 +939,7 @@ export function EdiNewForm() {
                   <tr
                     key={index}
                     className={cn(
-                      "border-b border-[#f0e4d0] hover:bg-[#f0e6d0]/60",
+                      "border-b border-slate-100 hover:bg-slate-50/60",
                       zeroAmount && "bg-red-50/40",
                     )}
                   >
@@ -956,14 +956,14 @@ export function EdiNewForm() {
                         <button
                           type="button"
                           onClick={addRow}
-                          className="flex size-[22px] items-center justify-center rounded-md text-[#c4973d] hover:bg-[rgba(196,151,61,0.1)]"
+                          className="flex size-[22px] items-center justify-center rounded-md text-[#4f6ef7] hover:bg-[rgba(79,110,247,0.1)]"
                           aria-label="행 추가"
                         >
                           <Plus className="size-3.5" />
                         </button>
                       </div>
                     </td>
-                    <td className="px-2 py-1.5 text-[#7a5c2e]">{index + 1}</td>
+                    <td className="px-2 py-1.5 text-slate-600">{index + 1}</td>
                     <td className="px-1 py-1">
                       <ProductCodeInput
                         value={row.code}
@@ -1088,7 +1088,7 @@ export function EdiNewForm() {
                     </td>
                     <td
                       className={cn(
-                        "px-2 py-1.5 text-right font-semibold tabular-nums text-[#c4973d]",
+                        "px-2 py-1.5 text-right font-semibold tabular-nums text-[#4f6ef7]",
                         zeroAmountCellClass,
                       )}
                     >
@@ -1099,5 +1099,32 @@ export function EdiNewForm() {
               })}
             </tbody>
             <tfoot>
-              <tr className="bg-[#f5ede0] font-semibold">
-                <td colSpan={
+              <tr className="bg-slate-50 font-semibold">
+                <td colSpan={12} className="px-2 py-2.5 text-right text-slate-600">
+                  합계
+                </td>
+                <td className="px-2 py-2.5 text-right tabular-nums text-[#4f6ef7]">
+                  {formatWon(total)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </section>
+
+      {/* 5. 저장 */}
+      <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+        <span className="text-xs text-slate-500">행 {rows.length}개 입력됨</span>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isSaving}
+          className="inline-flex items-center gap-2 rounded-lg bg-[#4f6ef7] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <Save className="size-4" />
+          {isSaving ? "저장 중..." : "저장"}
+        </button>
+      </div>
+    </div>
+  );
+}
