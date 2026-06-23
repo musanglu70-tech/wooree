@@ -293,6 +293,10 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           <option value="">제약사 전체</option>
           {pharmaOptions.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
+        <select className={topSelectCls} disabled>
+          <option value="">업체 전체</option>
+          <option value="우리메디텍">우리메디텍</option>
+        </select>
         <select value={fHospital} onChange={e => setFHospital(e.target.value)} className={topSelectCls}>
           <option value="">거래처 전체</option>
           {hospitalOptions.map(h => <option key={h} value={h}>{h}</option>)}
@@ -456,7 +460,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
 
             {/* 업체명 */}
             <div className="mb-3">
-              <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">업제명 (업모자)</label>
+              <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">업체명 (담당자)</label>
               <input value="우리메디텍" readOnly className={fieldCls + " cursor-default opacity-70"} />
             </div>
 
@@ -540,7 +544,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
               className="mb-4 flex w-full items-center justify-center gap-1 rounded border border-dashed border-[#c4973d] py-2 text-xs text-[#c4973d] hover:bg-[#fdf3e3]"
             >
               <Plus className="size-3.5" />
-              명 추가
+              행 추가
             </button>
 
             {/* 비고 */}
