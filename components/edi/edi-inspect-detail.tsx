@@ -341,7 +341,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── 왼쪽: 원본 첨부파일 ── */}
-        <div className="flex w-[45%] shrink-0 flex-col bg-[#1a1208]">
+        <div className="flex w-[40%] shrink-0 flex-col bg-[#1a1208]">
           {/* 패널 헤더 */}
           <div className="flex h-10 shrink-0 items-center justify-between border-b border-[#3d3020] px-4">
             <span className="text-xs font-medium text-[#c4973d]">📎 원본 첨부파일</span>
