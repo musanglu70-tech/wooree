@@ -54,7 +54,7 @@ const fieldCls =
   "w-full rounded border border-[#d4c5a9] bg-[#fdf8f0] px-3 py-1.5 text-sm text-slate-800 outline-none focus:border-[#c4973d] focus:bg-white";
 
 const topSelectCls =
-  "h-7 rounded border border-[#4a3a28] bg-[#3d3020] px-2 text-xs text-[#c8a96e] outline-none focus:border-[#c4973d] cursor-pointer";
+  "h-7 rounded border border-[#d9cdb3] bg-white px-2 text-xs text-[#5a4a32] outline-none focus:border-[#c4973d] cursor-pointer";
 
 interface Props {
   prescriptionId: string;
@@ -290,7 +290,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#2c2416]">
+      <div className="flex h-screen items-center justify-center bg-[#faf6ef]">
         <Loader2 className="size-8 animate-spin text-[#c4973d]" />
       </div>
     );
@@ -301,14 +301,14 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
     <div className="flex h-full flex-col overflow-hidden" style={{ fontFamily: "sans-serif" }}>
 
       {/* ── 상단 바 ── */}
-      <div className="flex h-12 shrink-0 items-center gap-2 border-b border-[#3d3020] bg-[#2c2416] px-4">
+      <div className="flex h-12 shrink-0 items-center gap-2 border-b border-[#e2d8c3] bg-[#faf6ef] px-4">
         {/* 검수 태그 */}
-        <span className="flex shrink-0 items-center gap-1 rounded bg-[#3d3020] px-2 py-0.5 text-xs font-medium text-[#e8c97a]">
+        <span className="flex shrink-0 items-center gap-1 px-1 text-sm font-semibold text-[#4a3a28]">
           🔍 검수
         </span>
 
         {/* 카운터 */}
-        <span className="shrink-0 text-xs text-[#c8a96e]">
+        <span className="shrink-0 text-xs text-[#8a7558]">
           {currentIndex >= 0 ? currentIndex + 1 : "-"} / {filteredIds.length}
         </span>
 
@@ -317,8 +317,8 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           type="button"
           disabled={!prevId}
           onClick={() => prevId && router.push(`/edi/inspect/${prevId}`)}
-          className="flex shrink-0 items-center gap-0.5 rounded px-1.5 py-0.5 text-xs disabled:opacity-30"
-          style={{ color: prevId ? "#e8c97a" : "#4a3a28" }}
+          className="flex shrink-0 items-center gap-0.5 rounded border border-[#d9cdb3] bg-white px-2 py-0.5 text-xs disabled:opacity-40"
+          style={{ color: prevId ? "#5a4a32" : "#b3a890" }}
         >
           <ChevronLeft className="size-3" />
           이전
@@ -328,8 +328,8 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           type="button"
           disabled={!nextId}
           onClick={() => nextId && router.push(`/edi/inspect/${nextId}`)}
-          className="flex shrink-0 items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-semibold disabled:opacity-30"
-          style={{ color: nextId ? "#e8c97a" : "#4a3a28" }}
+          className="flex shrink-0 items-center gap-0.5 rounded border border-[#d9cdb3] bg-white px-2 py-0.5 text-xs font-semibold disabled:opacity-40"
+          style={{ color: nextId ? "#5a4a32" : "#b3a890" }}
         >
           다음
           <ChevronRight className="size-3" />
@@ -366,8 +366,8 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
             type="button"
             disabled={isSaving}
             onClick={() => handleSave(true)}
-            className="shrink-0 rounded px-3 py-1 text-xs font-bold text-white shadow disabled:opacity-60"
-            style={{ backgroundColor: "#c4973d" }}
+            className="shrink-0 rounded px-3 py-1.5 text-xs font-bold text-white shadow-sm disabled:opacity-60"
+            style={{ backgroundColor: "#3a3228" }}
           >
             {isSaving ? <Loader2 className="inline size-3 animate-spin" /> : "일괄 확정"}
           </button>
@@ -383,38 +383,38 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── 왼쪽: 원본 첨부파일 ── */}
-        <div className="flex w-[48%] shrink-0 flex-col" style={{ background: "linear-gradient(180deg, #15100a 0%, #0a0806 100%)", borderRight: "1px solid #2a1f0e" }}>
+        <div className="flex w-[48%] shrink-0 flex-col" style={{ background: "#faf6ef", borderRight: "1px solid #e2d8c3" }}>
           {/* 패널 헤더 */}
-          <div className="flex h-10 shrink-0 items-center gap-2 px-3" style={{ background: "#120d08", borderBottom: "1px solid #2a1f0e" }}>
-            <span className="shrink-0 text-xs font-medium text-[#c4973d]">📎 원본 첨부파일</span>
+          <div className="flex h-10 shrink-0 items-center gap-2 px-3" style={{ background: "#f3ecdf", borderBottom: "1px solid #e2d8c3" }}>
+            <span className="shrink-0 text-xs font-semibold text-[#5a4a32]">📎 원본 첨부파일</span>
             <div className="flex flex-1 items-center justify-end gap-0.5">
               {/* 페이지 이동 */}
               <button type="button" disabled={attachmentIndex <= 0} onClick={() => setAttachmentIndex(i => i - 1)}
-                className="flex h-6 w-6 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d] disabled:opacity-30">◀</button>
-              <span className="min-w-[32px] text-center text-xs text-[#7a6040]">
+                className="flex h-6 w-6 items-center justify-center rounded text-xs text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32] disabled:opacity-30">◀</button>
+              <span className="min-w-[32px] text-center text-xs text-[#8a7558]">
                 {attachmentUrls.length > 0 ? `${attachmentIndex + 1}/${attachmentUrls.length}` : "0/0"}
               </span>
               <button type="button" disabled={attachmentIndex >= attachmentUrls.length - 1} onClick={() => setAttachmentIndex(i => i + 1)}
-                className="flex h-6 w-6 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d] disabled:opacity-30">▶</button>
-              <div className="mx-1 h-3 w-px bg-[#3d3020]" />
+                className="flex h-6 w-6 items-center justify-center rounded text-xs text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32] disabled:opacity-30">▶</button>
+              <div className="mx-1 h-3 w-px bg-[#d9cdb3]" />
               {/* 줌 */}
               <button type="button" onClick={() => setImageScale(s => Math.min(s + 0.2, 3.0))}
-                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">+</button>
+                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32]">+</button>
               <button type="button" onClick={() => setImageScale(s => Math.max(s - 0.2, 0.4))}
-                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">−</button>
+                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32]">−</button>
               {/* 원본 크기 */}
               <button type="button" onClick={() => setImageScale(1.0)}
-                className="flex h-6 w-6 items-center justify-center rounded text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">
+                className="flex h-6 w-6 items-center justify-center rounded text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32]">
                 <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={1.5}>
                   <rect x="1" y="1" width="14" height="14" rx="1.5" />
                   <rect x="4" y="4" width="8" height="8" rx="1" />
                 </svg>
               </button>
-              <div className="mx-1 h-3 w-px bg-[#3d3020]" />
+              <div className="mx-1 h-3 w-px bg-[#d9cdb3]" />
               {/* 대비 높이기 */}
               <button type="button"
                 onClick={() => setImageContrast(c => c >= 2.0 ? 1.0 : c + 0.5)}
-                className="flex h-6 w-6 items-center justify-center rounded text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]"
+                className="flex h-6 w-6 items-center justify-center rounded text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32]"
                 title="대비 높이기"
                 style={imageContrast > 1.0 ? { background: "#c4973d", color: "#1c1108" } : {}}
               >
@@ -426,7 +426,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
               {/* 흑백 모드 */}
               <button type="button"
                 onClick={() => setIsBlackWhite(b => !b)}
-                className="flex h-6 w-6 items-center justify-center rounded text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]"
+                className="flex h-6 w-6 items-center justify-center rounded text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32]"
                 title="흑백 모드"
                 style={isBlackWhite ? { background: "#c4973d", color: "#1c1108" } : {}}
               >
@@ -435,10 +435,10 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                   <rect x="9" y="1" width="6" height="14" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5"/>
                 </svg>
               </button>
-              <div className="mx-1 h-3 w-px bg-[#3d3020]" />
+              <div className="mx-1 h-3 w-px bg-[#d9cdb3]" />
               {/* 파일 추가 */}
               <button type="button" onClick={() => attachmentInputRef.current?.click()} disabled={isUploading}
-                className="flex h-6 items-center gap-1 rounded px-2 text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d] disabled:opacity-50">
+                className="flex h-6 items-center gap-1 rounded px-2 text-xs text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32] disabled:opacity-50">
                 {isUploading ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
                 추가
               </button>
@@ -469,20 +469,20 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                   type="button"
                   onClick={() => attachmentInputRef.current?.click()}
                   disabled={isUploading}
-                  className="flex w-full max-w-[300px] flex-col items-center justify-center gap-5 rounded-2xl py-14 transition-colors hover:bg-[#15100a] disabled:opacity-50"
-                  style={{ border: "1.5px dashed #4a3a28", background: "rgba(196,151,61,0.04)" }}
+                  className="flex w-full max-w-[300px] flex-col items-center justify-center gap-5 rounded-2xl py-14 transition-colors hover:bg-[#f3ecdf] disabled:opacity-50"
+                  style={{ border: "1.5px dashed #d4c5a9", background: "rgba(196,151,61,0.06)" }}
                 >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "#241a0d", border: "1px solid #3d3020" }}>
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "#f3ead7", border: "1px solid #e2d8c3" }}>
                     {isUploading
                       ? <Loader2 className="size-8 animate-spin" style={{ color: "#c4973d" }} />
                       : <Upload className="size-8" style={{ color: "#c4973d" }} />
                     }
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-semibold" style={{ color: "#c8a96e" }}>
+                    <p className="text-sm font-semibold" style={{ color: "#5a4a32" }}>
                       {isUploading ? "업로드 중..." : "처방전 이미지 첨부"}
                     </p>
-                    <p className="mt-1.5 text-xs" style={{ color: "#7a6040" }}>클릭하여 파일을 선택하세요</p>
+                    <p className="mt-1.5 text-xs" style={{ color: "#9a8a6e" }}>클릭하여 파일을 선택하세요</p>
                   </div>
                 </button>
               </div>
