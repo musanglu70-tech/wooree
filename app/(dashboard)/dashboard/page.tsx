@@ -17,8 +17,8 @@ export default function DashboardPage() {
 
         <StatsCards />
 
-        <section className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 px-6 py-4">
+        <section className="mt-8 overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
+          <div className="border-b border-[#e8d9bc] px-6 py-4">
             <h2 className="text-base font-semibold text-[#2c1f0e]">
               제약사별 현황
             </h2>

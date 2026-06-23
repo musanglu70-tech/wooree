@@ -649,7 +649,7 @@ export function EdiNewForm() {
           <p className="text-sm text-[#5a3e1b]">
             클릭하거나 파일을 드래그하세요
           </p>
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-[#b5a080]">
             이미지(JPG, PNG), PDF 지원
           </p>
           {ocrFiles.length > 0 && (
@@ -685,7 +685,7 @@ export function EdiNewForm() {
             type="button"
             onClick={resetOcr}
             disabled={isOcrLoading}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-[#e8d9bc] bg-white px-3 py-2 text-xs font-medium text-[#5a3e1b] transition-colors hover:border-slate-300 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 py-2 text-xs font-medium text-[#5a3e1b] transition-colors hover:border-slate-300 disabled:opacity-50"
           >
             <RotateCcw className="size-3.5" />
             초기화
@@ -769,7 +769,7 @@ export function EdiNewForm() {
             <button
               type="button"
               onClick={handleDownloadTemplate}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#e8d9bc] bg-white px-3 py-2 text-xs font-medium text-[#5a3e1b] transition-colors hover:border-[#c4973d] hover:text-[#c4973d]"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 py-2 text-xs font-medium text-[#5a3e1b] transition-colors hover:border-[#c4973d] hover:text-[#c4973d]"
             >
               <Download className="size-3.5" />
               양식 다운로드
@@ -1100,31 +1100,4 @@ export function EdiNewForm() {
             </tbody>
             <tfoot>
               <tr className="bg-[#f5ede0] font-semibold">
-                <td colSpan={12} className="px-2 py-2.5 text-right text-[#7a5c2e]">
-                  합계
-                </td>
-                <td className="px-2 py-2.5 text-right tabular-nums text-[#c4973d]">
-                  {formatWon(total)}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </section>
-
-      {/* 5. 저장 */}
-      <div className="flex items-center justify-between rounded-xl border border-[#e8d9bc] bg-white px-5 py-4 shadow-sm">
-        <span className="text-xs text-[#9a7c4e]">행 {rows.length}개 입력됨</span>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#c4973d] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#a87f30] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <Save className="size-4" />
-          {isSaving ? "저장 중..." : "저장"}
-        </button>
-      </div>
-    </div>
-  );
-}
+                <td colSpan={

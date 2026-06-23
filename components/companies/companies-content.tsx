@@ -45,7 +45,7 @@ const EMPTY_FORM: CompanyForm = {
 const PAGE_SIZE = 10;
 
 const inputClassName =
-  "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
+  "h-10 w-full rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 text-sm text-[#2c1f0e] outline-none transition-colors placeholder:text-[#b5a080] focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
 function toStr(value: unknown): string {
   return value == null ? "" : String(value);
@@ -80,7 +80,7 @@ function FormField({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-medium text-slate-700">
+      <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
         {label}
         {required && <span className="text-red-500"> *</span>}
       </label>
@@ -242,10 +242,10 @@ export function CompaniesContent() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 shadow-sm">
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-[240px] flex-1">
-            <label className="mb-1.5 block text-xs font-medium text-slate-700">
+            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
               검색
             </label>
             <input
@@ -269,7 +269,7 @@ export function CompaniesContent() {
           <button
             type="button"
             onClick={openAddModal}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-4 text-sm font-medium text-[#5a3e1b] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
           >
             <Plus className="size-4" />
             업체 추가
@@ -277,22 +277,22 @@ export function CompaniesContent() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[960px] text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="px-5 py-3 font-medium text-slate-600">업체명</th>
-                <th className="px-5 py-3 font-medium text-slate-600">
+              <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">업체명</th>
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">
                   사업자번호
                 </th>
-                <th className="px-5 py-3 font-medium text-slate-600">대표자</th>
-                <th className="px-5 py-3 font-medium text-slate-600">주소</th>
-                <th className="px-5 py-3 font-medium text-slate-600">
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">대표자</th>
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">주소</th>
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">
                   전화번호
                 </th>
-                <th className="px-5 py-3 font-medium text-slate-600">이메일</th>
-                <th className="px-5 py-3 text-center font-medium text-slate-600">
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">이메일</th>
+                <th className="px-5 py-3 text-center font-medium text-[#7a5c2e]">
                   관리
                 </th>
               </tr>
@@ -302,7 +302,7 @@ export function CompaniesContent() {
                 <tr>
                   <td
                     colSpan={7}
-                    className="px-5 py-12 text-center text-sm text-slate-500"
+                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
                   >
                     불러오는 중...
                   </td>
@@ -311,7 +311,7 @@ export function CompaniesContent() {
                 <tr>
                   <td
                     colSpan={7}
-                    className="px-5 py-12 text-center text-sm text-slate-500"
+                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
                   >
                     {appliedSearch
                       ? "검색 결과가 없습니다."
@@ -323,26 +323,26 @@ export function CompaniesContent() {
                   <tr
                     key={company.id}
                     className={cn(
-                      "border-b border-slate-100 last:border-b-0",
-                      index % 2 === 1 && "bg-slate-50/40",
+                      "border-b border-[#f0e4d0] last:border-b-0",
+                      index % 2 === 1 && "bg-[#f5ede0]/40",
                     )}
                   >
-                    <td className="px-5 py-3.5 font-medium text-slate-900">
+                    <td className="px-5 py-3.5 font-medium text-[#2c1f0e]">
                       {company.name}
                     </td>
-                    <td className="px-5 py-3.5 text-slate-700">
+                    <td className="px-5 py-3.5 text-[#5a3e1b]">
                       {company.businessNumber || "-"}
                     </td>
-                    <td className="px-5 py-3.5 text-slate-700">
+                    <td className="px-5 py-3.5 text-[#5a3e1b]">
                       {company.representative || "-"}
                     </td>
-                    <td className="max-w-[180px] truncate px-5 py-3.5 text-slate-700">
+                    <td className="max-w-[180px] truncate px-5 py-3.5 text-[#5a3e1b]">
                       {company.address || "-"}
                     </td>
-                    <td className="px-5 py-3.5 text-slate-700">
+                    <td className="px-5 py-3.5 text-[#5a3e1b]">
                       {company.phone || "-"}
                     </td>
-                    <td className="px-5 py-3.5 text-slate-700">
+                    <td className="px-5 py-3.5 text-[#5a3e1b]">
                       {company.email || "-"}
                     </td>
                     <td className="px-5 py-3.5">
@@ -350,7 +350,7 @@ export function CompaniesContent() {
                         <button
                           type="button"
                           onClick={() => openEditModal(company)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                          className="inline-flex items-center gap-1 rounded-lg border border-[#e8d9bc] px-2.5 py-1.5 text-xs font-medium text-[#5a3e1b] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
                         >
                           <Pencil className="size-3.5" />
                           수정
@@ -372,8 +372,8 @@ export function CompaniesContent() {
           </table>
         </div>
 
-        <div className="flex items-center justify-between border-t border-slate-200 px-5 py-4">
-          <p className="text-xs text-slate-500">
+        <div className="flex items-center justify-between border-t border-[#e8d9bc] px-5 py-4">
+          <p className="text-xs text-[#9a7c4e]">
             전체 {filteredCompanies.length}건 중{" "}
             {filteredCompanies.length === 0
               ? 0
@@ -386,7 +386,7 @@ export function CompaniesContent() {
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={currentPage <= 1}
-              className="flex size-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex size-8 items-center justify-center rounded-lg border border-[#e8d9bc] text-[#7a5c2e] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="이전 페이지"
             >
               <ChevronLeft className="size-4" />
@@ -401,7 +401,7 @@ export function CompaniesContent() {
                     "flex size-8 items-center justify-center rounded-lg text-xs font-medium transition-colors",
                     pageNum === currentPage
                       ? "bg-[#4f6ef7] text-white"
-                      : "border border-slate-200 text-slate-600 hover:border-[#4f6ef7] hover:text-[#4f6ef7]",
+                      : "border border-[#e8d9bc] text-[#7a5c2e] hover:border-[#4f6ef7] hover:text-[#4f6ef7]",
                   )}
                 >
                   {pageNum}
@@ -412,7 +412,7 @@ export function CompaniesContent() {
               type="button"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage >= totalPages}
-              className="flex size-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex size-8 items-center justify-center rounded-lg border border-[#e8d9bc] text-[#7a5c2e] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="다음 페이지"
             >
               <ChevronRight className="size-4" />
@@ -427,17 +427,17 @@ export function CompaniesContent() {
           onClick={closeModal}
         >
           <div
-            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+            className="w-full max-w-md rounded-xl bg-[#fdf8f0] p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-slate-900">
+              <h2 className="text-base font-semibold text-[#2c1f0e]">
                 {editingId ? "업체 수정" : "업체 추가"}
               </h2>
               <button
                 type="button"
                 onClick={closeModal}
-                className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                className="flex size-8 items-center justify-center rounded-lg text-[#b5a080] transition-colors hover:bg-[#eee3cc] hover:text-[#7a5c2e]"
                 aria-label="닫기"
               >
                 <X className="size-4" />
@@ -494,7 +494,7 @@ export function CompaniesContent() {
                 type="button"
                 onClick={closeModal}
                 disabled={isSaving}
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 disabled:opacity-50"
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-4 text-sm font-medium text-[#5a3e1b] transition-colors hover:border-slate-300 disabled:opacity-50"
               >
                 취소
               </button>

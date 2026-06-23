@@ -28,7 +28,7 @@ const EMPTY_FORM: NoticeForm = { title: "", content: "", category: "일반" };
 const CATEGORIES = ["일반", "정산", "EDI", "제약사", "재위탁", "시스템"];
 
 const inputClassName =
-  "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
+  "w-full rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 py-2 text-sm text-[#2c1f0e] outline-none transition-colors placeholder:text-[#b5a080] focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
 function toStr(value: unknown): string {
   return value == null ? "" : String(value);
@@ -199,7 +199,7 @@ export function NoticesContent() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-1 rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
+        <div className="flex gap-1 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] p-1 shadow-sm">
           <button
             type="button"
             onClick={() => setActiveTab("unread")}
@@ -207,7 +207,7 @@ export function NoticesContent() {
               "rounded-md px-4 py-2 text-sm font-medium transition-colors",
               activeTab === "unread"
                 ? "bg-[#4f6ef7] text-white"
-                : "text-slate-600 hover:bg-slate-50",
+                : "text-[#7a5c2e] hover:bg-[#f5ede0]",
             )}
           >
             미확인
@@ -216,7 +216,7 @@ export function NoticesContent() {
                 className={cn(
                   "ml-1.5 rounded-full px-1.5 py-0.5 text-xs",
                   activeTab === "unread"
-                    ? "bg-white/20 text-white"
+                    ? "bg-[#fdf8f0]/20 text-white"
                     : "bg-red-100 text-red-600",
                 )}
               >
@@ -231,7 +231,7 @@ export function NoticesContent() {
               "rounded-md px-4 py-2 text-sm font-medium transition-colors",
               activeTab === "read"
                 ? "bg-[#4f6ef7] text-white"
-                : "text-slate-600 hover:bg-slate-50",
+                : "text-[#7a5c2e] hover:bg-[#f5ede0]",
             )}
           >
             확인
@@ -242,7 +242,7 @@ export function NoticesContent() {
           <button
             type="button"
             onClick={markAllConfirmed}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 py-2 text-sm font-medium text-[#5a3e1b] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
           >
             <CheckCheck className="size-4" />
             전체 확인
@@ -250,7 +250,7 @@ export function NoticesContent() {
           <button
             type="button"
             onClick={deleteAll}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:border-red-300 hover:bg-red-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:border-red-300 hover:bg-red-50"
           >
             <Trash2 className="size-4" />
             전체 삭제
@@ -266,16 +266,16 @@ export function NoticesContent() {
         </div>
       </div>
 
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px] text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="px-5 py-3 font-medium text-slate-600">구분</th>
-                <th className="px-5 py-3 font-medium text-slate-600">제목</th>
-                <th className="px-5 py-3 font-medium text-slate-600">내용</th>
-                <th className="px-5 py-3 font-medium text-slate-600">등록일</th>
-                <th className="px-5 py-3 text-center font-medium text-slate-600">
+              <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">구분</th>
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">제목</th>
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">내용</th>
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">등록일</th>
+                <th className="px-5 py-3 text-center font-medium text-[#7a5c2e]">
                   처리
                 </th>
               </tr>
@@ -285,7 +285,7 @@ export function NoticesContent() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-5 py-12 text-center text-sm text-slate-500"
+                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
                   >
                     불러오는 중...
                   </td>
@@ -294,7 +294,7 @@ export function NoticesContent() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-5 py-12 text-center text-sm text-slate-500"
+                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
                   >
                     {activeTab === "unread"
                       ? "미확인 공지가 없습니다."
@@ -306,36 +306,36 @@ export function NoticesContent() {
                   <tr
                     key={notice.id}
                     className={cn(
-                      "border-b border-slate-100 last:border-b-0",
-                      index % 2 === 1 && "bg-slate-50/40",
+                      "border-b border-[#f0e4d0] last:border-b-0",
+                      index % 2 === 1 && "bg-[#f5ede0]/40",
                       !notice.isConfirmed && "bg-[rgba(79,110,247,0.03)]",
                     )}
                   >
                     <td className="px-5 py-3.5">
-                      <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                      <span className="inline-flex rounded-full bg-[#eee3cc] px-2.5 py-0.5 text-xs font-medium text-[#7a5c2e]">
                         {notice.category || "일반"}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 font-medium text-slate-900">
+                    <td className="px-5 py-3.5 font-medium text-[#2c1f0e]">
                       {!notice.isConfirmed && (
                         <span className="mr-1.5 inline-block size-1.5 rounded-full bg-[#4f6ef7]" />
                       )}
                       {notice.title}
                     </td>
-                    <td className="max-w-xs truncate px-5 py-3.5 text-slate-600">
+                    <td className="max-w-xs truncate px-5 py-3.5 text-[#7a5c2e]">
                       {notice.content}
                     </td>
-                    <td className="px-5 py-3.5 text-slate-600">
+                    <td className="px-5 py-3.5 text-[#7a5c2e]">
                       {notice.createdAt || "-"}
                     </td>
                     <td className="px-5 py-3.5 text-center">
                       {notice.isConfirmed ? (
-                        <span className="text-xs text-slate-400">확인됨</span>
+                        <span className="text-xs text-[#b5a080]">확인됨</span>
                       ) : (
                         <button
                           type="button"
                           onClick={() => handleConfirm(notice)}
-                          className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                          className="rounded-lg border border-[#e8d9bc] px-2.5 py-1.5 text-xs font-medium text-[#5a3e1b] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
                         >
                           확인
                         </button>
@@ -356,17 +356,17 @@ export function NoticesContent() {
           onClick={closeModal}
         >
           <div
-            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+            className="w-full max-w-md rounded-xl bg-[#fdf8f0] p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-slate-900">
+              <h2 className="text-base font-semibold text-[#2c1f0e]">
                 공지 작성
               </h2>
               <button
                 type="button"
                 onClick={closeModal}
-                className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                className="flex size-8 items-center justify-center rounded-lg text-[#b5a080] transition-colors hover:bg-[#eee3cc] hover:text-[#7a5c2e]"
                 aria-label="닫기"
               >
                 <X className="size-4" />
@@ -375,7 +375,7 @@ export function NoticesContent() {
 
             <div className="space-y-4">
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-700">
+                <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
                   구분
                 </label>
                 <select
@@ -393,7 +393,7 @@ export function NoticesContent() {
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-700">
+                <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
                   제목 <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -406,7 +406,7 @@ export function NoticesContent() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium text-slate-700">
+                <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
                   내용 <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -426,7 +426,7 @@ export function NoticesContent() {
                 type="button"
                 onClick={closeModal}
                 disabled={isSaving}
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 disabled:opacity-50"
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-4 text-sm font-medium text-[#5a3e1b] transition-colors hover:border-slate-300 disabled:opacity-50"
               >
                 취소
               </button>

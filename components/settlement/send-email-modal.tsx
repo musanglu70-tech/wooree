@@ -20,7 +20,7 @@ interface SendEmailModalProps {
 }
 
 const inputClassName =
-  "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
+  "h-10 w-full rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 text-sm text-[#2c1f0e] outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
 function formatMonthLabel(month: string) {
   if (!month) return "-";
@@ -49,11 +49,11 @@ export function SendEmailModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+        className="w-full max-w-md rounded-xl bg-[#fdf8f0] p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-base font-semibold text-slate-900">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-[#2c1f0e]">
             <Mail className="size-4 text-[#4f6ef7]" />
             이메일 발송
           </h2>
@@ -61,25 +61,25 @@ export function SendEmailModal({
             type="button"
             onClick={onClose}
             disabled={isSending}
-            className="flex size-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            className="flex size-8 items-center justify-center rounded-lg text-[#b5a080] transition-colors hover:bg-[#eee3cc] hover:text-[#7a5c2e]"
             aria-label="닫기"
           >
             <X className="size-4" />
           </button>
         </div>
 
-        <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
-          <p className="font-medium text-slate-900">{target.pharma}</p>
-          <p className="mt-1 text-slate-600">
+        <div className="mb-4 rounded-lg border border-[#e8d9bc] bg-[#f5ede0] px-4 py-3 text-sm">
+          <p className="font-medium text-[#2c1f0e]">{target.pharma}</p>
+          <p className="mt-1 text-[#7a5c2e]">
             {formatMonthLabel(target.month)} · {target.fileName}
           </p>
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-xs text-[#9a7c4e]">
             본문에 제약사명, 정산월, 총금액, 수수료율, 수수료금액이 포함됩니다.
           </p>
         </div>
 
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-slate-700">
+          <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
             수신 이메일 <span className="text-red-500">*</span>
           </label>
           <input
@@ -100,7 +100,7 @@ export function SendEmailModal({
             type="button"
             onClick={onClose}
             disabled={isSending}
-            className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+            className="rounded-lg border border-[#e8d9bc] px-4 py-2 text-sm font-medium text-[#5a3e1b] transition-colors hover:bg-[#f5ede0] disabled:opacity-50"
           >
             취소
           </button>

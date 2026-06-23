@@ -141,7 +141,7 @@ export function PharmaStatsTable() {
 
   if (isLoading) {
     return (
-      <div className="px-6 py-12 text-center text-sm text-slate-500">
+      <div className="px-6 py-12 text-center text-sm text-[#9a7c4e]">
         불러오는 중...
       </div>
     );
@@ -149,7 +149,7 @@ export function PharmaStatsTable() {
 
   if (rows.length === 0) {
     return (
-      <div className="px-6 py-12 text-center text-sm text-slate-500">
+      <div className="px-6 py-12 text-center text-sm text-[#9a7c4e]">
         이번 달 제약사별 처방 데이터가 없습니다.
       </div>
     );
@@ -159,15 +159,15 @@ export function PharmaStatsTable() {
     <div className="overflow-x-auto">
       <table className="w-full min-w-[640px] text-left text-sm">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50/80">
-            <th className="px-6 py-3 font-medium text-slate-600">제약사</th>
-            <th className="px-6 py-3 text-right font-medium text-slate-600">
+          <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]/80">
+            <th className="px-6 py-3 font-medium text-[#7a5c2e]">제약사</th>
+            <th className="px-6 py-3 text-right font-medium text-[#7a5c2e]">
               이번달 건수
             </th>
-            <th className="px-6 py-3 text-right font-medium text-slate-600">
+            <th className="px-6 py-3 text-right font-medium text-[#7a5c2e]">
               이번달 금액
             </th>
-            <th className="px-6 py-3 text-right font-medium text-slate-600">
+            <th className="px-6 py-3 text-right font-medium text-[#7a5c2e]">
               미정산
             </th>
           </tr>
@@ -177,14 +177,14 @@ export function PharmaStatsTable() {
             <tr
               key={row.pharmaCompanyId}
               className={cn(
-                "border-b border-slate-100 last:border-b-0",
-                index % 2 === 1 && "bg-slate-50/40",
+                "border-b border-[#f0e4d0] last:border-b-0",
+                index % 2 === 1 && "bg-[#f5ede0]/40",
               )}
             >
-              <td className="px-6 py-3.5 font-medium text-slate-900">
+              <td className="px-6 py-3.5 font-medium text-[#2c1f0e]">
                 {row.pharmaName}
               </td>
-              <td className="px-6 py-3.5 text-right tabular-nums text-slate-700">
+              <td className="px-6 py-3.5 text-right tabular-nums text-[#5a3e1b]">
                 {row.monthlyCount.toLocaleString("ko-KR")}건
               </td>
               <td className="px-6 py-3.5 text-right font-medium tabular-nums text-[#4f6ef7]">

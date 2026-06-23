@@ -42,7 +42,7 @@ export function MobileNav() {
   return (
     <>
       {/* 상단 헤더 */}
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[#e7ddd0] bg-white px-4 md:hidden">
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[#e7ddd0] bg-[#fdf8f0] px-4 md:hidden">
         <div className="min-w-0">
           <p className="truncate text-sm font-bold text-[#3b2e2e]">
             CSO(주)우리메디텍
@@ -70,7 +70,7 @@ export function MobileNav() {
       </header>
 
       {/* 하단 네비게이션 */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 flex h-16 items-stretch border-t border-[#e7ddd0] bg-white md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex h-16 items-stretch border-t border-[#e7ddd0] bg-[#fdf8f0] md:hidden">
         {BOTTOM_ITEMS.map((item) => {
           const Icon = item.icon;
           const active = isActivePath(pathname, item.href);

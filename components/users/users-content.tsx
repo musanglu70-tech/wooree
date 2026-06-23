@@ -111,7 +111,7 @@ export function UsersContent() {
 
   if (isProfileLoading) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white px-5 py-16 text-center text-sm text-slate-500 shadow-sm">
+      <div className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] px-5 py-16 text-center text-sm text-[#9a7c4e] shadow-sm">
         불러오는 중...
       </div>
     );
@@ -119,18 +119,18 @@ export function UsersContent() {
 
   if (!isAdmin) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white px-5 py-16 text-center text-sm text-slate-500 shadow-sm">
+      <div className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] px-5 py-16 text-center text-sm text-[#9a7c4e] shadow-sm">
         관리자만 접근할 수 있습니다.
       </div>
     );
   }
 
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-200 px-5 py-4">
-        <h2 className="text-sm font-semibold text-slate-900">
+    <section className="overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
+      <div className="border-b border-[#e8d9bc] px-5 py-4">
+        <h2 className="text-sm font-semibold text-[#2c1f0e]">
           사용자 목록{" "}
-          <span className="font-normal text-slate-500">
+          <span className="font-normal text-[#9a7c4e]">
             ({users.length}명)
           </span>
         </h2>
@@ -139,11 +139,11 @@ export function UsersContent() {
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50">
-              <th className="px-5 py-3 font-medium text-slate-600">이메일</th>
-              <th className="px-5 py-3 font-medium text-slate-600">이름</th>
-              <th className="px-5 py-3 font-medium text-slate-600">역할</th>
-              <th className="px-5 py-3 font-medium text-slate-600">가입일</th>
+            <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
+              <th className="px-5 py-3 font-medium text-[#7a5c2e]">이메일</th>
+              <th className="px-5 py-3 font-medium text-[#7a5c2e]">이름</th>
+              <th className="px-5 py-3 font-medium text-[#7a5c2e]">역할</th>
+              <th className="px-5 py-3 font-medium text-[#7a5c2e]">가입일</th>
             </tr>
           </thead>
           <tbody>
@@ -151,7 +151,7 @@ export function UsersContent() {
               <tr>
                 <td
                   colSpan={4}
-                  className="px-5 py-12 text-center text-sm text-slate-500"
+                  className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
                 >
                   불러오는 중...
                 </td>
@@ -160,7 +160,7 @@ export function UsersContent() {
               <tr>
                 <td
                   colSpan={4}
-                  className="px-5 py-12 text-center text-sm text-slate-500"
+                  className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
                 >
                   등록된 사용자가 없습니다.
                 </td>
@@ -170,14 +170,14 @@ export function UsersContent() {
                 <tr
                   key={user.id}
                   className={cn(
-                    "border-b border-slate-100 last:border-b-0",
-                    index % 2 === 1 && "bg-slate-50/40",
+                    "border-b border-[#f0e4d0] last:border-b-0",
+                    index % 2 === 1 && "bg-[#f5ede0]/40",
                   )}
                 >
-                  <td className="px-5 py-3.5 text-slate-700">
+                  <td className="px-5 py-3.5 text-[#5a3e1b]">
                     {user.email || "-"}
                   </td>
-                  <td className="px-5 py-3.5 font-medium text-slate-900">
+                  <td className="px-5 py-3.5 font-medium text-[#2c1f0e]">
                     {user.name || "-"}
                   </td>
                   <td className="px-5 py-3.5">
@@ -187,7 +187,7 @@ export function UsersContent() {
                       onChange={(e) =>
                         handleRoleChange(user, e.target.value as UserRole)
                       }
-                      className="h-9 rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-900 outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20 disabled:opacity-50"
+                      className="h-9 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-2.5 text-sm text-[#2c1f0e] outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20 disabled:opacity-50"
                     >
                       {ROLES.map((role) => (
                         <option key={role.value} value={role.value}>
@@ -196,7 +196,7 @@ export function UsersContent() {
                       ))}
                     </select>
                   </td>
-                  <td className="px-5 py-3.5 text-slate-600">
+                  <td className="px-5 py-3.5 text-[#7a5c2e]">
                     {user.createdAt || "-"}
                   </td>
                 </tr>

@@ -235,38 +235,4 @@ export function ProductCodeInput({
       ) : null}
 
       {isOpen && suggestions.length > 0 && (
-        <ul className="absolute left-0 right-0 top-full z-20 mt-1 max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
-          {suggestions.map((item, index) => (
-            <li key={item.insuranceCode}>
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => pickSuggestion(item)}
-                className={cn(
-                  "flex w-full flex-col px-3 py-2 text-left text-xs transition-colors",
-                  index === activeIndex
-                    ? "bg-[rgba(79,110,247,0.08)] text-[#4f6ef7]"
-                    : "text-slate-700 hover:bg-slate-50",
-                )}
-              >
-                <span className="font-mono font-medium">
-                  {item.insuranceCode}
-                </span>
-                <span className="mt-0.5 text-slate-500">
-                  {item.productName} ·{" "}
-                  {item.unitPrice.toLocaleString("ko-KR")}원
-                  {formatCommissionLabel(
-                    item.commissionRate,
-                    item.extraCommissionRate,
-                  )
-                    ? ` · ${formatCommissionLabel(item.commissionRate, item.extraCommissionRate)}`
-                    : ""}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
+        <ul className="absolute left-0 right-0

@@ -58,7 +58,7 @@ const MOCK_ARCHIVED: ArchivedContract[] = [
 ];
 
 const inputClassName =
-  "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
+  "h-10 w-full rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 text-sm text-[#2c1f0e] outline-none transition-colors placeholder:text-[#b5a080] focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
 export function StorageContent() {
   const [search, setSearch] = useState("");
@@ -77,7 +77,7 @@ export function StorageContent() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 shadow-sm">
         <div className="flex gap-3">
           <input
             type="text"
@@ -100,23 +100,23 @@ export function StorageContent() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px] text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="px-5 py-3 font-medium text-slate-600">
+              <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">
                   계약서명
                 </th>
-                <th className="px-5 py-3 font-medium text-slate-600">업체</th>
-                <th className="px-5 py-3 font-medium text-slate-600">제약사</th>
-                <th className="px-5 py-3 font-medium text-slate-600">
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">업체</th>
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">제약사</th>
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">
                   서명일
                 </th>
-                <th className="px-5 py-3 font-medium text-slate-600">
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">
                   보관일
                 </th>
-                <th className="px-5 py-3 text-center font-medium text-slate-600">
+                <th className="px-5 py-3 text-center font-medium text-[#7a5c2e]">
                   다운로드
                 </th>
               </tr>
@@ -126,7 +126,7 @@ export function StorageContent() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-5 py-12 text-center text-sm text-slate-500"
+                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
                   >
                     검색 결과가 없습니다.
                   </td>
@@ -136,31 +136,31 @@ export function StorageContent() {
                   <tr
                     key={item.id}
                     className={cn(
-                      "border-b border-slate-100 last:border-b-0",
-                      index % 2 === 1 && "bg-slate-50/40",
+                      "border-b border-[#f0e4d0] last:border-b-0",
+                      index % 2 === 1 && "bg-[#f5ede0]/40",
                     )}
                   >
                     <td className="px-5 py-3.5">
-                      <span className="inline-flex items-center gap-2 font-medium text-slate-900">
-                        <Archive className="size-4 text-slate-400" />
+                      <span className="inline-flex items-center gap-2 font-medium text-[#2c1f0e]">
+                        <Archive className="size-4 text-[#b5a080]" />
                         {item.name}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-slate-700">
+                    <td className="px-5 py-3.5 text-[#5a3e1b]">
                       {item.company}
                     </td>
-                    <td className="px-5 py-3.5 text-slate-700">{item.pharma}</td>
-                    <td className="px-5 py-3.5 text-slate-600">
+                    <td className="px-5 py-3.5 text-[#5a3e1b]">{item.pharma}</td>
+                    <td className="px-5 py-3.5 text-[#7a5c2e]">
                       {item.signedAt}
                     </td>
-                    <td className="px-5 py-3.5 text-slate-600">
+                    <td className="px-5 py-3.5 text-[#7a5c2e]">
                       {item.archivedAt}
                     </td>
                     <td className="px-5 py-3.5 text-center">
                       <button
                         type="button"
                         onClick={() => toast.info(`다운로드: ${item.name}`)}
-                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                        className="inline-flex items-center gap-1 rounded-lg border border-[#e8d9bc] px-2.5 py-1.5 text-xs font-medium text-[#5a3e1b] hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
                       >
                         <Download className="size-3.5" />
                         PDF

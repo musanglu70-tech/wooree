@@ -22,7 +22,7 @@ interface EdiListItem {
 const PAGE_SIZE = 5;
 
 const inputClassName =
-  "h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
+  "h-10 w-full rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 text-sm text-[#2c1f0e] outline-none transition-colors placeholder:text-[#b5a080] focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
 const STATUS_LABEL: Record<string, string> = {
   saved: "저장",
@@ -87,7 +87,7 @@ function StatusBadge({ status }: { status: string }) {
         "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
         isConfirmed
           ? "bg-[rgba(79,110,247,0.12)] text-[#4f6ef7]"
-          : "bg-slate-100 text-slate-600",
+          : "bg-[#eee3cc] text-[#7a5c2e]",
       )}
     >
       {label || "-"}
@@ -209,10 +209,10 @@ export function EdiListContent() {
   return (
     <div className="space-y-4">
       {/* 필터 */}
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 shadow-sm">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-slate-700">
+            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
               처방월
             </label>
             <input
@@ -223,7 +223,7 @@ export function EdiListContent() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-slate-700">
+            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
               제약사
             </label>
             <select
@@ -240,7 +240,7 @@ export function EdiListContent() {
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-slate-700">
+            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
               거래처 검색
             </label>
             <input
@@ -270,14 +270,14 @@ export function EdiListContent() {
       {/* 통계 카드 + 엑셀 다운로드 */}
       <section className="flex flex-wrap items-center justify-between gap-4">
         <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">총 건수</p>
-            <p className="mt-1 text-2xl font-semibold text-slate-900">
+          <div className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 shadow-sm">
+            <p className="text-sm text-[#9a7c4e]">총 건수</p>
+            <p className="mt-1 text-2xl font-semibold text-[#2c1f0e]">
               {filteredItems.length.toLocaleString("ko-KR")}건
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">총 처방금액</p>
+          <div className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 shadow-sm">
+            <p className="text-sm text-[#9a7c4e]">총 처방금액</p>
             <p className="mt-1 text-2xl font-semibold text-[#4f6ef7]">
               {formatWon(totalAmount)}
             </p>
@@ -287,7 +287,7 @@ export function EdiListContent() {
           type="button"
           onClick={handleExport}
           disabled={isLoading || filteredItems.length === 0}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-4 text-sm font-medium text-[#5a3e1b] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Download className="size-4" />
           엑셀 다운로드
@@ -295,24 +295,24 @@ export function EdiListContent() {
       </section>
 
       {/* 테이블 */}
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="px-5 py-3 font-medium text-slate-600">처방월</th>
-                <th className="px-5 py-3 font-medium text-slate-600">제약사</th>
-                <th className="px-5 py-3 font-medium text-slate-600">
+              <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">처방월</th>
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">제약사</th>
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">
                   병의원명
                 </th>
-                <th className="px-5 py-3 text-right font-medium text-slate-600">
+                <th className="px-5 py-3 text-right font-medium text-[#7a5c2e]">
                   처방금액
                 </th>
-                <th className="px-5 py-3 font-medium text-slate-600">상태</th>
-                <th className="px-5 py-3 font-medium text-slate-600">
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">상태</th>
+                <th className="px-5 py-3 font-medium text-[#7a5c2e]">
                   등록일
                 </th>
-                <th className="px-5 py-3 text-center font-medium text-slate-600">
+                <th className="px-5 py-3 text-center font-medium text-[#7a5c2e]">
                   상세
                 </th>
               </tr>
@@ -322,7 +322,7 @@ export function EdiListContent() {
                 <tr>
                   <td
                     colSpan={7}
-                    className="px-5 py-12 text-center text-sm text-slate-500"
+                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
                   >
                     불러오는 중...
                   </td>
@@ -331,7 +331,7 @@ export function EdiListContent() {
                 <tr>
                   <td
                     colSpan={7}
-                    className="px-5 py-12 text-center text-sm text-slate-500"
+                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
                   >
                     조회 결과가 없습니다.
                   </td>
@@ -341,33 +341,33 @@ export function EdiListContent() {
                   <tr
                     key={item.id}
                     className={cn(
-                      "border-b border-slate-100 last:border-b-0",
-                      index % 2 === 1 && "bg-slate-50/40",
+                      "border-b border-[#f0e4d0] last:border-b-0",
+                      index % 2 === 1 && "bg-[#f5ede0]/40",
                     )}
                   >
-                    <td className="px-5 py-3.5 text-slate-700">
+                    <td className="px-5 py-3.5 text-[#5a3e1b]">
                       {formatMonthLabel(item.month)}
                     </td>
-                    <td className="px-5 py-3.5 font-medium text-slate-900">
+                    <td className="px-5 py-3.5 font-medium text-[#2c1f0e]">
                       {item.pharma || "-"}
                     </td>
-                    <td className="px-5 py-3.5 text-slate-700">
+                    <td className="px-5 py-3.5 text-[#5a3e1b]">
                       {item.hospital || "-"}
                     </td>
-                    <td className="px-5 py-3.5 text-right font-medium text-slate-900">
+                    <td className="px-5 py-3.5 text-right font-medium text-[#2c1f0e]">
                       {formatWon(item.amount)}
                     </td>
                     <td className="px-5 py-3.5">
                       <StatusBadge status={item.status} />
                     </td>
-                    <td className="px-5 py-3.5 text-slate-600">
+                    <td className="px-5 py-3.5 text-[#7a5c2e]">
                       {item.createdAt || "-"}
                     </td>
                     <td className="px-5 py-3.5 text-center">
                       <button
                         type="button"
                         onClick={() => router.push(`/edi/${item.id}`)}
-                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                        className="inline-flex items-center gap-1 rounded-lg border border-[#e8d9bc] px-2.5 py-1.5 text-xs font-medium text-[#5a3e1b] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
                       >
                         <Eye className="size-3.5" />
                         상세보기
@@ -381,8 +381,8 @@ export function EdiListContent() {
         </div>
 
         {/* 페이지네이션 */}
-        <div className="flex items-center justify-between border-t border-slate-200 px-5 py-4">
-          <p className="text-xs text-slate-500">
+        <div className="flex items-center justify-between border-t border-[#e8d9bc] px-5 py-4">
+          <p className="text-xs text-[#9a7c4e]">
             전체 {filteredItems.length}건 중{" "}
             {filteredItems.length === 0
               ? 0
@@ -395,7 +395,7 @@ export function EdiListContent() {
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={currentPage <= 1}
-              className="flex size-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex size-8 items-center justify-center rounded-lg border border-[#e8d9bc] text-[#7a5c2e] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="이전 페이지"
             >
               <ChevronLeft className="size-4" />
@@ -410,7 +410,7 @@ export function EdiListContent() {
                     "flex size-8 items-center justify-center rounded-lg text-xs font-medium transition-colors",
                     pageNum === currentPage
                       ? "bg-[#4f6ef7] text-white"
-                      : "border border-slate-200 text-slate-600 hover:border-[#4f6ef7] hover:text-[#4f6ef7]",
+                      : "border border-[#e8d9bc] text-[#7a5c2e] hover:border-[#4f6ef7] hover:text-[#4f6ef7]",
                   )}
                 >
                   {pageNum}
@@ -421,7 +421,7 @@ export function EdiListContent() {
               type="button"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage >= totalPages}
-              className="flex size-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex size-8 items-center justify-center rounded-lg border border-[#e8d9bc] text-[#7a5c2e] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="다음 페이지"
             >
               <ChevronRight className="size-4" />
