@@ -383,7 +383,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── 왼쪽: 원본 첨부파일 ── */}
-        <div className="flex w-[48%] shrink-0 flex-col" style={{ background: "#0a0806", borderRight: "1px solid #2a1f0e" }}>
+        <div className="flex w-[48%] shrink-0 flex-col" style={{ background: "linear-gradient(180deg, #15100a 0%, #0a0806 100%)", borderRight: "1px solid #2a1f0e" }}>
           {/* 패널 헤더 */}
           <div className="flex h-10 shrink-0 items-center gap-2 px-3" style={{ background: "#120d08", borderBottom: "1px solid #2a1f0e" }}>
             <span className="shrink-0 text-xs font-medium text-[#c4973d]">📎 원본 첨부파일</span>
@@ -464,26 +464,28 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                 )}
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={() => attachmentInputRef.current?.click()}
-                disabled={isUploading}
-                className="flex flex-1 flex-col items-center justify-center gap-4 transition-colors hover:bg-[#1e1409] disabled:opacity-50"
-                style={{ border: "none", background: "transparent" }}
-              >
-                <div className="flex h-20 w-20 items-center justify-center rounded-2xl" style={{ border: "2px dashed #3d3020" }}>
-                  {isUploading
-                    ? <Loader2 className="size-10 animate-spin" style={{ color: "#c4973d" }} />
-                    : <Upload className="size-10" style={{ color: "#3d3020" }} />
-                  }
-                </div>
-                <div className="text-center">
-                  <p className="text-sm font-medium" style={{ color: "#4a3a28" }}>
-                    {isUploading ? "업로드 중..." : "첨부파일 없음"}
-                  </p>
-                  <p className="mt-1 text-xs" style={{ color: "#2e2214" }}>클릭하여 처방전 이미지 첨부</p>
-                </div>
-              </button>
+              <div className="flex flex-1 items-center justify-center p-8">
+                <button
+                  type="button"
+                  onClick={() => attachmentInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="flex w-full max-w-[300px] flex-col items-center justify-center gap-5 rounded-2xl py-14 transition-colors hover:bg-[#15100a] disabled:opacity-50"
+                  style={{ border: "1.5px dashed #4a3a28", background: "rgba(196,151,61,0.04)" }}
+                >
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "#241a0d", border: "1px solid #3d3020" }}>
+                    {isUploading
+                      ? <Loader2 className="size-8 animate-spin" style={{ color: "#c4973d" }} />
+                      : <Upload className="size-8" style={{ color: "#c4973d" }} />
+                    }
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-semibold" style={{ color: "#c8a96e" }}>
+                      {isUploading ? "업로드 중..." : "처방전 이미지 첨부"}
+                    </p>
+                    <p className="mt-1.5 text-xs" style={{ color: "#7a6040" }}>클릭하여 파일을 선택하세요</p>
+                  </div>
+                </button>
+              </div>
             )}
           </div>
         </div>
