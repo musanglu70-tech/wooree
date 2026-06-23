@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Loader2, Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Plus, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/browser";
 
@@ -72,6 +72,8 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
   const [attachmentUrls, setAttachmentUrls] = useState<string[]>([]);
   const [attachmentIndex, setAttachmentIndex] = useState(0);
   const [imageScale, setImageScale] = useState(1.0);
+  const [isUploading, setIsUploading] = useState(false);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
 
   // 폼 필드
   const [pharmaId, setPharmaId] = useState("");
@@ -188,6 +190,48 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
 
   const removeRow = (idx: number) => {
     setItemRows((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleAttachmentUpload = async (files: FileList | null) => {
+    if (!files?.length || !prescription) return;
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) { toast.error("로그인이 필요합니다."); return; }
+    setIsUploading(true);
+    try {
+      const newUrls: string[] = [];
+      for (const file of Array.from(files)) {
+        const ext = file.name.split(".").pop() ?? "jpg";
+        const path = `${userData.user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from("prescription-attachments")
+          .upload(path, file, { upsert: false });
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from("prescription-attachments")
+            .getPublicUrl(path);
+          if (urlData?.publicUrl) newUrls.push(urlData.publicUrl);
+        } else {
+          toast.error(`업로드 실패: ${uploadError.message}`);
+        }
+      }
+      if (newUrls.length > 0) {
+        const updatedUrls = [...attachmentUrls, ...newUrls];
+        const { error } = await supabase
+          .from("prescriptions")
+          .update({ attachment_urls: updatedUrls })
+          .eq("id", prescriptionId);
+        if (error) {
+          toast.error("저장 실패: " + error.message);
+        } else {
+          setAttachmentUrls(updatedUrls);
+          setAttachmentIndex(updatedUrls.length - 1);
+          toast.success(`${newUrls.length}개 파일 첨부 완료!`);
+        }
+      }
+    } finally {
+      setIsUploading(false);
+      if (attachmentInputRef.current) attachmentInputRef.current.value = "";
+    }
   };
 
   const handleSave = async (confirm: boolean) => {
@@ -371,6 +415,24 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
               <button type="button" onClick={() => setImageScale(s => Math.min(s + 0.2, 3.0))} className="flex h-6 w-6 items-center justify-center rounded text-xs font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">+</button>
               <button type="button" onClick={() => setImageScale(s => Math.max(s - 0.2, 0.4))} className="flex h-6 w-6 items-center justify-center rounded text-xs font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">−</button>
               <button type="button" onClick={() => setImageScale(1.0)} className="flex h-6 w-10 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">맞춤</button>
+              <div className="mx-1 h-3 w-px bg-[#3d3020]" />
+              <button
+                type="button"
+                onClick={() => attachmentInputRef.current?.click()}
+                disabled={isUploading}
+                className="flex h-6 items-center gap-1 rounded px-2 text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d] disabled:opacity-50"
+              >
+                {isUploading ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
+                추가
+              </button>
+              <input
+                ref={attachmentInputRef}
+                type="file"
+                accept="image/*,.pdf"
+                multiple
+                className="hidden"
+                onChange={e => handleAttachmentUpload(e.target.files)}
+              />
             </div>
           </div>
 
@@ -389,16 +451,21 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                 />
               )
             ) : (
-              <div className="flex flex-col items-center gap-3">
+              <button
+                type="button"
+                onClick={() => attachmentInputRef.current?.click()}
+                disabled={isUploading}
+                className="flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-[#3d3020] p-8 transition-colors hover:border-[#c4973d] hover:bg-[#2c2416] disabled:opacity-50"
+              >
                 <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#2c2416] text-[#4a3a28]">
-                  <svg viewBox="0 0 24 24" className="size-8" fill="none" stroke="currentColor" strokeWidth={1}>
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <line x1="3" y1="9" x2="21" y2="9" />
-                    <line x1="9" y1="21" x2="9" y2="9" />
-                  </svg>
+                  {isUploading
+                    ? <Loader2 className="size-8 animate-spin text-[#c4973d]" />
+                    : <Upload className="size-8 text-[#4a3a28]" />
+                  }
                 </div>
-                <p className="text-sm text-[#4a3a28]">첨부파일 없음</p>
-              </div>
+                <p className="text-sm text-[#4a3a28]">{isUploading ? "업로드 중..." : "첨부파일 없음"}</p>
+                <p className="text-xs text-[#3d3020]">클릭하여 파일 첨부</p>
+              </button>
             )}
           </div>
         </div>
