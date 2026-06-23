@@ -170,6 +170,8 @@ export function EdiNewForm() {
   const [ocrSummary, setOcrSummary] = useState<OcrRunSummary | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isExcelUploading, setIsExcelUploading] = useState(false);
+  const [isEmailImporting, setIsEmailImporting] = useState(false);
+  const [emailImportMessage, setEmailImportMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const ocrInputRef = useRef<HTMLInputElement>(null);
 
