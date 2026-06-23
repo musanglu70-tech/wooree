@@ -301,35 +301,38 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
     <div className="flex h-full flex-col overflow-hidden" style={{ fontFamily: "sans-serif" }}>
 
       {/* ── 상단 바 ── */}
-      <div className="flex h-12 shrink-0 items-center gap-2 border-b border-[#3d3020] bg-[#2c2416] px-3">
+      <div className="flex h-10 shrink-0 items-center gap-1.5 border-b border-[#3d3020] bg-[#2c2416] px-3">
         {/* 검수 태그 */}
-        <span className="flex shrink-0 items-center gap-1 rounded bg-[#3d3020] px-2 py-1 text-xs font-medium text-[#e8c97a]">
+        <span className="flex shrink-0 items-center gap-1 rounded bg-[#3d3020] px-2 py-0.5 text-xs font-medium text-[#e8c97a]">
           🔍 검수
         </span>
 
         {/* 카운터 */}
-        <span className="shrink-0 text-xs font-semibold text-[#e8c97a]">
-          {currentIndex + 1} / {filteredIds.length}
+        <span className="shrink-0 text-xs text-[#c8a96e]">
+          {currentIndex >= 0 ? currentIndex + 1 : "-"} / {filteredIds.length}
         </span>
 
-        {/* 이전/다음 */}
+        {/* 이전 */}
         <button
           type="button"
           disabled={!prevId}
           onClick={() => prevId && router.push(`/edi/inspect/${prevId}`)}
-          className="flex shrink-0 items-center gap-0.5 rounded px-2 py-1 text-xs text-[#b5a080] hover:text-[#e8c97a] disabled:opacity-30"
+          className="flex shrink-0 items-center gap-0.5 rounded px-1.5 py-0.5 text-xs disabled:opacity-30"
+          style={{ color: prevId ? "#e8c97a" : "#4a3a28" }}
         >
-          <ChevronLeft className="size-3.5" />
+          <ChevronLeft className="size-3" />
           이전
         </button>
+        {/* 다음 */}
         <button
           type="button"
           disabled={!nextId}
           onClick={() => nextId && router.push(`/edi/inspect/${nextId}`)}
-          className="flex shrink-0 items-center gap-0.5 rounded px-2 py-1 text-xs text-[#b5a080] hover:text-[#e8c97a] disabled:opacity-30"
+          className="flex shrink-0 items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-semibold disabled:opacity-30"
+          style={{ color: nextId ? "#e8c97a" : "#4a3a28" }}
         >
           다음
-          <ChevronRight className="size-3.5" />
+          <ChevronRight className="size-3" />
         </button>
 
         <div className="flex-1" />
@@ -357,32 +360,21 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           <option value="">전체</option>
         </select>
 
-        <div className="mx-1 h-5 w-px shrink-0 bg-[#4a3a28]" />
-
-        {/* 초기화 */}
-        <button
-          type="button"
-          onClick={() => { setFPharma(""); setFHospital(""); setFMonth(""); setFStatus("saved"); }}
-          className="shrink-0 rounded px-2.5 py-1 text-xs text-[#b5a080] hover:bg-[#3d3020] hover:text-[#e8c97a]"
-        >
-          초기화
-        </button>
-
-        {/* 입증 확정 버튼 */}
+        {/* 일괄 확정 버튼 */}
         {!isConfirmed && (
           <button
             type="button"
             disabled={isSaving}
             onClick={() => handleSave(true)}
-            className="shrink-0 rounded-lg px-4 py-1.5 text-xs font-bold text-white shadow transition-colors disabled:opacity-60"
+            className="shrink-0 rounded px-3 py-1 text-xs font-bold text-white shadow disabled:opacity-60"
             style={{ backgroundColor: "#c4973d" }}
           >
-            {isSaving ? <Loader2 className="inline size-3.5 animate-spin" /> : "✔"} 입증 확정
+            {isSaving ? <Loader2 className="inline size-3 animate-spin" /> : "일괄 확정"}
           </button>
         )}
         {isConfirmed && (
-          <span className="shrink-0 rounded-lg bg-green-700 px-4 py-1.5 text-xs font-bold text-white">
-            ✔ 확정완료
+          <span className="shrink-0 rounded bg-green-700 px-3 py-1 text-xs font-bold text-white">
+            확정완료
           </span>
         )}
       </div>
