@@ -72,6 +72,8 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
   const [attachmentUrls, setAttachmentUrls] = useState<string[]>([]);
   const [attachmentIndex, setAttachmentIndex] = useState(0);
   const [imageScale, setImageScale] = useState(1.0);
+  const [imageContrast, setImageContrast] = useState(1.0);
+  const [isBlackWhite, setIsBlackWhite] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
 
@@ -391,48 +393,65 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
         {/* ── 왼쪽: 원본 첨부파일 ── */}
         <div className="flex w-[50%] shrink-0 flex-col bg-[#1a1208]">
           {/* 패널 헤더 */}
-          <div className="flex h-10 shrink-0 items-center justify-between border-b border-[#3d3020] px-4">
-            <span className="text-xs font-medium text-[#c4973d]">📎 원본 첨부파일</span>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                disabled={attachmentIndex <= 0}
-                onClick={() => setAttachmentIndex((i) => i - 1)}
-                className="flex h-6 w-6 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d] disabled:opacity-30"
-              >◀</button>
-              <button
-                type="button"
-                disabled={attachmentIndex >= attachmentUrls.length - 1}
-                onClick={() => setAttachmentIndex((i) => i + 1)}
-                className="flex h-6 w-6 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d] disabled:opacity-30"
-              >▶</button>
-              {attachmentUrls.length > 0 && (
-                <span className="ml-1 text-xs text-[#7a6040]">
-                  {attachmentIndex + 1}/{attachmentUrls.length}
-                </span>
-              )}
+          <div className="flex h-10 shrink-0 items-center gap-2 border-b border-[#3d3020] px-3">
+            <span className="shrink-0 text-xs font-medium text-[#c4973d]">📎 원본 첨부파일</span>
+            <div className="flex flex-1 items-center justify-end gap-0.5">
+              {/* 페이지 이동 */}
+              <button type="button" disabled={attachmentIndex <= 0} onClick={() => setAttachmentIndex(i => i - 1)}
+                className="flex h-6 w-6 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d] disabled:opacity-30">◀</button>
+              <span className="min-w-[32px] text-center text-xs text-[#7a6040]">
+                {attachmentUrls.length > 0 ? `${attachmentIndex + 1}/${attachmentUrls.length}` : "0/0"}
+              </span>
+              <button type="button" disabled={attachmentIndex >= attachmentUrls.length - 1} onClick={() => setAttachmentIndex(i => i + 1)}
+                className="flex h-6 w-6 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d] disabled:opacity-30">▶</button>
               <div className="mx-1 h-3 w-px bg-[#3d3020]" />
-              <button type="button" onClick={() => setImageScale(s => Math.min(s + 0.2, 3.0))} className="flex h-6 w-6 items-center justify-center rounded text-xs font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">+</button>
-              <button type="button" onClick={() => setImageScale(s => Math.max(s - 0.2, 0.4))} className="flex h-6 w-6 items-center justify-center rounded text-xs font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">−</button>
-              <button type="button" onClick={() => setImageScale(1.0)} className="flex h-6 w-10 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">맞춤</button>
+              {/* 줌 */}
+              <button type="button" onClick={() => setImageScale(s => Math.min(s + 0.2, 3.0))}
+                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">+</button>
+              <button type="button" onClick={() => setImageScale(s => Math.max(s - 0.2, 0.4))}
+                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">−</button>
+              {/* 원본 크기 */}
+              <button type="button" onClick={() => setImageScale(1.0)}
+                className="flex h-6 w-6 items-center justify-center rounded text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">
+                <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                  <rect x="1" y="1" width="14" height="14" rx="1.5" />
+                  <rect x="4" y="4" width="8" height="8" rx="1" />
+                </svg>
+              </button>
               <div className="mx-1 h-3 w-px bg-[#3d3020]" />
-              <button
-                type="button"
-                onClick={() => attachmentInputRef.current?.click()}
-                disabled={isUploading}
-                className="flex h-6 items-center gap-1 rounded px-2 text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d] disabled:opacity-50"
+              {/* 대비 높이기 */}
+              <button type="button"
+                onClick={() => setImageContrast(c => c >= 2.0 ? 1.0 : c + 0.5)}
+                className="flex h-6 w-6 items-center justify-center rounded text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]"
+                title="대비 높이기"
+                style={imageContrast > 1.0 ? { background: "#c4973d", color: "#1c1108" } : {}}
               >
+                <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor">
+                  <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M8 1a7 7 0 0 1 0 14V1z"/>
+                </svg>
+              </button>
+              {/* 흑백 모드 */}
+              <button type="button"
+                onClick={() => setIsBlackWhite(b => !b)}
+                className="flex h-6 w-6 items-center justify-center rounded text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]"
+                title="흑백 모드"
+                style={isBlackWhite ? { background: "#c4973d", color: "#1c1108" } : {}}
+              >
+                <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor">
+                  <rect x="1" y="1" width="6" height="14" rx="1" fill="currentColor"/>
+                  <rect x="9" y="1" width="6" height="14" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+                </svg>
+              </button>
+              <div className="mx-1 h-3 w-px bg-[#3d3020]" />
+              {/* 파일 추가 */}
+              <button type="button" onClick={() => attachmentInputRef.current?.click()} disabled={isUploading}
+                className="flex h-6 items-center gap-1 rounded px-2 text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d] disabled:opacity-50">
                 {isUploading ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
                 추가
               </button>
-              <input
-                ref={attachmentInputRef}
-                type="file"
-                accept="image/*,.pdf"
-                multiple
-                className="hidden"
-                onChange={e => handleAttachmentUpload(e.target.files)}
-              />
+              <input ref={attachmentInputRef} type="file" accept="image/*,.pdf" multiple className="hidden"
+                onChange={e => handleAttachmentUpload(e.target.files)} />
             </div>
           </div>
 
@@ -446,7 +465,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                 <img
                   src={attachmentUrls[attachmentIndex]}
                   alt="처방전"
-                  style={{ transform: `scale(${imageScale})`, transformOrigin: "center center", transition: "transform 0.15s ease" }}
+                  style={{ transform: `scale(${imageScale})`, transformOrigin: "center center", transition: "transform 0.15s ease", filter: `grayscale(${isBlackWhite ? 1 : 0}) contrast(${imageContrast})` }}
                   className="max-h-full max-w-full object-contain"
                 />
               )
