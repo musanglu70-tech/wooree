@@ -29,6 +29,7 @@ interface Prescription {
   settlement_date: string | null;
   memo: string | null;
   status: string;
+  attachment_urls: string[] | null;
   pharma_companies: { name: string } | null;
 }
 
@@ -57,6 +58,8 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
   const [siblingIds, setSiblingIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [attachmentUrls, setAttachmentUrls] = useState<string[]>([]);
+  const [attachmentIndex, setAttachmentIndex] = useState(0);
 
   const [pharmaId, setPharmaId] = useState("");
   const [hospital, setHospital] = useState("");
@@ -88,6 +91,8 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
       setPrescriptionMonth(toMonth(pres.prescription_date));
       setSettlementMonth(toMonth(pres.settlement_date));
       setMemo(pres.memo ?? "");
+      setAttachmentUrls(pres.attachment_urls ?? []);
+      setAttachmentIndex(0);
 
       const rawItems = (itemsRes.data ?? []) as Record<string, unknown>[];
       setItemRows(
@@ -262,28 +267,55 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           <div className="flex h-10 shrink-0 items-center justify-between border-b border-[#3d3020] px-4">
             <span className="text-xs font-medium text-[#c4973d]">📎 원본 첨부파일</span>
             <div className="flex items-center gap-1">
-              {["◀", "▶", "+", "−", "⬜", "⬜", "⬜"].map((icon, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className="flex h-6 w-6 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]"
-                >
-                  {icon}
-                </button>
-              ))}
+              <button
+                type="button"
+                disabled={attachmentIndex <= 0}
+                onClick={() => setAttachmentIndex((i) => i - 1)}
+                className="flex h-6 w-6 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d] disabled:opacity-30"
+              >◀</button>
+              <button
+                type="button"
+                disabled={attachmentIndex >= attachmentUrls.length - 1}
+                onClick={() => setAttachmentIndex((i) => i + 1)}
+                className="flex h-6 w-6 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d] disabled:opacity-30"
+              >▶</button>
+              {attachmentUrls.length > 0 && (
+                <span className="ml-1 text-xs text-[#7a6040]">
+                  {attachmentIndex + 1}/{attachmentUrls.length}
+                </span>
+              )}
             </div>
           </div>
 
           {/* 첨부파일 영역 */}
-          <div className="flex flex-1 flex-col items-center justify-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#2c2416] text-[#4a3a28]">
-              <svg viewBox="0 0 24 24" className="size-8" fill="none" stroke="currentColor" strokeWidth={1}>
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <line x1="3" y1="9" x2="21" y2="9" />
-                <line x1="9" y1="21" x2="9" y2="9" />
-              </svg>
-            </div>
-            <p className="text-sm text-[#4a3a28]">첨부파일 없음</p>
+          <div className="flex flex-1 items-center justify-center overflow-hidden">
+            {attachmentUrls.length > 0 && attachmentUrls[attachmentIndex] ? (
+              attachmentUrls[attachmentIndex].toLowerCase().includes(".pdf") ? (
+                <iframe
+                  src={attachmentUrls[attachmentIndex]}
+                  className="h-full w-full"
+                  title="처방전"
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={attachmentUrls[attachmentIndex]}
+                  alt="처방전"
+                  className="max-h-full max-w-full object-contain"
+                />
+              )
+            ) : (
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[#2c2416] text-[#4a3a28]">
+                  <svg viewBox="0 0 24 24" className="size-8" fill="none" stroke="currentColor" strokeWidth={1}>
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <line x1="3" y1="9" x2="21" y2="9" />
+                    <line x1="9" y1="21" x2="9" y2="9" />
+                  </svg>
+                </div>
+                <p className="text-sm text-[#4a3a28]">첨부파일 없음</p>
+              </div>
+            )}
           </div>
         </div>
 

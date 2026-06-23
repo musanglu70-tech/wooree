@@ -522,6 +522,24 @@ export function EdiNewForm() {
         return;
       }
 
+      // 첨부파일 먼저 임시 ID로 Storage에 업로드
+      const attachmentUrls: string[] = [];
+      if (ocrFiles.length > 0) {
+        for (const file of ocrFiles) {
+          const ext = file.name.split(".").pop() ?? "jpg";
+          const path = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+          const { error: uploadError } = await supabase.storage
+            .from("prescription-attachments")
+            .upload(path, file, { upsert: false });
+          if (!uploadError) {
+            const { data: urlData } = supabase.storage
+              .from("prescription-attachments")
+              .getPublicUrl(path);
+            if (urlData?.publicUrl) attachmentUrls.push(urlData.publicUrl);
+          }
+        }
+      }
+
       const { data: prescription, error: headerError } = await supabase
         .from("prescriptions")
         .insert({
@@ -533,6 +551,7 @@ export function EdiNewForm() {
           memo: memo.trim() || null,
           status: "saved",
           created_by: user.id,
+          ...(attachmentUrls.length > 0 ? { attachment_urls: attachmentUrls } : {}),
         })
         .select("id")
         .single();
