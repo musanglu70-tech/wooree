@@ -672,7 +672,7 @@ export function EdiNewForm() {
             type="button"
             onClick={handleRunOcr}
             disabled={isOcrLoading || ocrFiles.length === 0}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#c4973d] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#a87f30] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#4f6ef7] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isOcrLoading ? (
               <Loader2 className="size-3.5 animate-spin" />
@@ -737,7 +737,7 @@ export function EdiNewForm() {
             type="button"
             onClick={() => void handleEmailImport()}
             disabled={isEmailImporting}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#c4973d] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#a87f30] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#4f6ef7] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isEmailImporting ? (
               <Loader2 className="size-3.5 animate-spin" />
@@ -786,7 +786,7 @@ export function EdiNewForm() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isExcelUploading}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-[#c4973d] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#a87f30] disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#4f6ef7] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isExcelUploading ? (
                 <Loader2 className="size-3.5 animate-spin" />
@@ -876,7 +876,7 @@ export function EdiNewForm() {
           <button
             type="button"
             onClick={addRow}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-[#c4973d] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#a87f30]"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-[#4f6ef7] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
           >
             <Plus className="size-3.5" />
             행 추가
