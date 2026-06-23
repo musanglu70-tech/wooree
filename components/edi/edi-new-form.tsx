@@ -513,13 +513,13 @@ export function EdiNewForm() {
 
   return (
     <div className="space-y-4">
-      {/* 1. 처방전 OCR 자동입력 */}
+      {/* 1. 처방전 AI 자동입력 */}
       <section className={CARD}>
         <h2 className="mb-1 text-sm font-semibold text-slate-900">
-          처방전 사진 업로드 (OCR 자동입력)
+          처방전 사진 업로드(AI 자동입력)
         </h2>
         <p className="mb-4 text-xs text-slate-500">
-          처방전 이미지 또는 PDF를 업로드하면 Claude Vision으로 정보를
+          처방전 이미지 또는 PDF를 업로드하면 AI가 자동으로 정보를
           추출합니다.
         </p>
 
