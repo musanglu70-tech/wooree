@@ -51,10 +51,10 @@ function monthToDate(m: string) {
 const ITEM_TYPES = ["처방", "조제", "공급"] as const;
 
 const fieldCls =
-  "w-full rounded border border-[#d4c5a9] bg-[#fdf8f0] px-3 py-1.5 text-sm text-slate-800 outline-none focus:border-[#c4973d] focus:bg-[#fdf8f0]";
+  "w-full rounded border border-[#d4c5a9] bg-[#fdf8f0] px-3 py-1.5 text-sm text-slate-800 outline-none focus:border-[#c4973d] focus:bg-white";
 
 const topSelectCls =
-  "h-7 rounded border border-[#d9cdb3] bg-[#fdf8f0] px-2 text-xs text-[#5a4a32] outline-none focus:border-[#c4973d] cursor-pointer";
+  "h-7 rounded border border-[#d9cdb3] bg-white px-2 text-xs text-[#5a4a32] outline-none focus:border-[#c4973d] cursor-pointer";
 
 interface Props {
   prescriptionId: string;
@@ -317,7 +317,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           type="button"
           disabled={!prevId}
           onClick={() => prevId && router.push(`/edi/inspect/${prevId}`)}
-          className="flex shrink-0 items-center gap-0.5 rounded border border-[#d9cdb3] bg-[#fdf8f0] px-2 py-0.5 text-xs disabled:opacity-40"
+          className="flex shrink-0 items-center gap-0.5 rounded border border-[#d9cdb3] bg-white px-2 py-0.5 text-xs disabled:opacity-40"
           style={{ color: prevId ? "#5a4a32" : "#b3a890" }}
         >
           <ChevronLeft className="size-3" />
@@ -328,7 +328,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           type="button"
           disabled={!nextId}
           onClick={() => nextId && router.push(`/edi/inspect/${nextId}`)}
-          className="flex shrink-0 items-center gap-0.5 rounded border border-[#d9cdb3] bg-[#fdf8f0] px-2 py-0.5 text-xs font-semibold disabled:opacity-40"
+          className="flex shrink-0 items-center gap-0.5 rounded border border-[#d9cdb3] bg-white px-2 py-0.5 text-xs font-semibold disabled:opacity-40"
           style={{ color: nextId ? "#5a4a32" : "#b3a890" }}
         >
           다음
@@ -491,10 +491,10 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
         </div>
 
         {/* ── 오른쪽: 입력 데이터 검수 (세션 3) ── */}
-        <div className="flex flex-1 flex-col overflow-hidden bg-white">
+        <div className="flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e2d8c3] bg-[#fdf8f0] shadow-sm">
 
           {/* 폼 헤더 */}
-          <div className="flex h-10 shrink-0 items-center justify-between border-b border-gray-200 bg-gray-50 px-5">
+          <div className="flex h-10 shrink-0 items-center justify-between border-b border-[#e8d9bc] bg-[#f5ede0] px-5">
             <span className="text-sm font-semibold text-[#5a3e1b]">📋 입력 데이터 검수</span>
             <span
               className="rounded-full px-3 py-0.5 text-xs font-semibold"
@@ -511,4 +511,170 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           <div className="flex-1 overflow-y-auto px-5 py-4">
 
             {/* 기본 정보 */}
-            
+            <div className="mb-3 grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">제약사</label>
+                <input
+                  value={pharmaInput}
+                  onChange={(e) => {
+                    setPharmaInput(e.target.value);
+                    const found = pharmaCompanies.find(p => p.name === e.target.value);
+                    setPharmaId(found?.id ?? "");
+                  }}
+                  list="pharma-datalist"
+                  className={fieldCls}
+                  placeholder="제약사명 입력"
+                />
+                <datalist id="pharma-datalist">
+                  {pharmaCompanies.map((p) => (
+                    <option key={p.id} value={p.name} />
+                  ))}
+                </datalist>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">거래처 (병원)</label>
+                <input value={hospital} onChange={(e) => setHospital(e.target.value)} className={fieldCls} placeholder="병의원명" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">처방일</label>
+                <input type="month" value={prescriptionMonth} onChange={(e) => setPrescriptionMonth(e.target.value)} className={fieldCls} />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">정산일</label>
+                <input type="month" value={settlementMonth} onChange={(e) => setSettlementMonth(e.target.value)} className={fieldCls} />
+              </div>
+            </div>
+
+            {/* 업체명 */}
+            <div className="mb-3">
+              <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">업체명 (담당자)</label>
+              <input value="우리메디텍" readOnly className={fieldCls + " cursor-default opacity-70"} />
+            </div>
+
+            {/* 세부 입력 내역 */}
+            <div className="mb-1 text-xs font-semibold text-[#7a5c2e]">세부 입력 내역</div>
+            <div className="mb-2 overflow-hidden rounded border border-[#d4c5a9]">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-[#d4c5a9] bg-[#f0e4cc]">
+                    <th className="px-3 py-2 text-left font-semibold text-[#7a5c2e]">제품명</th>
+                    <th className="w-16 px-2 py-2 text-right font-semibold text-[#7a5c2e]">단가</th>
+                    <th className="w-14 px-2 py-2 text-right font-semibold text-[#7a5c2e]">수량</th>
+                    <th className="w-20 px-2 py-2 text-right font-semibold text-[#7a5c2e]">금액</th>
+                    <th className="w-24 px-2 py-2 text-center font-semibold text-[#7a5c2e]">처방/조제/공급내역</th>
+                    <th className="w-6 px-1 py-2" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {itemRows.map((row, idx) => (
+                    <tr key={idx} className="border-b border-[#ecdfc8] last:border-b-0 hover:bg-[#fdf3e3]">
+                      <td className="px-2 py-1.5">
+                        <input
+                          value={row.product_name}
+                          onChange={(e) => updateItem(idx, { product_name: e.target.value })}
+                          className="w-full bg-transparent text-slate-800 outline-none placeholder:text-slate-400 focus:rounded focus:bg-white focus:px-1 focus:ring-1 focus:ring-[#c4973d]"
+                          placeholder="제품명"
+                        />
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <input
+                          type="number"
+                          value={row.unit_price || ""}
+                          onChange={(e) => updateItem(idx, { unit_price: Number(e.target.value) })}
+                          className="w-full bg-transparent text-right text-slate-800 outline-none focus:rounded focus:bg-white focus:ring-1 focus:ring-[#c4973d]"
+                        />
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <input
+                          type="number"
+                          value={row.quantity || ""}
+                          onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })}
+                          className="w-full bg-transparent text-right text-slate-800 outline-none focus:rounded focus:bg-white focus:ring-1 focus:ring-[#c4973d]"
+                        />
+                      </td>
+                      <td className="px-2 py-1.5 text-right font-medium text-slate-800">
+                        {row.amount ? row.amount.toLocaleString("ko-KR") : "-"}
+                      </td>
+                      <td className="px-2 py-1.5">
+                        <select
+                          value={row.item_type}
+                          onChange={(e) => updateItem(idx, { item_type: e.target.value as "처방" | "조제" | "공급" })}
+                          className="w-full rounded border border-[#d4c5a9] bg-[#fdf8f0] px-1 py-0.5 text-center text-xs outline-none focus:border-[#c4973d]"
+                        >
+                          {ITEM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                      </td>
+                      <td className="px-1 py-1.5 text-center">
+                        <button type="button" onClick={() => removeRow(idx)} className="text-[#b5a080] hover:text-red-500">
+                          <X className="size-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+
+                  {/* 합계 */}
+                  <tr className="border-t border-[#d4c5a9] bg-[#f5ede0]">
+                    <td colSpan={3} className="px-3 py-2 text-right text-xs font-semibold text-[#7a5c2e]">합계</td>
+                    <td className="px-2 py-2 text-right text-sm font-bold text-[#c4973d]">
+                      {total.toLocaleString("ko-KR")}
+                    </td>
+                    <td colSpan={2} />
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* + 명 추가 */}
+            <button
+              type="button"
+              onClick={addRow}
+              className="mb-4 flex w-full items-center justify-center gap-1 rounded border border-dashed border-[#c4973d] py-2 text-xs text-[#c4973d] hover:bg-[#fdf3e3]"
+            >
+              <Plus className="size-3.5" />
+              행 추가
+            </button>
+
+            {/* 비고 */}
+            <div className="mb-2">
+              <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">비고</label>
+              <input
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                className={fieldCls}
+                placeholder="검수 메모 (선택)"
+              />
+            </div>
+          </div>
+
+          {/* 하단 버튼 */}
+          <div className="shrink-0 border-t border-[#e8d9bc] bg-[#f5ede0] p-4">
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={isSaving}
+                onClick={() => handleSave(true)}
+                className="flex flex-1 items-center justify-center gap-2 rounded-lg py-3 text-sm font-bold text-white shadow-md transition-colors disabled:opacity-60"
+                style={{ backgroundColor: "#c4973d" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#a87f30")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#c4973d")}
+              >
+                {isSaving && <Loader2 className="size-4 animate-spin" />}
+                ✔ 확정 저장
+              </button>
+              {nextId && (
+                <button
+                  type="button"
+                  onClick={() => router.push(`/edi/inspect/${nextId}`)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-[#d4c5a9] bg-white px-5 py-3 text-sm font-medium text-[#7a5c2e] hover:bg-[#fdf3e3]"
+                >
+                  다음
+                  <ChevronRight className="size-4" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
