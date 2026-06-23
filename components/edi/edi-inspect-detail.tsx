@@ -301,7 +301,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
     <div className="flex h-full flex-col overflow-hidden" style={{ fontFamily: "sans-serif" }}>
 
       {/* ── 상단 바 ── */}
-      <div className="flex h-10 shrink-0 items-center gap-1.5 border-b border-[#3d3020] bg-[#2c2416] px-3">
+      <div className="flex h-12 shrink-0 items-center gap-2 border-b border-[#3d3020] bg-[#2c2416] px-4">
         {/* 검수 태그 */}
         <span className="flex shrink-0 items-center gap-1 rounded bg-[#3d3020] px-2 py-0.5 text-xs font-medium text-[#e8c97a]">
           🔍 검수
@@ -383,9 +383,9 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── 왼쪽: 원본 첨부파일 ── */}
-        <div className="flex w-[50%] shrink-0 flex-col bg-[#1a1208]">
+        <div className="flex w-[44%] shrink-0 flex-col bg-[#1a1208]" style={{ borderRight: "2px solid #3d3020" }}>
           {/* 패널 헤더 */}
-          <div className="flex h-10 shrink-0 items-center gap-2 border-b border-[#3d3020] px-3">
+          <div className="flex h-12 shrink-0 items-center gap-2 border-b border-[#3d3020] bg-[#221808] px-3">
             <span className="shrink-0 text-xs font-medium text-[#c4973d]">📎 원본 첨부파일</span>
             <div className="flex flex-1 items-center justify-end gap-0.5">
               {/* 페이지 이동 */}
@@ -485,7 +485,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
         <div className="flex flex-1 flex-col overflow-hidden bg-[#fdf8f0]">
 
           {/* 폼 헤더 */}
-          <div className="flex h-10 shrink-0 items-center justify-between border-b border-[#e8d9bc] bg-[#f5ede0] px-5">
+          <div className="flex h-12 shrink-0 items-center justify-between border-b border-[#e8d9bc] bg-[#f0e6cf] px-5">
             <span className="text-sm font-semibold text-[#5a3e1b]">📋 입력 데이터 검수</span>
             <span
               className="rounded-full px-3 py-0.5 text-xs font-semibold"
