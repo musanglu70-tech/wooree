@@ -250,7 +250,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
   if (!prescription) return null;
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden" style={{ fontFamily: "sans-serif" }}>
+    <div className="flex h-full flex-col overflow-hidden" style={{ fontFamily: "sans-serif" }}>
 
       {/* ── 상단 바 ── */}
       <div className="flex h-12 shrink-0 items-center gap-2 border-b border-[#3d3020] bg-[#2c2416] px-3">
