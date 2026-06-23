@@ -293,7 +293,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           <option value="">제약사 전체</option>
           {pharmaOptions.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
-        <select className={topSelectCls} disabled>
+        <select className={topSelectCls}>
           <option value="">업체 전체</option>
           <option value="우리메디텍">우리메디텍</option>
         </select>
@@ -345,7 +345,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── 왼쪽: 원본 첨부파일 ── */}
-        <div className="flex w-[40%] shrink-0 flex-col bg-[#1a1208]">
+        <div className="flex w-[50%] shrink-0 flex-col bg-[#1a1208]">
           {/* 패널 헤더 */}
           <div className="flex h-10 shrink-0 items-center justify-between border-b border-[#3d3020] px-4">
             <span className="text-xs font-medium text-[#c4973d]">📎 원본 첨부파일</span>
@@ -449,11 +449,11 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                 <input value={hospital} onChange={(e) => setHospital(e.target.value)} className={fieldCls} placeholder="병의원명" />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">처방월</label>
+                <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">처방일</label>
                 <input type="month" value={prescriptionMonth} onChange={(e) => setPrescriptionMonth(e.target.value)} className={fieldCls} />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">정산월</label>
+                <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">정산일</label>
                 <input type="month" value={settlementMonth} onChange={(e) => setSettlementMonth(e.target.value)} className={fieldCls} />
               </div>
             </div>
