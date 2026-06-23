@@ -75,6 +75,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
 
   // 폼 필드
   const [pharmaId, setPharmaId] = useState("");
+  const [pharmaInput, setPharmaInput] = useState("");
   const [hospital, setHospital] = useState("");
   const [prescriptionMonth, setPrescriptionMonth] = useState("");
   const [settlementMonth, setSettlementMonth] = useState("");
@@ -106,6 +107,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
       const pres = presRes.data as Prescription;
       setPrescription(pres);
       setPharmaId(pres.pharma_company_id ?? "");
+      setPharmaInput(pres.pharma_companies?.name ?? "");
       setHospital(pres.hospital_name ?? "");
       setPrescriptionMonth(toMonth(pres.prescription_date));
       setSettlementMonth(toMonth(pres.settlement_date));
@@ -421,12 +423,22 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
             <div className="mb-3 grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">제약사</label>
-                <select value={pharmaId} onChange={(e) => setPharmaId(e.target.value)} className={fieldCls}>
-                  <option value="">선택</option>
+                <input
+                  value={pharmaInput}
+                  onChange={(e) => {
+                    setPharmaInput(e.target.value);
+                    const found = pharmaCompanies.find(p => p.name === e.target.value);
+                    setPharmaId(found?.id ?? "");
+                  }}
+                  list="pharma-datalist"
+                  className={fieldCls}
+                  placeholder="제약사명 입력"
+                />
+                <datalist id="pharma-datalist">
                   {pharmaCompanies.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                    <option key={p.id} value={p.name} />
                   ))}
-                </select>
+                </datalist>
               </div>
               <div>
                 <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">거래처 (병원)</label>
