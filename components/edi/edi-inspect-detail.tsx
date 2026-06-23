@@ -60,6 +60,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [attachmentUrls, setAttachmentUrls] = useState<string[]>([]);
   const [attachmentIndex, setAttachmentIndex] = useState(0);
+  const [imageScale, setImageScale] = useState(1.0);
 
   const [pharmaId, setPharmaId] = useState("");
   const [hospital, setHospital] = useState("");
@@ -256,6 +257,20 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
         >
           목록으로
         </button>
+
+        {/* 상단 확정 저장 버튼 */}
+        {!isConfirmed && (
+          <button
+            type="button"
+            disabled={isSaving}
+            onClick={() => handleSave(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-bold text-white shadow transition-colors disabled:opacity-60"
+            style={{ backgroundColor: "#c4973d" }}
+          >
+            {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : "✔"}
+            입증 확정
+          </button>
+        )}
       </div>
 
       {/* ── 메인 두 패널 ── */}
@@ -284,11 +299,27 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                   {attachmentIndex + 1}/{attachmentUrls.length}
                 </span>
               )}
+              <div className="mx-1 h-3 w-px bg-[#3d3020]" />
+              <button
+                type="button"
+                onClick={() => setImageScale((s) => Math.min(s + 0.2, 3.0))}
+                className="flex h-6 w-6 items-center justify-center rounded text-xs font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]"
+              >+</button>
+              <button
+                type="button"
+                onClick={() => setImageScale((s) => Math.max(s - 0.2, 0.4))}
+                className="flex h-6 w-6 items-center justify-center rounded text-xs font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]"
+              >−</button>
+              <button
+                type="button"
+                onClick={() => setImageScale(1.0)}
+                className="flex h-6 w-10 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]"
+              >맞춤</button>
             </div>
           </div>
 
           {/* 첨부파일 영역 */}
-          <div className="flex flex-1 items-center justify-center overflow-hidden">
+          <div className="flex flex-1 items-center justify-center overflow-auto">
             {attachmentUrls.length > 0 && attachmentUrls[attachmentIndex] ? (
               attachmentUrls[attachmentIndex].toLowerCase().includes(".pdf") ? (
                 <iframe
@@ -301,6 +332,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                 <img
                   src={attachmentUrls[attachmentIndex]}
                   alt="처방전"
+                  style={{ transform: `scale(${imageScale})`, transformOrigin: "center center", transition: "transform 0.15s ease" }}
                   className="max-h-full max-w-full object-contain"
                 />
               )
@@ -332,7 +364,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                 color: isConfirmed ? "#155724" : "#856404",
               }}
             >
-              {isConfirmed ? "처정" : "미처정"}
+              {isConfirmed ? "확정" : "미확정"}
             </span>
           </div>
 

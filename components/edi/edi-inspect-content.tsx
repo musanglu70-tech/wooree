@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ClipboardCheck, Search } from "lucide-react";
+import { ClipboardCheck, RotateCcw, Search } from "lucide-react";
 import { toast } from "sonner";
 import { formatWon } from "@/lib/edi/constants";
 import { createClient } from "@/lib/supabase/browser";
@@ -106,6 +106,12 @@ export function EdiInspectContent() {
     setApplied({ month: filterMonth, pharma: filterPharma });
   };
 
+  const handleReset = () => {
+    setFilterMonth("");
+    setFilterPharma("");
+    setApplied({ month: "", pharma: "" });
+  };
+
   return (
     <div className="space-y-4">
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -138,11 +144,19 @@ export function EdiInspectContent() {
               ))}
             </select>
           </div>
-          <div className="flex items-end">
+          <div className="flex items-end gap-2">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-600 transition-colors hover:bg-slate-50"
+            >
+              <RotateCcw className="size-3.5" />
+              초기화
+            </button>
             <button
               type="button"
               onClick={handleSearch}
-              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#4f6ef7] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
+              className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-[#4f6ef7] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#3d5ce5]"
             >
               <Search className="size-4" />
               조회
