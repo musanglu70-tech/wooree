@@ -33,6 +33,14 @@ interface Prescription {
   pharma_companies: { name: string } | null;
 }
 
+interface SiblingInfo {
+  id: string;
+  pharmaName: string;
+  hospitalName: string;
+  month: string;
+  status: string;
+}
+
 function toMonth(d: string | null) {
   return d ? d.slice(0, 7) : "";
 }
@@ -45,6 +53,9 @@ const ITEM_TYPES = ["처방", "조제", "공급"] as const;
 const fieldCls =
   "w-full rounded border border-[#d4c5a9] bg-[#fdf8f0] px-3 py-1.5 text-sm text-slate-800 outline-none focus:border-[#c4973d] focus:bg-white";
 
+const topSelectCls =
+  "h-7 rounded border border-[#4a3a28] bg-[#3d3020] px-2 text-xs text-[#c8a96e] outline-none focus:border-[#c4973d] cursor-pointer";
+
 interface Props {
   prescriptionId: string;
 }
@@ -55,19 +66,26 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
 
   const [prescription, setPrescription] = useState<Prescription | null>(null);
   const [pharmaCompanies, setPharmaCompanies] = useState<PharmaCompany[]>([]);
-  const [siblingIds, setSiblingIds] = useState<string[]>([]);
+  const [siblings, setSiblings] = useState<SiblingInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [attachmentUrls, setAttachmentUrls] = useState<string[]>([]);
   const [attachmentIndex, setAttachmentIndex] = useState(0);
   const [imageScale, setImageScale] = useState(1.0);
 
+  // 폼 필드
   const [pharmaId, setPharmaId] = useState("");
   const [hospital, setHospital] = useState("");
   const [prescriptionMonth, setPrescriptionMonth] = useState("");
   const [settlementMonth, setSettlementMonth] = useState("");
   const [memo, setMemo] = useState("");
   const [itemRows, setItemRows] = useState<ItemRow[]>([]);
+
+  // 상단 필터
+  const [fPharma, setFPharma] = useState("");
+  const [fHospital, setFHospital] = useState("");
+  const [fMonth, setFMonth] = useState("");
+  const [fStatus, setFStatus] = useState("saved");
 
   useEffect(() => {
     let active = true;
@@ -77,7 +95,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
       supabase.from("prescriptions").select("*, pharma_companies(name)").eq("id", prescriptionId).single(),
       supabase.from("prescription_items").select("*").eq("prescription_id", prescriptionId).order("seq"),
       supabase.from("pharma_companies").select("id, name").order("name"),
-      supabase.from("prescriptions").select("id").eq("status", "saved").order("created_at", { ascending: false }),
+      supabase.from("prescriptions").select("id, hospital_name, prescription_date, status, pharma_companies(name)").order("created_at", { ascending: false }),
     ]).then(([presRes, itemsRes, pharmaRes, siblingsRes]) => {
       if (!active) return;
       if (presRes.error || !presRes.data) {
@@ -109,16 +127,40 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
       );
 
       setPharmaCompanies((pharmaRes.data ?? []) as PharmaCompany[]);
-      setSiblingIds(((siblingsRes.data ?? []) as { id: string }[]).map((r) => r.id));
+
+      const rawSiblings = (siblingsRes.data ?? []) as Record<string, unknown>[];
+      setSiblings(rawSiblings.map((r) => ({
+        id: String(r.id),
+        pharmaName: String((r.pharma_companies as { name?: string } | null)?.name ?? ""),
+        hospitalName: String(r.hospital_name ?? ""),
+        month: String(r.prescription_date ?? "").slice(0, 7),
+        status: String(r.status ?? ""),
+      })));
+
       setIsLoading(false);
     });
 
     return () => { active = false; };
   }, [prescriptionId, supabase, router]);
 
-  const currentIndex = siblingIds.indexOf(prescriptionId);
-  const prevId = currentIndex > 0 ? siblingIds[currentIndex - 1] : null;
-  const nextId = currentIndex >= 0 && currentIndex < siblingIds.length - 1 ? siblingIds[currentIndex + 1] : null;
+  // 필터 옵션
+  const pharmaOptions = useMemo(() => Array.from(new Set(siblings.map(s => s.pharmaName).filter(Boolean))).sort(), [siblings]);
+  const hospitalOptions = useMemo(() => Array.from(new Set(siblings.map(s => s.hospitalName).filter(Boolean))).sort(), [siblings]);
+  const monthOptions = useMemo(() => Array.from(new Set(siblings.map(s => s.month).filter(Boolean))).sort().reverse(), [siblings]);
+
+  // 필터 적용된 목록
+  const filteredSiblings = useMemo(() => siblings.filter(s => {
+    if (fPharma && s.pharmaName !== fPharma) return false;
+    if (fHospital && s.hospitalName !== fHospital) return false;
+    if (fMonth && s.month !== fMonth) return false;
+    if (fStatus && s.status !== fStatus) return false;
+    return true;
+  }), [siblings, fPharma, fHospital, fMonth, fStatus]);
+
+  const filteredIds = useMemo(() => filteredSiblings.map(s => s.id), [filteredSiblings]);
+  const currentIndex = filteredIds.indexOf(prescriptionId);
+  const prevId = currentIndex > 0 ? filteredIds[currentIndex - 1] : null;
+  const nextId = currentIndex >= 0 && currentIndex < filteredIds.length - 1 ? filteredIds[currentIndex + 1] : null;
 
   const total = useMemo(() => itemRows.reduce((s, r) => s + r.amount, 0), [itemRows]);
 
@@ -211,65 +253,85 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
     <div className="flex h-screen flex-col overflow-hidden" style={{ fontFamily: "sans-serif" }}>
 
       {/* ── 상단 바 ── */}
-      <div className="flex h-11 shrink-0 items-center gap-3 border-b border-[#3d3020] bg-[#2c2416] px-4">
-        {/* 검수 제목 */}
-        <span className="flex items-center gap-1.5 rounded bg-[#3d3020] px-2.5 py-1 text-xs font-medium text-[#e8c97a]">
+      <div className="flex h-12 shrink-0 items-center gap-2 border-b border-[#3d3020] bg-[#2c2416] px-3">
+        {/* 검수 태그 */}
+        <span className="flex shrink-0 items-center gap-1 rounded bg-[#3d3020] px-2 py-1 text-xs font-medium text-[#e8c97a]">
           🔍 검수
         </span>
 
-        {/* 이전/다음/카운터 */}
+        {/* 카운터 */}
+        <span className="shrink-0 text-xs font-semibold text-[#e8c97a]">
+          {currentIndex + 1} / {filteredIds.length}
+        </span>
+
+        {/* 이전/다음 */}
         <button
           type="button"
           disabled={!prevId}
           onClick={() => prevId && router.push(`/edi/inspect/${prevId}`)}
-          className="flex items-center gap-0.5 rounded px-2 py-1 text-xs text-[#b5a080] hover:text-[#e8c97a] disabled:opacity-30"
+          className="flex shrink-0 items-center gap-0.5 rounded px-2 py-1 text-xs text-[#b5a080] hover:text-[#e8c97a] disabled:opacity-30"
         >
           <ChevronLeft className="size-3.5" />
           이전
         </button>
-        <span className="text-xs font-medium text-[#e8c97a]">
-          {currentIndex + 1} / {siblingIds.length}
-        </span>
         <button
           type="button"
           disabled={!nextId}
           onClick={() => nextId && router.push(`/edi/inspect/${nextId}`)}
-          className="flex items-center gap-0.5 rounded px-2 py-1 text-xs text-[#b5a080] hover:text-[#e8c97a] disabled:opacity-30"
+          className="flex shrink-0 items-center gap-0.5 rounded px-2 py-1 text-xs text-[#b5a080] hover:text-[#e8c97a] disabled:opacity-30"
         >
           다음
           <ChevronRight className="size-3.5" />
         </button>
 
-        <div className="mx-1 h-4 w-px bg-[#4a3a28]" />
-
-        {/* 제약사·거래처 표시 */}
-        <span className="text-xs text-[#b5a080]">{pharmaName || "-"}</span>
-        <span className="text-xs text-[#6b5a3a]">|</span>
-        <span className="text-xs text-[#b5a080]">{hospital || "-"}</span>
-
         <div className="flex-1" />
 
-        {/* 목록으로 */}
+        {/* 필터 드롭다운 */}
+        <select value={fPharma} onChange={e => setFPharma(e.target.value)} className={topSelectCls}>
+          <option value="">제약사 전체</option>
+          {pharmaOptions.map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+        <select value={fHospital} onChange={e => setFHospital(e.target.value)} className={topSelectCls}>
+          <option value="">거래처 전체</option>
+          {hospitalOptions.map(h => <option key={h} value={h}>{h}</option>)}
+        </select>
+        <select value={fMonth} onChange={e => setFMonth(e.target.value)} className={topSelectCls}>
+          <option value="">전체 월</option>
+          {monthOptions.map(m => <option key={m} value={m}>{m}</option>)}
+        </select>
+        <select value={fStatus} onChange={e => setFStatus(e.target.value)} className={topSelectCls}>
+          <option value="saved">미확정</option>
+          <option value="confirmed">확정</option>
+          <option value="">전체</option>
+        </select>
+
+        <div className="mx-1 h-5 w-px shrink-0 bg-[#4a3a28]" />
+
+        {/* 초기화 */}
         <button
           type="button"
-          onClick={() => router.push("/edi/inspect")}
-          className="rounded px-3 py-1 text-xs text-[#b5a080] hover:bg-[#3d3020] hover:text-[#e8c97a]"
+          onClick={() => { setFPharma(""); setFHospital(""); setFMonth(""); setFStatus("saved"); }}
+          className="shrink-0 rounded px-2.5 py-1 text-xs text-[#b5a080] hover:bg-[#3d3020] hover:text-[#e8c97a]"
         >
-          목록으로
+          초기화
         </button>
 
-        {/* 상단 확정 저장 버튼 */}
+        {/* 입증 확정 버튼 */}
         {!isConfirmed && (
           <button
             type="button"
             disabled={isSaving}
             onClick={() => handleSave(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-bold text-white shadow transition-colors disabled:opacity-60"
+            className="shrink-0 rounded-lg px-4 py-1.5 text-xs font-bold text-white shadow transition-colors disabled:opacity-60"
             style={{ backgroundColor: "#c4973d" }}
           >
-            {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : "✔"}
-            입증 확정
+            {isSaving ? <Loader2 className="inline size-3.5 animate-spin" /> : "✔"} 입증 확정
           </button>
+        )}
+        {isConfirmed && (
+          <span className="shrink-0 rounded-lg bg-green-700 px-4 py-1.5 text-xs font-bold text-white">
+            ✔ 확정완료
+          </span>
         )}
       </div>
 
@@ -300,21 +362,9 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                 </span>
               )}
               <div className="mx-1 h-3 w-px bg-[#3d3020]" />
-              <button
-                type="button"
-                onClick={() => setImageScale((s) => Math.min(s + 0.2, 3.0))}
-                className="flex h-6 w-6 items-center justify-center rounded text-xs font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]"
-              >+</button>
-              <button
-                type="button"
-                onClick={() => setImageScale((s) => Math.max(s - 0.2, 0.4))}
-                className="flex h-6 w-6 items-center justify-center rounded text-xs font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]"
-              >−</button>
-              <button
-                type="button"
-                onClick={() => setImageScale(1.0)}
-                className="flex h-6 w-10 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]"
-              >맞춤</button>
+              <button type="button" onClick={() => setImageScale(s => Math.min(s + 0.2, 3.0))} className="flex h-6 w-6 items-center justify-center rounded text-xs font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">+</button>
+              <button type="button" onClick={() => setImageScale(s => Math.max(s - 0.2, 0.4))} className="flex h-6 w-6 items-center justify-center rounded text-xs font-bold text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">−</button>
+              <button type="button" onClick={() => setImageScale(1.0)} className="flex h-6 w-10 items-center justify-center rounded text-xs text-[#7a6040] hover:bg-[#3d3020] hover:text-[#c4973d]">맞춤</button>
             </div>
           </div>
 
@@ -322,11 +372,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           <div className="flex flex-1 items-center justify-center overflow-auto">
             {attachmentUrls.length > 0 && attachmentUrls[attachmentIndex] ? (
               attachmentUrls[attachmentIndex].toLowerCase().includes(".pdf") ? (
-                <iframe
-                  src={attachmentUrls[attachmentIndex]}
-                  className="h-full w-full"
-                  title="처방전"
-                />
+                <iframe src={attachmentUrls[attachmentIndex]} className="h-full w-full" title="처방전" />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -398,7 +444,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
 
             {/* 업체명 */}
             <div className="mb-3">
-              <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">업체명 (업모자)</label>
+              <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">업제명 (업모자)</label>
               <input value="우리메디텍" readOnly className={fieldCls + " cursor-default opacity-70"} />
             </div>
 
