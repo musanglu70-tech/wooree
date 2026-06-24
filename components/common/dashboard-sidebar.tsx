@@ -75,7 +75,6 @@ export function DashboardSidebar() {
       {/* 네비게이션 */}
       <nav className="flex-1 overflow-y-auto px-2 py-3">
         {MENU_GROUPS.map((group, groupIndex) => {
-          /* 라벨 없는 그룹 (대시보드 등 최상위 메뉴) */
           if (!group.label) {
             return (
               <div key={`group-${groupIndex}`} className="mb-2 space-y-0.5">
@@ -117,7 +116,6 @@ export function DashboardSidebar() {
 
           return (
             <div key={group.label} className="mb-0.5">
-              {/* 그룹 헤더 버튼 */}
               <button
                 type="button"
                 onClick={() => toggleGroup(group.label!)}
@@ -135,9 +133,7 @@ export function DashboardSidebar() {
               >
                 <span
                   className="h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{
-                    background: hasActive || isOpen ? "#a5b4fc" : "#334155",
-                  }}
+                  style={{ background: hasActive || isOpen ? "#a5b4fc" : "#334155" }}
                 />
                 <span className="flex-1 text-left">{group.label}</span>
                 <ChevronDown
@@ -150,7 +146,6 @@ export function DashboardSidebar() {
                 />
               </button>
 
-              {/* 서브메뉴 */}
               <div
                 className={cn(
                   "overflow-hidden transition-all duration-200",
@@ -174,9 +169,7 @@ export function DashboardSidebar() {
                             ? "text-white"
                             : "text-[#64748b] hover:bg-white/5 hover:text-[#94a3b8]",
                         )}
-                        style={
-                          isActive ? { background: "rgba(99,102,241,0.25)" } : {}
-                        }
+                        style={isActive ? { background: "rgba(99,102,241,0.25)" } : {}}
                       >
                         <Icon
                           className="size-[13px] shrink-0"
