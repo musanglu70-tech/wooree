@@ -75,7 +75,15 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
   const [imageContrast, setImageContrast] = useState(1.0);
   const [isBlackWhite, setIsBlackWhite] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [signedUrls, setSignedUrls] = useState<string[]>([]);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
+
+  // storage path 추출 (전체 URL → path 변환 지원)
+  function toStoragePath(urlOrPath: string): string {
+    const marker = "/prescription-attachments/";
+    const idx = urlOrPath.indexOf(marker);
+    return idx !== -1 ? urlOrPath.slice(idx + marker.length) : urlOrPath;
+  }
 
   // 폼 필드
   const [pharmaId, setPharmaId] = useState("");
@@ -149,6 +157,25 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
     return () => { active = false; };
   }, [prescriptionId, supabase, router]);
 
+  // attachment_urls 변경 시 signed URL 생성
+  useEffect(() => {
+    if (attachmentUrls.length === 0) { setSignedUrls([]); return; }
+    let cancelled = false;
+    (async () => {
+      const results = await Promise.all(
+        attachmentUrls.map(async (u) => {
+          const path = toStoragePath(u);
+          const { data } = await supabase.storage
+            .from("prescription-attachments")
+            .createSignedUrl(path, 3600);
+          return data?.signedUrl ?? u;
+        }),
+      );
+      if (!cancelled) setSignedUrls(results);
+    })();
+    return () => { cancelled = true; };
+  }, [attachmentUrls, supabase]);
+
   // 필터 옵션
   const pharmaOptions = useMemo(() => Array.from(new Set(siblings.map(s => s.pharmaName).filter(Boolean))).sort(), [siblings]);
   const hospitalOptions = useMemo(() => Array.from(new Set(siblings.map(s => s.hospitalName).filter(Boolean))).sort(), [siblings]);
@@ -208,10 +235,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           .from("prescription-attachments")
           .upload(path, file, { upsert: false });
         if (!uploadError) {
-          const { data: urlData } = supabase.storage
-            .from("prescription-attachments")
-            .getPublicUrl(path);
-          if (urlData?.publicUrl) newUrls.push(urlData.publicUrl);
+          newUrls.push(path);
         } else {
           toast.error(`업로드 실패: ${uploadError.message}`);
         }
@@ -367,7 +391,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
             disabled={isSaving}
             onClick={() => handleSave(true)}
             className="shrink-0 rounded px-3 py-1.5 text-xs font-bold text-white shadow-sm disabled:opacity-60"
-            style={{ backgroundColor: "#3a3228" }}
+            style={{ backgroundColor: "#4f6ef7" }}
           >
             {isSaving ? <Loader2 className="inline size-3 animate-spin" /> : "일괄 확정"}
           </button>
@@ -449,14 +473,14 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
 
           {/* 첨부파일 영역 */}
           <div className="relative flex flex-1 overflow-auto">
-            {attachmentUrls.length > 0 && attachmentUrls[attachmentIndex] ? (
+            {signedUrls.length > 0 && signedUrls[attachmentIndex] ? (
               <div className="flex flex-1 items-center justify-center">
-                {attachmentUrls[attachmentIndex].toLowerCase().includes(".pdf") ? (
-                  <iframe src={attachmentUrls[attachmentIndex]} className="h-full w-full" title="처방전" />
+                {attachmentUrls[attachmentIndex]?.toLowerCase().includes(".pdf") ? (
+                  <iframe src={signedUrls[attachmentIndex]} className="h-full w-full" title="처방전" />
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={attachmentUrls[attachmentIndex]}
+                    src={signedUrls[attachmentIndex]}
                     alt="처방전"
                     style={{ transform: `scale(${imageScale})`, transformOrigin: "center center", transition: "transform 0.15s ease", filter: `grayscale(${isBlackWhite ? 1 : 0}) contrast(${imageContrast})` }}
                     className="max-h-full max-w-full object-contain"

@@ -532,10 +532,7 @@ export function EdiNewForm() {
             .from("prescription-attachments")
             .upload(path, file, { upsert: false });
           if (!uploadError) {
-            const { data: urlData } = supabase.storage
-              .from("prescription-attachments")
-              .getPublicUrl(path);
-            if (urlData?.publicUrl) attachmentUrls.push(urlData.publicUrl);
+            attachmentUrls.push(path);
           }
         }
       }
