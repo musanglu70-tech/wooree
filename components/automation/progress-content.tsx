@@ -37,7 +37,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const inputClassName =
-  "h-10 w-full rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 text-sm text-[#2c1f0e] outline-none transition-colors placeholder:text-[#b5a080] focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
+  "h-10 w-full rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-3 text-sm text-[#0f172a] outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
 function toStr(value: unknown): string {
   return value == null ? "" : String(value);
@@ -76,7 +76,7 @@ function StatusBadge({ status }: { status: string }) {
     <span
       className={cn(
         "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
-        styles[status] ?? "bg-[#eee3cc] text-[#7a5c2e]",
+        styles[status] ?? "bg-[#e2e8f0] text-[#475569]",
       )}
     >
       {label}
@@ -227,10 +227,10 @@ export function ProgressContent() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 shadow-sm">
+      <section className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-5 shadow-sm">
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-[180px]">
-            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+            <label className="mb-1.5 block text-xs font-medium text-[#475569]">
               처방월
             </label>
             <input
@@ -262,25 +262,25 @@ export function ProgressContent() {
               "rounded-xl border p-4 text-left transition-colors",
               activeTab === tab.id
                 ? "border-[#4f6ef7] bg-[rgba(79,110,247,0.06)] shadow-sm"
-                : "border-[#e8d9bc] bg-[#fdf8f0] hover:border-slate-300",
+                : "border-[#e2e8f0] bg-[#ffffff] hover:border-slate-300",
             )}
           >
             <p
               className={cn(
                 "text-sm font-medium",
-                activeTab === tab.id ? "text-[#4f6ef7]" : "text-[#9a7c4e]",
+                activeTab === tab.id ? "text-[#4f6ef7]" : "text-[#64748b]",
               )}
             >
               {tab.label}
             </p>
-            <p className="mt-1 text-2xl font-semibold text-[#2c1f0e]">
+            <p className="mt-1 text-2xl font-semibold text-[#0f172a]">
               {tabCounts[tab.id]}건
             </p>
           </button>
         ))}
       </section>
 
-      <section className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 shadow-sm">
+      <section className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-5 shadow-sm">
         <div className="flex gap-3">
           <input
             type="text"
@@ -303,16 +303,16 @@ export function ProgressContent() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
+      <section className="overflow-hidden rounded-xl border border-[#e2e8f0] bg-[#ffffff] shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
             <thead>
-              <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">업체명</th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">처방월</th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">상태</th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">생성일</th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">완료일</th>
+              <tr className="border-b border-[#e2e8f0] bg-[#f8fafc]">
+                <th className="px-5 py-3 font-medium text-[#475569]">업체명</th>
+                <th className="px-5 py-3 font-medium text-[#475569]">처방월</th>
+                <th className="px-5 py-3 font-medium text-[#475569]">상태</th>
+                <th className="px-5 py-3 font-medium text-[#475569]">생성일</th>
+                <th className="px-5 py-3 font-medium text-[#475569]">완료일</th>
               </tr>
             </thead>
             <tbody>
@@ -320,7 +320,7 @@ export function ProgressContent() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                    className="px-5 py-12 text-center text-sm text-[#64748b]"
                   >
                     불러오는 중...
                   </td>
@@ -329,7 +329,7 @@ export function ProgressContent() {
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                    className="px-5 py-12 text-center text-sm text-[#64748b]"
                   >
                     조회 결과가 없습니다.
                   </td>
@@ -339,23 +339,23 @@ export function ProgressContent() {
                   <tr
                     key={item.id}
                     className={cn(
-                      "border-b border-[#f0e4d0] last:border-b-0",
-                      index % 2 === 1 && "bg-[#f5ede0]/40",
+                      "border-b border-[#f1f5f9] last:border-b-0",
+                      index % 2 === 1 && "bg-[#f8fafc]/40",
                     )}
                   >
-                    <td className="px-5 py-3.5 font-medium text-[#2c1f0e]">
+                    <td className="px-5 py-3.5 font-medium text-[#0f172a]">
                       {item.companyName || "-"}
                     </td>
-                    <td className="px-5 py-3.5 text-[#5a3e1b]">
+                    <td className="px-5 py-3.5 text-[#475569]">
                       {formatMonthLabel(item.prescriptionMonth)}
                     </td>
                     <td className="px-5 py-3.5">
                       <StatusBadge status={item.status} />
                     </td>
-                    <td className="px-5 py-3.5 text-[#7a5c2e]">
+                    <td className="px-5 py-3.5 text-[#475569]">
                       {item.createdAt || "-"}
                     </td>
-                    <td className="px-5 py-3.5 text-[#7a5c2e]">
+                    <td className="px-5 py-3.5 text-[#475569]">
                       {item.sentAt || "-"}
                     </td>
                   </tr>

@@ -83,7 +83,7 @@ function getPaginationItems(
 }
 
 const inputClassName =
-  "h-10 w-full rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 text-sm text-[#2c1f0e] outline-none transition-colors placeholder:text-[#b5a080] focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
+  "h-10 w-full rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-3 text-sm text-[#0f172a] outline-none transition-colors placeholder:text-[#94a3b8] focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
 function toStr(value: unknown): string {
   return value == null ? "" : String(value);
@@ -124,7 +124,7 @@ function FormField({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+      <label className="mb-1.5 block text-xs font-medium text-[#475569]">
         {label}
         {required && <span className="text-red-500"> *</span>}
       </label>
@@ -318,10 +318,10 @@ export function ProductsContent() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 shadow-sm">
+      <section className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-5 shadow-sm">
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-[240px] flex-1">
-            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+            <label className="mb-1.5 block text-xs font-medium text-[#475569]">
               검색
             </label>
             <input
@@ -345,7 +345,7 @@ export function ProductsContent() {
           <button
             type="button"
             onClick={openAddModal}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-4 text-sm font-medium text-[#5a3e1b] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-4 text-sm font-medium text-[#475569] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
           >
             <Plus className="size-4" />
             의약품 추가
@@ -353,29 +353,29 @@ export function ProductsContent() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
+      <section className="overflow-hidden rounded-xl border border-[#e2e8f0] bg-[#ffffff] shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1100px] text-left text-sm">
             <thead>
-              <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">
+              <tr className="border-b border-[#e2e8f0] bg-[#f8fafc]">
+                <th className="px-5 py-3 font-medium text-[#475569]">
                   보험코드
                 </th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">제품명</th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">제약사</th>
-                <th className="px-5 py-3 text-right font-medium text-[#7a5c2e]">
+                <th className="px-5 py-3 font-medium text-[#475569]">제품명</th>
+                <th className="px-5 py-3 font-medium text-[#475569]">제약사</th>
+                <th className="px-5 py-3 text-right font-medium text-[#475569]">
                   단가
                 </th>
-                <th className="min-w-[96px] whitespace-nowrap px-5 py-3 text-right font-medium text-[#7a5c2e]">
+                <th className="min-w-[96px] whitespace-nowrap px-5 py-3 text-right font-medium text-[#475569]">
                   제약수수료율
                 </th>
-                <th className="min-w-[96px] whitespace-nowrap px-5 py-3 text-right font-medium text-[#7a5c2e]">
+                <th className="min-w-[96px] whitespace-nowrap px-5 py-3 text-right font-medium text-[#475569]">
                   추가수수료율
                 </th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">
+                <th className="px-5 py-3 font-medium text-[#475569]">
                   활성여부
                 </th>
-                <th className="px-5 py-3 text-center font-medium text-[#7a5c2e]">
+                <th className="px-5 py-3 text-center font-medium text-[#475569]">
                   관리
                 </th>
               </tr>
@@ -385,7 +385,7 @@ export function ProductsContent() {
                 <tr>
                   <td
                     colSpan={8}
-                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                    className="px-5 py-12 text-center text-sm text-[#64748b]"
                   >
                     불러오는 중...
                   </td>
@@ -394,7 +394,7 @@ export function ProductsContent() {
                 <tr>
                   <td
                     colSpan={8}
-                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                    className="px-5 py-12 text-center text-sm text-[#64748b]"
                   >
                     {appliedSearch
                       ? "검색 결과가 없습니다."
@@ -406,29 +406,29 @@ export function ProductsContent() {
                   <tr
                     key={product.id}
                     className={cn(
-                      "border-b border-[#f0e4d0] last:border-b-0",
-                      index % 2 === 1 && "bg-[#f5ede0]/40",
+                      "border-b border-[#f1f5f9] last:border-b-0",
+                      index % 2 === 1 && "bg-[#f8fafc]/40",
                       !product.isActive && "opacity-60",
                     )}
                   >
-                    <td className="px-5 py-3.5 font-mono text-[#5a3e1b]">
+                    <td className="px-5 py-3.5 font-mono text-[#475569]">
                       {product.insuranceCode}
                     </td>
-                    <td className="px-5 py-3.5 font-medium text-[#2c1f0e]">
+                    <td className="px-5 py-3.5 font-medium text-[#0f172a]">
                       {product.productName}
                     </td>
-                    <td className="px-5 py-3.5 text-[#5a3e1b]">
+                    <td className="px-5 py-3.5 text-[#475569]">
                       {product.pharmaName || "-"}
                     </td>
-                    <td className="px-5 py-3.5 text-right tabular-nums text-[#5a3e1b]">
+                    <td className="px-5 py-3.5 text-right tabular-nums text-[#475569]">
                       {product.unitPrice.toLocaleString("ko-KR")}원
                     </td>
-                    <td className="min-w-[96px] whitespace-nowrap px-5 py-3.5 text-right tabular-nums text-[#5a3e1b]">
+                    <td className="min-w-[96px] whitespace-nowrap px-5 py-3.5 text-right tabular-nums text-[#475569]">
                       {product.commission_rate != null
                         ? `${product.commission_rate}%`
                         : "-"}
                     </td>
-                    <td className="min-w-[96px] whitespace-nowrap px-5 py-3.5 text-right tabular-nums text-[#5a3e1b]">
+                    <td className="min-w-[96px] whitespace-nowrap px-5 py-3.5 text-right tabular-nums text-[#475569]">
                       {product.extra_commission_rate != null
                         ? `${product.extra_commission_rate}%`
                         : "-"}
@@ -439,7 +439,7 @@ export function ProductsContent() {
                           "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
                           product.isActive
                             ? "bg-emerald-50 text-emerald-700"
-                            : "bg-[#eee3cc] text-[#9a7c4e]",
+                            : "bg-[#e2e8f0] text-[#64748b]",
                         )}
                       >
                         {product.isActive ? "활성" : "비활성"}
@@ -450,7 +450,7 @@ export function ProductsContent() {
                         <button
                           type="button"
                           onClick={() => openEditModal(product)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-[#e8d9bc] px-2.5 py-1.5 text-xs font-medium text-[#5a3e1b] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                          className="inline-flex items-center gap-1 rounded-lg border border-[#e2e8f0] px-2.5 py-1.5 text-xs font-medium text-[#475569] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
                         >
                           <Pencil className="size-3.5" />
                           수정
@@ -472,8 +472,8 @@ export function ProductsContent() {
           </table>
         </div>
 
-        <div className="space-y-3 border-t border-[#e8d9bc] px-5 py-4">
-          <p className="whitespace-nowrap text-xs text-[#9a7c4e]">
+        <div className="space-y-3 border-t border-[#e2e8f0] px-5 py-4">
+          <p className="whitespace-nowrap text-xs text-[#64748b]">
             {`전체 ${filteredProducts.length.toLocaleString("ko-KR")}건 중 ${rangeStart}-${rangeEnd}건 표시`}
           </p>
           <div className="flex flex-wrap items-center justify-end gap-1">
@@ -481,7 +481,7 @@ export function ProductsContent() {
               type="button"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={currentPage <= 1}
-              className="flex size-8 items-center justify-center rounded-lg border border-[#e8d9bc] text-[#7a5c2e] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex size-8 items-center justify-center rounded-lg border border-[#e2e8f0] text-[#475569] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="이전 페이지"
             >
               <ChevronLeft className="size-4" />
@@ -490,7 +490,7 @@ export function ProductsContent() {
               item.kind === "ellipsis" ? (
                 <span
                   key={item.key}
-                  className="flex size-8 items-center justify-center text-xs text-[#b5a080]"
+                  className="flex size-8 items-center justify-center text-xs text-[#94a3b8]"
                 >
                   ...
                 </span>
@@ -503,7 +503,7 @@ export function ProductsContent() {
                     "flex size-8 items-center justify-center rounded-lg text-xs font-medium transition-colors",
                     item.page === currentPage
                       ? "bg-[#4f6ef7] text-white"
-                      : "border border-[#e8d9bc] text-[#7a5c2e] hover:border-[#4f6ef7] hover:text-[#4f6ef7]",
+                      : "border border-[#e2e8f0] text-[#475569] hover:border-[#4f6ef7] hover:text-[#4f6ef7]",
                   )}
                 >
                   {item.page}
@@ -514,7 +514,7 @@ export function ProductsContent() {
               type="button"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage >= totalPages}
-              className="flex size-8 items-center justify-center rounded-lg border border-[#e8d9bc] text-[#7a5c2e] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex size-8 items-center justify-center rounded-lg border border-[#e2e8f0] text-[#475569] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="다음 페이지"
             >
               <ChevronRight className="size-4" />
@@ -529,17 +529,17 @@ export function ProductsContent() {
           onClick={closeModal}
         >
           <div
-            className="w-full max-w-md rounded-xl bg-[#fdf8f0] p-6 shadow-xl"
+            className="w-full max-w-md rounded-xl bg-[#ffffff] p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-[#2c1f0e]">
+              <h2 className="text-base font-semibold text-[#0f172a]">
                 {editingId ? "의약품 수정" : "의약품 추가"}
               </h2>
               <button
                 type="button"
                 onClick={closeModal}
-                className="flex size-8 items-center justify-center rounded-lg text-[#b5a080] transition-colors hover:bg-[#eee3cc] hover:text-[#7a5c2e]"
+                className="flex size-8 items-center justify-center rounded-lg text-[#94a3b8] transition-colors hover:bg-[#e2e8f0] hover:text-[#475569]"
                 aria-label="닫기"
               >
                 <X className="size-4" />
@@ -625,7 +625,7 @@ export function ProductsContent() {
                 />
               </FormField>
               <FormField label="활성여부">
-                <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-[#5a3e1b]">
+                <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-[#475569]">
                   <input
                     type="checkbox"
                     checked={form.isActive}
@@ -644,7 +644,7 @@ export function ProductsContent() {
                 type="button"
                 onClick={closeModal}
                 disabled={isSaving}
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-4 text-sm font-medium text-[#5a3e1b] transition-colors hover:border-slate-300 disabled:opacity-50"
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-4 text-sm font-medium text-[#475569] transition-colors hover:border-slate-300 disabled:opacity-50"
               >
                 취소
               </button>

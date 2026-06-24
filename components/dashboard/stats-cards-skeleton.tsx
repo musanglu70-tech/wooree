@@ -4,11 +4,11 @@ export function StatsCardsSkeleton() {
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
-          className="animate-pulse rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-4 shadow-sm"
+          className="animate-pulse rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm"
         >
           <div className="mb-4 size-10 rounded-lg bg-slate-200" />
           <div className="h-8 w-20 rounded-md bg-slate-200" />
-          <div className="mt-2 h-4 w-24 rounded-md bg-[#eee3cc]" />
+          <div className="mt-2 h-4 w-24 rounded-md bg-[#e2e8f0]" />
         </div>
       ))}
     </section>

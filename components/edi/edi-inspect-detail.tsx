@@ -290,8 +290,8 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#faf6ef]">
-        <Loader2 className="size-8 animate-spin text-[#c4973d]" />
+      <div className="flex h-screen items-center justify-center bg-[#f8fafc]">
+        <Loader2 className="size-8 animate-spin text-[#4f6ef7]" />
       </div>
     );
   }
@@ -383,40 +383,40 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
       <div className="flex flex-1 gap-2 overflow-hidden">
 
         {/* ── 왼쪽: 원본 첨부파일 (세션 2) ── */}
-        <div className="flex w-[48%] shrink-0 flex-col overflow-hidden rounded-lg border border-[#e2d8c3] shadow-sm" style={{ background: "#faf6ef" }}>
+        <div className="flex w-[48%] shrink-0 flex-col overflow-hidden rounded-lg border border-[#e2e8f0] shadow-sm" style={{ background: "#f8fafc" }}>
           {/* 패널 헤더 */}
           <div className="flex h-10 shrink-0 items-center gap-2 px-3" style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
             <span className="shrink-0 text-xs font-semibold text-slate-700">📎 원본 첨부파일</span>
             <div className="flex flex-1 items-center justify-end gap-0.5">
               {/* 페이지 이동 */}
               <button type="button" disabled={attachmentIndex <= 0} onClick={() => setAttachmentIndex(i => i - 1)}
-                className="flex h-6 w-6 items-center justify-center rounded text-xs text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700 disabled:opacity-30">◀</button>
+                className="flex h-6 w-6 items-center justify-center rounded text-xs text-slate-400 hover:bg-[#f1f5f9] hover:text-slate-700 disabled:opacity-30">◀</button>
               <span className="min-w-[32px] text-center text-xs text-slate-400">
                 {attachmentUrls.length > 0 ? `${attachmentIndex + 1}/${attachmentUrls.length}` : "0/0"}
               </span>
               <button type="button" disabled={attachmentIndex >= attachmentUrls.length - 1} onClick={() => setAttachmentIndex(i => i + 1)}
-                className="flex h-6 w-6 items-center justify-center rounded text-xs text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700 disabled:opacity-30">▶</button>
-              <div className="mx-1 h-3 w-px bg-[#d9cdb3]" />
+                className="flex h-6 w-6 items-center justify-center rounded text-xs text-slate-400 hover:bg-[#f1f5f9] hover:text-slate-700 disabled:opacity-30">▶</button>
+              <div className="mx-1 h-3 w-px bg-[#cbd5e1]" />
               {/* 줌 */}
               <button type="button" onClick={() => setImageScale(s => Math.min(s + 0.2, 3.0))}
-                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700">+</button>
+                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-slate-400 hover:bg-[#f1f5f9] hover:text-slate-700">+</button>
               <button type="button" onClick={() => setImageScale(s => Math.max(s - 0.2, 0.4))}
-                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700">−</button>
+                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-slate-400 hover:bg-[#f1f5f9] hover:text-slate-700">−</button>
               {/* 원본 크기 */}
               <button type="button" onClick={() => setImageScale(1.0)}
-                className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700">
+                className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-[#f1f5f9] hover:text-slate-700">
                 <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={1.5}>
                   <rect x="1" y="1" width="14" height="14" rx="1.5" />
                   <rect x="4" y="4" width="8" height="8" rx="1" />
                 </svg>
               </button>
-              <div className="mx-1 h-3 w-px bg-[#d9cdb3]" />
+              <div className="mx-1 h-3 w-px bg-[#cbd5e1]" />
               {/* 대비 높이기 */}
               <button type="button"
                 onClick={() => setImageContrast(c => c >= 2.0 ? 1.0 : c + 0.5)}
-                className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700"
+                className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-[#f1f5f9] hover:text-slate-700"
                 title="대비 높이기"
-                style={imageContrast > 1.0 ? { background: "#c4973d", color: "#1c1108" } : {}}
+                style={imageContrast > 1.0 ? { background: "#4f6ef7", color: "#1c1108" } : {}}
               >
                 <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor">
                   <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" strokeWidth="1.5"/>
@@ -426,19 +426,19 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
               {/* 흑백 모드 */}
               <button type="button"
                 onClick={() => setIsBlackWhite(b => !b)}
-                className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700"
+                className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-[#f1f5f9] hover:text-slate-700"
                 title="흑백 모드"
-                style={isBlackWhite ? { background: "#c4973d", color: "#1c1108" } : {}}
+                style={isBlackWhite ? { background: "#4f6ef7", color: "#1c1108" } : {}}
               >
                 <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor">
                   <rect x="1" y="1" width="6" height="14" rx="1" fill="currentColor"/>
                   <rect x="9" y="1" width="6" height="14" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5"/>
                 </svg>
               </button>
-              <div className="mx-1 h-3 w-px bg-[#d9cdb3]" />
+              <div className="mx-1 h-3 w-px bg-[#cbd5e1]" />
               {/* 파일 추가 */}
               <button type="button" onClick={() => attachmentInputRef.current?.click()} disabled={isUploading}
-                className="flex h-6 items-center gap-1 rounded px-2 text-xs text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700 disabled:opacity-50">
+                className="flex h-6 items-center gap-1 rounded px-2 text-xs text-slate-400 hover:bg-[#f1f5f9] hover:text-slate-700 disabled:opacity-50">
                 {isUploading ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
                 추가
               </button>
@@ -469,20 +469,20 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                   type="button"
                   onClick={() => attachmentInputRef.current?.click()}
                   disabled={isUploading}
-                  className="flex w-full max-w-[300px] flex-col items-center justify-center gap-5 rounded-2xl py-14 transition-colors hover:bg-[#f3ecdf] disabled:opacity-50"
-                  style={{ border: "1.5px dashed #d4c5a9", background: "rgba(196,151,61,0.06)" }}
+                  className="flex w-full max-w-[300px] flex-col items-center justify-center gap-5 rounded-2xl py-14 transition-colors hover:bg-[#f1f5f9] disabled:opacity-50"
+                  style={{ border: "1.5px dashed #cbd5e1", background: "rgba(196,151,61,0.06)" }}
                 >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "#f3ead7", border: "1px solid #e2d8c3" }}>
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "#f3ead7", border: "1px solid #e2e8f0" }}>
                     {isUploading
-                      ? <Loader2 className="size-8 animate-spin" style={{ color: "#c4973d" }} />
-                      : <Upload className="size-8" style={{ color: "#c4973d" }} />
+                      ? <Loader2 className="size-8 animate-spin" style={{ color: "#4f6ef7" }} />
+                      : <Upload className="size-8" style={{ color: "#4f6ef7" }} />
                     }
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-semibold" style={{ color: "#5a4a32" }}>
+                    <p className="text-sm font-semibold" style={{ color: "#475569" }}>
                       {isUploading ? "업로드 중..." : "처방전 이미지 첨부"}
                     </p>
-                    <p className="mt-1.5 text-xs" style={{ color: "#9a8a6e" }}>클릭하여 파일을 선택하세요</p>
+                    <p className="mt-1.5 text-xs" style={{ color: "#94a3b8" }}>클릭하여 파일을 선택하세요</p>
                   </div>
                 </button>
               </div>
@@ -552,8 +552,8 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
             </div>
 
             {/* 세부 입력 내역 */}
-            <div className="mb-1 text-xs font-semibold text-[#7a5c2e]">세부 입력 내역</div>
-            <div className="mb-2 overflow-hidden rounded border border-[#d4c5a9]">
+            <div className="mb-1 text-xs font-semibold text-[#475569]">세부 입력 내역</div>
+            <div className="mb-2 overflow-hidden rounded border border-[#cbd5e1]">
               <table className="w-full text-xs">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50">
@@ -572,7 +572,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                         <input
                           value={row.product_name}
                           onChange={(e) => updateItem(idx, { product_name: e.target.value })}
-                          className="w-full bg-transparent text-slate-800 outline-none placeholder:text-slate-400 focus:rounded focus:bg-white focus:px-1 focus:ring-1 focus:ring-[#c4973d]"
+                          className="w-full bg-transparent text-slate-800 outline-none placeholder:text-slate-400 focus:rounded focus:bg-white focus:px-1 focus:ring-1 focus:ring-[#4f6ef7]"
                           placeholder="제품명"
                         />
                       </td>
@@ -581,7 +581,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                           type="number"
                           value={row.unit_price || ""}
                           onChange={(e) => updateItem(idx, { unit_price: Number(e.target.value) })}
-                          className="w-full bg-transparent text-right text-slate-800 outline-none focus:rounded focus:bg-white focus:ring-1 focus:ring-[#c4973d]"
+                          className="w-full bg-transparent text-right text-slate-800 outline-none focus:rounded focus:bg-white focus:ring-1 focus:ring-[#4f6ef7]"
                         />
                       </td>
                       <td className="px-2 py-1.5">
@@ -589,7 +589,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                           type="number"
                           value={row.quantity || ""}
                           onChange={(e) => updateItem(idx, { quantity: Number(e.target.value) })}
-                          className="w-full bg-transparent text-right text-slate-800 outline-none focus:rounded focus:bg-white focus:ring-1 focus:ring-[#c4973d]"
+                          className="w-full bg-transparent text-right text-slate-800 outline-none focus:rounded focus:bg-white focus:ring-1 focus:ring-[#4f6ef7]"
                         />
                       </td>
                       <td className="px-2 py-1.5 text-right font-medium text-slate-800">
@@ -605,7 +605,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                         </select>
                       </td>
                       <td className="px-1 py-1.5 text-center">
-                        <button type="button" onClick={() => removeRow(idx)} className="text-[#b5a080] hover:text-red-500">
+                        <button type="button" onClick={() => removeRow(idx)} className="text-[#94a3b8] hover:text-red-500">
                           <X className="size-3.5" />
                         </button>
                       </td>
@@ -665,7 +665,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                 <button
                   type="button"
                   onClick={() => router.push(`/edi/inspect/${nextId}`)}
-                  className="inline-flex items-center gap-1 rounded-lg border border-[#d4c5a9] bg-white px-5 py-3 text-sm font-medium text-[#7a5c2e] hover:bg-[#fdf3e3]"
+                  className="inline-flex items-center gap-1 rounded-lg border border-[#cbd5e1] bg-white px-5 py-3 text-sm font-medium text-[#475569] hover:bg-[#f1f5f9]"
                 >
                   다음
                   <ChevronRight className="size-4" />

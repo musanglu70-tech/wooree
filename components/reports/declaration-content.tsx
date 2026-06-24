@@ -108,28 +108,28 @@ export function DeclarationContent() {
           type="button"
           onClick={handleExport}
           disabled={isLoading || reports.length === 0}
-          className="inline-flex items-center gap-2 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-4 py-2.5 text-sm font-medium text-[#5a3e1b] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-4 py-2.5 text-sm font-medium text-[#475569] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Download className="size-4" />
           엑셀 다운로드
         </button>
       </div>
 
-      <section className="overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
+      <section className="overflow-hidden rounded-xl border border-[#e2e8f0] bg-[#ffffff] shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead>
-            <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
-              <th className="px-5 py-3 font-medium text-[#7a5c2e]">신고서</th>
-              <th className="px-5 py-3 font-medium text-[#7a5c2e]">업체명</th>
-              <th className="px-5 py-3 font-medium text-[#7a5c2e]">신고일</th>
-              <th className="px-5 py-3 text-right font-medium text-[#7a5c2e]">
+            <tr className="border-b border-[#e2e8f0] bg-[#f8fafc]">
+              <th className="px-5 py-3 font-medium text-[#475569]">신고서</th>
+              <th className="px-5 py-3 font-medium text-[#475569]">업체명</th>
+              <th className="px-5 py-3 font-medium text-[#475569]">신고일</th>
+              <th className="px-5 py-3 text-right font-medium text-[#475569]">
                 총금액
               </th>
-              <th className="px-5 py-3 font-medium text-[#7a5c2e]">
+              <th className="px-5 py-3 font-medium text-[#475569]">
                 발송여부
               </th>
-              <th className="px-5 py-3 text-center font-medium text-[#7a5c2e]">
+              <th className="px-5 py-3 text-center font-medium text-[#475569]">
                 액션
               </th>
             </tr>
@@ -139,7 +139,7 @@ export function DeclarationContent() {
               <tr>
                 <td
                   colSpan={6}
-                  className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                  className="px-5 py-12 text-center text-sm text-[#64748b]"
                 >
                   불러오는 중...
                 </td>
@@ -148,7 +148,7 @@ export function DeclarationContent() {
               <tr>
                 <td
                   colSpan={6}
-                  className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                  className="px-5 py-12 text-center text-sm text-[#64748b]"
                 >
                   등록된 신고서가 없습니다.
                 </td>
@@ -158,23 +158,23 @@ export function DeclarationContent() {
                 <tr
                   key={item.id}
                   className={cn(
-                    "border-b border-[#f0e4d0] last:border-b-0",
-                    index % 2 === 1 && "bg-[#f5ede0]/40",
+                    "border-b border-[#f1f5f9] last:border-b-0",
+                    index % 2 === 1 && "bg-[#f8fafc]/40",
                   )}
                 >
                   <td className="px-5 py-3.5">
-                    <span className="inline-flex items-center gap-2 font-medium text-[#2c1f0e]">
-                      <FileOutput className="size-4 text-[#b5a080]" />
+                    <span className="inline-flex items-center gap-2 font-medium text-[#0f172a]">
+                      <FileOutput className="size-4 text-[#94a3b8]" />
                       {item.title || "-"}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-[#5a3e1b]">
+                  <td className="px-5 py-3.5 text-[#475569]">
                     {item.companyName || "-"}
                   </td>
-                  <td className="px-5 py-3.5 text-[#7a5c2e]">
+                  <td className="px-5 py-3.5 text-[#475569]">
                     {item.reportDate || "-"}
                   </td>
-                  <td className="px-5 py-3.5 text-right font-medium text-[#2c1f0e]">
+                  <td className="px-5 py-3.5 text-right font-medium text-[#0f172a]">
                     {formatWon(item.totalAmount)}
                   </td>
                   <td className="px-5 py-3.5">
@@ -193,7 +193,7 @@ export function DeclarationContent() {
                     <button
                       type="button"
                       onClick={() => toast.info(`보기: ${item.title}`)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-[#e8d9bc] px-2.5 py-1.5 text-xs font-medium text-[#5a3e1b] hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                      className="inline-flex items-center gap-1 rounded-lg border border-[#e2e8f0] px-2.5 py-1.5 text-xs font-medium text-[#475569] hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
                     >
                       <Eye className="size-3.5" />
                       보기

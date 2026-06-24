@@ -184,13 +184,13 @@ export function PharmaStatsTable() {
               <td className="px-6 py-3.5 font-medium text-slate-900">
                 {row.pharmaName}
               </td>
-              <td className="px-6 py-3.5 text-right tabular-nums text-[#5a3e1b]">
+              <td className="px-6 py-3.5 text-right tabular-nums text-slate-700">
                 {row.monthlyCount.toLocaleString("ko-KR")}건
               </td>
-              <td className="px-6 py-3.5 text-right font-medium tabular-nums text-[#4f6ef7]">
+              <td className="px-6 py-3.5 text-right font-semibold tabular-nums text-[#4f6ef7]">
                 {formatWon(row.monthlyAmount)}
               </td>
-              <td className="px-6 py-3.5 text-right tabular-nums text-amber-700">
+              <td className="px-6 py-3.5 text-right tabular-nums text-rose-500">
                 {row.unsettledCount.toLocaleString("ko-KR")}건
               </td>
             </tr>

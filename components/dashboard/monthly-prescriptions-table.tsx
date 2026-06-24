@@ -74,7 +74,7 @@ function StatusBadge({ status }: { status: string }) {
         "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
         isConfirmed
           ? "bg-[rgba(79,110,247,0.12)] text-[#4f6ef7]"
-          : "bg-[#eee3cc] text-slate-600",
+          : "bg-slate-100 text-slate-600",
       )}
     >
       {label || "-"}
@@ -157,16 +157,16 @@ export function MonthlyPrescriptionsTable() {
                   index % 2 === 1 && "bg-slate-50/60",
                 )}
               >
-                <td className="px-6 py-3.5 text-[#5a3e1b]">
+                <td className="px-6 py-3.5 text-slate-600">
                   {formatMonthLabel(row.month)}
                 </td>
                 <td className="px-6 py-3.5 font-medium text-slate-900">
                   {row.pharma || "-"}
                 </td>
-                <td className="px-6 py-3.5 text-[#5a3e1b]">
+                <td className="px-6 py-3.5 text-slate-600">
                   {row.company || "-"}
                 </td>
-                <td className="px-6 py-3.5 text-[#5a3e1b]">
+                <td className="px-6 py-3.5 text-slate-600">
                   {row.hospital || "-"}
                 </td>
                 <td className="px-6 py-3.5 text-right font-medium text-slate-900">
@@ -198,13 +198,13 @@ export function MonthlyPrescriptionsTable() {
             <dl className="mt-3 space-y-1.5 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <dt className="text-slate-500">업체</dt>
-                <dd className="text-right text-[#5a3e1b]">
+                <dd className="text-right text-slate-600">
                   {row.company || "-"}
                 </dd>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <dt className="text-slate-500">병의원</dt>
-                <dd className="text-right text-[#5a3e1b]">
+                <dd className="text-right text-slate-600">
                   {row.hospital || "-"}
                 </dd>
               </div>

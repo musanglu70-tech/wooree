@@ -55,16 +55,16 @@ export function FormContent() {
             key={template.id}
             type="button"
             onClick={() => toast.info(`양식 열기: ${template.name}`)}
-            className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 text-left shadow-sm transition-colors hover:border-[#4f6ef7] hover:shadow-md"
+            className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-5 text-left shadow-sm transition-colors hover:border-[#4f6ef7] hover:shadow-md"
           >
             <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-[rgba(79,110,247,0.1)]">
               <FileText className="size-5 text-[#4f6ef7]" />
             </div>
-            <h3 className="font-semibold text-[#2c1f0e]">{template.name}</h3>
-            <p className="mt-1.5 text-sm text-[#9a7c4e] line-clamp-2">
+            <h3 className="font-semibold text-[#0f172a]">{template.name}</h3>
+            <p className="mt-1.5 text-sm text-[#64748b] line-clamp-2">
               {template.description}
             </p>
-            <div className="mt-4 flex items-center justify-between text-xs text-[#b5a080]">
+            <div className="mt-4 flex items-center justify-between text-xs text-[#94a3b8]">
               <span>필드 {template.fieldCount}개</span>
               <span>수정 {template.updatedAt}</span>
             </div>

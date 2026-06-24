@@ -135,7 +135,7 @@ export function SendContent() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-1 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] p-1 shadow-sm">
+        <div className="flex gap-1 rounded-lg border border-[#e2e8f0] bg-[#ffffff] p-1 shadow-sm">
           <button
             type="button"
             onClick={() => setActiveTab("pending")}
@@ -143,7 +143,7 @@ export function SendContent() {
               "rounded-md px-4 py-2 text-sm font-medium transition-colors",
               activeTab === "pending"
                 ? "bg-[#4f6ef7] text-white"
-                : "text-[#7a5c2e] hover:bg-[#f5ede0]",
+                : "text-[#475569] hover:bg-[#f8fafc]",
             )}
           >
             발송 대기
@@ -152,7 +152,7 @@ export function SendContent() {
                 className={cn(
                   "ml-1.5 rounded-full px-1.5 py-0.5 text-xs",
                   activeTab === "pending"
-                    ? "bg-[#fdf8f0]/20"
+                    ? "bg-[#ffffff]/20"
                     : "bg-amber-100 text-amber-700",
                 )}
               >
@@ -167,7 +167,7 @@ export function SendContent() {
               "rounded-md px-4 py-2 text-sm font-medium transition-colors",
               activeTab === "sent"
                 ? "bg-[#4f6ef7] text-white"
-                : "text-[#7a5c2e] hover:bg-[#f5ede0]",
+                : "text-[#475569] hover:bg-[#f8fafc]",
             )}
           >
             발송 완료
@@ -175,8 +175,8 @@ export function SendContent() {
               className={cn(
                 "ml-1.5 rounded-full px-1.5 py-0.5 text-xs",
                 activeTab === "sent"
-                  ? "bg-[#fdf8f0]/20"
-                  : "bg-[#eee3cc] text-[#7a5c2e]",
+                  ? "bg-[#ffffff]/20"
+                  : "bg-[#e2e8f0] text-[#475569]",
               )}
             >
               {sentItems.length}
@@ -190,7 +190,7 @@ export function SendContent() {
               type="button"
               onClick={() => sendReports(selectedIds)}
               disabled={selectedIds.length === 0 || sendingIds.length > 0}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#4f6ef7] bg-[#fdf8f0] px-4 py-2.5 text-sm font-semibold text-[#4f6ef7] transition-colors hover:bg-[rgba(79,110,247,0.06)] disabled:cursor-not-allowed disabled:opacity-40"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#4f6ef7] bg-[#ffffff] px-4 py-2.5 text-sm font-semibold text-[#4f6ef7] transition-colors hover:bg-[rgba(79,110,247,0.06)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Send className="size-4" />
               선택 발송
@@ -208,11 +208,11 @@ export function SendContent() {
         )}
       </div>
 
-      <section className="overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
+      <section className="overflow-hidden rounded-xl border border-[#e2e8f0] bg-[#ffffff] shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px] text-left text-sm">
             <thead>
-              <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
+              <tr className="border-b border-[#e2e8f0] bg-[#f8fafc]">
                 {activeTab === "pending" && (
                   <th className="w-12 px-5 py-3">
                     <input
@@ -224,17 +224,17 @@ export function SendContent() {
                     />
                   </th>
                 )}
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">업체명</th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">신고서</th>
-                <th className="px-5 py-3 text-right font-medium text-[#7a5c2e]">
+                <th className="px-5 py-3 font-medium text-[#475569]">업체명</th>
+                <th className="px-5 py-3 font-medium text-[#475569]">신고서</th>
+                <th className="px-5 py-3 text-right font-medium text-[#475569]">
                   총금액
                 </th>
                 {activeTab === "pending" ? (
-                  <th className="px-5 py-3 text-center font-medium text-[#7a5c2e]">
+                  <th className="px-5 py-3 text-center font-medium text-[#475569]">
                     발송
                   </th>
                 ) : (
-                  <th className="px-5 py-3 font-medium text-[#7a5c2e]">
+                  <th className="px-5 py-3 font-medium text-[#475569]">
                     발송일시
                   </th>
                 )}
@@ -245,7 +245,7 @@ export function SendContent() {
                 <tr>
                   <td
                     colSpan={activeTab === "pending" ? 5 : 4}
-                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                    className="px-5 py-12 text-center text-sm text-[#64748b]"
                   >
                     불러오는 중...
                   </td>
@@ -254,7 +254,7 @@ export function SendContent() {
                 <tr>
                   <td
                     colSpan={activeTab === "pending" ? 5 : 4}
-                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                    className="px-5 py-12 text-center text-sm text-[#64748b]"
                   >
                     {activeTab === "pending"
                       ? "발송 대기 항목이 없습니다."
@@ -266,8 +266,8 @@ export function SendContent() {
                   <tr
                     key={item.id}
                     className={cn(
-                      "border-b border-[#f0e4d0] last:border-b-0",
-                      index % 2 === 1 && "bg-[#f5ede0]/40",
+                      "border-b border-[#f1f5f9] last:border-b-0",
+                      index % 2 === 1 && "bg-[#f8fafc]/40",
                     )}
                   >
                     {activeTab === "pending" && (
@@ -281,13 +281,13 @@ export function SendContent() {
                         />
                       </td>
                     )}
-                    <td className="px-5 py-3.5 font-medium text-[#2c1f0e]">
+                    <td className="px-5 py-3.5 font-medium text-[#0f172a]">
                       {item.companyName || "-"}
                     </td>
-                    <td className="px-5 py-3.5 text-[#5a3e1b]">
+                    <td className="px-5 py-3.5 text-[#475569]">
                       {item.title || "-"}
                     </td>
-                    <td className="px-5 py-3.5 text-right font-medium text-[#2c1f0e]">
+                    <td className="px-5 py-3.5 text-right font-medium text-[#0f172a]">
                       {formatWon(item.totalAmount)}
                     </td>
                     {activeTab === "pending" ? (
@@ -303,7 +303,7 @@ export function SendContent() {
                         </button>
                       </td>
                     ) : (
-                      <td className="px-5 py-3.5 text-[#7a5c2e]">
+                      <td className="px-5 py-3.5 text-[#475569]">
                         {item.sentAt || "-"}
                       </td>
                     )}

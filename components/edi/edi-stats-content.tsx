@@ -30,7 +30,7 @@ const EMPTY_SUMMARY: MonthlySummary = {
 };
 
 const inputClassName =
-  "h-10 w-full rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 text-sm text-[#2c1f0e] outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
+  "h-10 w-full rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-3 text-sm text-[#0f172a] outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
 function toStr(value: unknown): string {
   return value == null ? "" : String(value);
@@ -237,10 +237,10 @@ export function EdiStatsContent() {
   return (
     <div className="space-y-4">
       {/* 필터 */}
-      <section className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 shadow-sm">
+      <section className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-5 shadow-sm">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+            <label className="mb-1.5 block text-xs font-medium text-[#475569]">
               처방월
             </label>
             <input
@@ -262,7 +262,7 @@ export function EdiStatsContent() {
             <button
               type="button"
               onClick={handleExport}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-4 text-sm font-medium text-[#5a3e1b] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-4 text-sm font-medium text-[#475569] transition-colors hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
             >
               <Download className="size-4" />
               엑셀
@@ -276,10 +276,10 @@ export function EdiStatsContent() {
         {summaryCards.map((card) => (
           <div
             key={card.label}
-            className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-4 shadow-sm"
+            className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-4 shadow-sm"
           >
-            <p className="text-xs text-[#9a7c4e]">{card.label}</p>
-            <p className="mt-1 text-lg font-semibold text-[#2c1f0e]">
+            <p className="text-xs text-[#64748b]">{card.label}</p>
+            <p className="mt-1 text-lg font-semibold text-[#0f172a]">
               {isSummaryLoading ? "-" : card.value}
             </p>
           </div>
@@ -287,10 +287,10 @@ export function EdiStatsContent() {
       </section>
 
       {/* 제약사별 통계 */}
-      <section className="overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
-        <div className="border-b border-[#e8d9bc] px-5 py-4">
-          <h2 className="text-sm font-semibold text-[#2c1f0e]">제약사별</h2>
-          <p className="mt-0.5 text-xs text-[#9a7c4e]">
+      <section className="overflow-hidden rounded-xl border border-[#e2e8f0] bg-[#ffffff] shadow-sm">
+        <div className="border-b border-[#e2e8f0] px-5 py-4">
+          <h2 className="text-sm font-semibold text-[#0f172a]">제약사별</h2>
+          <p className="mt-0.5 text-xs text-[#64748b]">
             전체 기간 처방금액 기준 내림차순
           </p>
         </div>
@@ -298,15 +298,15 @@ export function EdiStatsContent() {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
-              <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">제약사</th>
-                <th className="px-5 py-3 text-right font-medium text-[#7a5c2e]">
+              <tr className="border-b border-[#e2e8f0] bg-[#f8fafc]">
+                <th className="px-5 py-3 font-medium text-[#475569]">제약사</th>
+                <th className="px-5 py-3 text-right font-medium text-[#475569]">
                   처방 건수
                 </th>
-                <th className="px-5 py-3 text-right font-medium text-[#7a5c2e]">
+                <th className="px-5 py-3 text-right font-medium text-[#475569]">
                   총 수량
                 </th>
-                <th className="px-5 py-3 text-right font-medium text-[#7a5c2e]">
+                <th className="px-5 py-3 text-right font-medium text-[#475569]">
                   처방금액
                 </th>
               </tr>
@@ -316,7 +316,7 @@ export function EdiStatsContent() {
                 <tr>
                   <td
                     colSpan={4}
-                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                    className="px-5 py-12 text-center text-sm text-[#64748b]"
                   >
                     불러오는 중...
                   </td>
@@ -325,7 +325,7 @@ export function EdiStatsContent() {
                 <tr>
                   <td
                     colSpan={4}
-                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                    className="px-5 py-12 text-center text-sm text-[#64748b]"
                   >
                     데이터가 없습니다
                   </td>
@@ -335,20 +335,20 @@ export function EdiStatsContent() {
                   <tr
                     key={row.name}
                     className={cn(
-                      "border-b border-[#f0e4d0] last:border-b-0",
-                      i % 2 === 1 && "bg-[#f5ede0]/40",
+                      "border-b border-[#f1f5f9] last:border-b-0",
+                      i % 2 === 1 && "bg-[#f8fafc]/40",
                     )}
                   >
-                    <td className="px-5 py-3 font-medium text-[#2c1f0e]">
+                    <td className="px-5 py-3 font-medium text-[#0f172a]">
                       {row.name}
                     </td>
-                    <td className="px-5 py-3 text-right text-[#5a3e1b]">
+                    <td className="px-5 py-3 text-right text-[#475569]">
                       {row.count.toLocaleString("ko-KR")}건
                     </td>
-                    <td className="px-5 py-3 text-right text-[#5a3e1b]">
+                    <td className="px-5 py-3 text-right text-[#475569]">
                       {row.quantity.toLocaleString("ko-KR")}
                     </td>
-                    <td className="px-5 py-3 text-right font-medium text-[#2c1f0e]">
+                    <td className="px-5 py-3 text-right font-medium text-[#0f172a]">
                       {formatWon(row.amount)}
                     </td>
                   </tr>

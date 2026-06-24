@@ -17,7 +17,7 @@ interface ContractItem {
 }
 
 const inputClassName =
-  "h-10 w-full rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 text-sm text-[#2c1f0e] outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
+  "h-10 w-full rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-3 text-sm text-[#0f172a] outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "초안",
@@ -65,7 +65,7 @@ function StatusBadge({ status }: { status: string }) {
           ? "bg-[rgba(79,110,247,0.12)] text-[#4f6ef7]"
           : isSent
             ? "bg-amber-50 text-amber-700"
-            : "bg-[#eee3cc] text-[#7a5c2e]",
+            : "bg-[#e2e8f0] text-[#475569]",
       )}
     >
       {label}
@@ -148,10 +148,10 @@ export function ManageContent() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 shadow-sm">
+      <section className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-5 shadow-sm">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+            <label className="mb-1.5 block text-xs font-medium text-[#475569]">
               제약사
             </label>
             <select
@@ -168,7 +168,7 @@ export function ManageContent() {
             </select>
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+            <label className="mb-1.5 block text-xs font-medium text-[#475569]">
               업체
             </label>
             <input
@@ -180,7 +180,7 @@ export function ManageContent() {
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+            <label className="mb-1.5 block text-xs font-medium text-[#475569]">
               상태
             </label>
             <select
@@ -215,21 +215,21 @@ export function ManageContent() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
+      <section className="overflow-hidden rounded-xl border border-[#e2e8f0] bg-[#ffffff] shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead>
-              <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">제목</th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">업체명</th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">
+              <tr className="border-b border-[#e2e8f0] bg-[#f8fafc]">
+                <th className="px-5 py-3 font-medium text-[#475569]">제목</th>
+                <th className="px-5 py-3 font-medium text-[#475569]">업체명</th>
+                <th className="px-5 py-3 font-medium text-[#475569]">
                   제약사명
                 </th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">
+                <th className="px-5 py-3 font-medium text-[#475569]">
                   유효기간
                 </th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">상태</th>
-                <th className="px-5 py-3 text-center font-medium text-[#7a5c2e]">
+                <th className="px-5 py-3 font-medium text-[#475569]">상태</th>
+                <th className="px-5 py-3 text-center font-medium text-[#475569]">
                   액션
                 </th>
               </tr>
@@ -239,7 +239,7 @@ export function ManageContent() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                    className="px-5 py-12 text-center text-sm text-[#64748b]"
                   >
                     불러오는 중...
                   </td>
@@ -248,7 +248,7 @@ export function ManageContent() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                    className="px-5 py-12 text-center text-sm text-[#64748b]"
                   >
                     등록된 계약서가 없습니다.
                   </td>
@@ -262,20 +262,20 @@ export function ManageContent() {
                     <tr
                       key={item.id}
                       className={cn(
-                        "border-b border-[#f0e4d0] last:border-b-0",
-                        index % 2 === 1 && "bg-[#f5ede0]/40",
+                        "border-b border-[#f1f5f9] last:border-b-0",
+                        index % 2 === 1 && "bg-[#f8fafc]/40",
                       )}
                     >
-                      <td className="px-5 py-3.5 font-medium text-[#2c1f0e]">
+                      <td className="px-5 py-3.5 font-medium text-[#0f172a]">
                         {item.title || "-"}
                       </td>
-                      <td className="px-5 py-3.5 text-[#5a3e1b]">
+                      <td className="px-5 py-3.5 text-[#475569]">
                         {item.companyName || "-"}
                       </td>
-                      <td className="px-5 py-3.5 text-[#5a3e1b]">
+                      <td className="px-5 py-3.5 text-[#475569]">
                         {item.pharmaName || "-"}
                       </td>
-                      <td className="px-5 py-3.5 text-[#7a5c2e]">
+                      <td className="px-5 py-3.5 text-[#475569]">
                         {item.validFrom || "-"} ~ {item.validTo || "-"}
                       </td>
                       <td className="px-5 py-3.5">
@@ -288,7 +288,7 @@ export function ManageContent() {
                             onClick={() =>
                               toast.info(`보기: ${item.title}`)
                             }
-                            className="rounded-lg border border-[#e8d9bc] px-2.5 py-1.5 text-xs font-medium text-[#5a3e1b] hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                            className="rounded-lg border border-[#e2e8f0] px-2.5 py-1.5 text-xs font-medium text-[#475569] hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
                           >
                             <Eye className="size-3.5" />
                           </button>
@@ -298,7 +298,7 @@ export function ManageContent() {
                               onClick={() =>
                                 toast.info(`발송: ${item.title}`)
                               }
-                              className="rounded-lg border border-[#e8d9bc] px-2.5 py-1.5 text-xs font-medium text-[#5a3e1b] hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
+                              className="rounded-lg border border-[#e2e8f0] px-2.5 py-1.5 text-xs font-medium text-[#475569] hover:border-[#4f6ef7] hover:text-[#4f6ef7]"
                             >
                               <Send className="size-3.5" />
                             </button>

@@ -64,7 +64,7 @@ function StatusBadge({ status }: { status: string }) {
         "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
         isConfirmed
           ? "bg-[rgba(79,110,247,0.12)] text-[#4f6ef7]"
-          : "bg-[#eee3cc] text-[#7a5c2e]",
+          : "bg-[#e2e8f0] text-[#475569]",
       )}
     >
       {label || "-"}
@@ -75,8 +75,8 @@ function StatusBadge({ status }: { status: string }) {
 function InfoField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-xs font-medium text-[#9a7c4e]">{label}</p>
-      <div className="mt-1 text-sm text-[#2c1f0e]">{children}</div>
+      <p className="text-xs font-medium text-[#64748b]">{label}</p>
+      <div className="mt-1 text-sm text-[#0f172a]">{children}</div>
     </div>
   );
 }
@@ -231,7 +231,7 @@ export function EdiDetailContent({ id }: { id: string }) {
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] px-5 py-16 text-center text-sm text-[#9a7c4e] shadow-sm">
+      <div className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] px-5 py-16 text-center text-sm text-[#64748b] shadow-sm">
         불러오는 중...
       </div>
     );
@@ -242,12 +242,12 @@ export function EdiDetailContent({ id }: { id: string }) {
       <div className="space-y-4">
         <Link
           href="/edi/list"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#7a5c2e] transition-colors hover:text-[#4f6ef7]"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#475569] transition-colors hover:text-[#4f6ef7]"
         >
           <ArrowLeft className="size-4" />
           저장 목록
         </Link>
-        <div className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] px-5 py-16 text-center text-sm text-[#9a7c4e] shadow-sm">
+        <div className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] px-5 py-16 text-center text-sm text-[#64748b] shadow-sm">
           처방 데이터를 찾을 수 없습니다.
         </div>
       </div>
@@ -261,12 +261,12 @@ export function EdiDetailContent({ id }: { id: string }) {
         <div>
           <Link
             href="/edi/list"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#7a5c2e] transition-colors hover:text-[#4f6ef7]"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#475569] transition-colors hover:text-[#4f6ef7]"
           >
             <ArrowLeft className="size-4" />
             저장 목록
           </Link>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#2c1f0e]">
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#0f172a]">
             처방 상세
           </h1>
         </div>
@@ -284,7 +284,7 @@ export function EdiDetailContent({ id }: { id: string }) {
             type="button"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-[#fdf8f0] px-4 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-[#ffffff] px-4 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Trash2 className="size-4" />
             {isDeleting ? "삭제 중..." : "삭제"}
@@ -293,8 +293,8 @@ export function EdiDetailContent({ id }: { id: string }) {
       </div>
 
       {/* 기본정보 */}
-      <section className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-5 shadow-sm">
-        <h2 className="mb-4 text-sm font-semibold text-[#2c1f0e]">기본정보</h2>
+      <section className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-5 shadow-sm">
+        <h2 className="mb-4 text-sm font-semibold text-[#0f172a]">기본정보</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <InfoField label="제약사">{detail.pharmaName || "-"}</InfoField>
           <InfoField label="병의원명">{detail.hospitalName || "-"}</InfoField>
@@ -315,11 +315,11 @@ export function EdiDetailContent({ id }: { id: string }) {
       </section>
 
       {/* 처방 품목 */}
-      <section className="overflow-hidden rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] shadow-sm">
-        <div className="border-b border-[#e8d9bc] px-5 py-4">
-          <h2 className="text-sm font-semibold text-[#2c1f0e]">
+      <section className="overflow-hidden rounded-xl border border-[#e2e8f0] bg-[#ffffff] shadow-sm">
+        <div className="border-b border-[#e2e8f0] px-5 py-4">
+          <h2 className="text-sm font-semibold text-[#0f172a]">
             처방 품목{" "}
-            <span className="font-normal text-[#9a7c4e]">
+            <span className="font-normal text-[#64748b]">
               ({items.length}건)
             </span>
           </h2>
@@ -327,22 +327,22 @@ export function EdiDetailContent({ id }: { id: string }) {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[800px] text-left text-sm">
             <thead>
-              <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]">
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">순번</th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">
+              <tr className="border-b border-[#e2e8f0] bg-[#f8fafc]">
+                <th className="px-5 py-3 font-medium text-[#475569]">순번</th>
+                <th className="px-5 py-3 font-medium text-[#475569]">
                   보험코드
                 </th>
-                <th className="px-5 py-3 font-medium text-[#7a5c2e]">제품명</th>
-                <th className="px-5 py-3 text-right font-medium text-[#7a5c2e]">
+                <th className="px-5 py-3 font-medium text-[#475569]">제품명</th>
+                <th className="px-5 py-3 text-right font-medium text-[#475569]">
                   단가
                 </th>
-                <th className="px-5 py-3 text-right font-medium text-[#7a5c2e]">
+                <th className="px-5 py-3 text-right font-medium text-[#475569]">
                   원내수량
                 </th>
-                <th className="px-5 py-3 text-right font-medium text-[#7a5c2e]">
+                <th className="px-5 py-3 text-right font-medium text-[#475569]">
                   원외수량
                 </th>
-                <th className="px-5 py-3 text-right font-medium text-[#7a5c2e]">
+                <th className="px-5 py-3 text-right font-medium text-[#475569]">
                   처방금액
                 </th>
               </tr>
@@ -352,7 +352,7 @@ export function EdiDetailContent({ id }: { id: string }) {
                 <tr>
                   <td
                     colSpan={7}
-                    className="px-5 py-12 text-center text-sm text-[#9a7c4e]"
+                    className="px-5 py-12 text-center text-sm text-[#64748b]"
                   >
                     처방 품목이 없습니다.
                   </td>
@@ -362,27 +362,27 @@ export function EdiDetailContent({ id }: { id: string }) {
                   <tr
                     key={item.id || index}
                     className={cn(
-                      "border-b border-[#f0e4d0] last:border-b-0",
-                      index % 2 === 1 && "bg-[#f5ede0]/40",
+                      "border-b border-[#f1f5f9] last:border-b-0",
+                      index % 2 === 1 && "bg-[#f8fafc]/40",
                     )}
                   >
-                    <td className="px-5 py-3.5 text-[#7a5c2e]">{item.seq}</td>
-                    <td className="px-5 py-3.5 text-[#5a3e1b]">
+                    <td className="px-5 py-3.5 text-[#475569]">{item.seq}</td>
+                    <td className="px-5 py-3.5 text-[#475569]">
                       {item.insuranceCode || "-"}
                     </td>
-                    <td className="px-5 py-3.5 font-medium text-[#2c1f0e]">
+                    <td className="px-5 py-3.5 font-medium text-[#0f172a]">
                       {item.productName || "-"}
                     </td>
-                    <td className="px-5 py-3.5 text-right tabular-nums text-[#5a3e1b]">
+                    <td className="px-5 py-3.5 text-right tabular-nums text-[#475569]">
                       {item.unitPrice.toLocaleString("ko-KR")}
                     </td>
-                    <td className="px-5 py-3.5 text-right tabular-nums text-[#5a3e1b]">
+                    <td className="px-5 py-3.5 text-right tabular-nums text-[#475569]">
                       {item.quantityOriginal.toLocaleString("ko-KR")}
                     </td>
-                    <td className="px-5 py-3.5 text-right tabular-nums text-[#5a3e1b]">
+                    <td className="px-5 py-3.5 text-right tabular-nums text-[#475569]">
                       {item.quantityExternal.toLocaleString("ko-KR")}
                     </td>
-                    <td className="px-5 py-3.5 text-right font-medium tabular-nums text-[#2c1f0e]">
+                    <td className="px-5 py-3.5 text-right font-medium tabular-nums text-[#0f172a]">
                       {formatWon(item.amount)}
                     </td>
                   </tr>
@@ -390,8 +390,8 @@ export function EdiDetailContent({ id }: { id: string }) {
               )}
             </tbody>
             <tfoot>
-              <tr className="border-t border-[#e8d9bc] bg-[#f5ede0] font-semibold">
-                <td colSpan={6} className="px-5 py-3.5 text-right text-[#7a5c2e]">
+              <tr className="border-t border-[#e2e8f0] bg-[#f8fafc] font-semibold">
+                <td colSpan={6} className="px-5 py-3.5 text-right text-[#475569]">
                   합계금액
                 </td>
                 <td className="px-5 py-3.5 text-right tabular-nums text-[#4f6ef7]">

@@ -25,7 +25,7 @@ interface AgentConditionModalProps {
 }
 
 const inputClassName =
-  "h-10 w-full rounded-lg border border-[#e8d9bc] bg-[#fdf8f0] px-3 text-sm text-[#2c1f0e] outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
+  "h-10 w-full rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-3 text-sm text-[#0f172a] outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20";
 
 export function AgentConditionModal({
   open,
@@ -50,18 +50,18 @@ export function AgentConditionModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-xl bg-[#fdf8f0] p-6 shadow-xl"
+        className="w-full max-w-md rounded-xl bg-[#ffffff] p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-[#2c1f0e]">
+          <h2 className="text-base font-semibold text-[#0f172a]">
             {editingId ? "조건 수정" : "조건 추가"}
           </h2>
           <button
             type="button"
             onClick={onClose}
             disabled={isSaving}
-            className="flex size-8 items-center justify-center rounded-lg text-[#b5a080] transition-colors hover:bg-[#eee3cc] hover:text-[#7a5c2e]"
+            className="flex size-8 items-center justify-center rounded-lg text-[#94a3b8] transition-colors hover:bg-[#e2e8f0] hover:text-[#475569]"
             aria-label="닫기"
           >
             <X className="size-4" />
@@ -70,7 +70,7 @@ export function AgentConditionModal({
 
         <div className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+            <label className="mb-1.5 block text-xs font-medium text-[#475569]">
               업체명 <span className="text-red-500">*</span>
             </label>
             <input
@@ -84,7 +84,7 @@ export function AgentConditionModal({
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+            <label className="mb-1.5 block text-xs font-medium text-[#475569]">
               제약사 <span className="text-red-500">*</span>
             </label>
             <select
@@ -107,7 +107,7 @@ export function AgentConditionModal({
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+            <label className="mb-1.5 block text-xs font-medium text-[#475569]">
               수수료율 (%) <span className="text-red-500">*</span>
             </label>
             <input
@@ -127,7 +127,7 @@ export function AgentConditionModal({
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#5a3e1b]">
+            <label className="mb-1.5 block text-xs font-medium text-[#475569]">
               조건 <span className="text-red-500">*</span>
             </label>
             <select
@@ -148,8 +148,8 @@ export function AgentConditionModal({
             </select>
           </div>
 
-          <label className="flex items-center justify-between rounded-lg border border-[#e8d9bc] px-3 py-2.5">
-            <span className="text-sm text-[#5a3e1b]">활성 여부</span>
+          <label className="flex items-center justify-between rounded-lg border border-[#e2e8f0] px-3 py-2.5">
+            <span className="text-sm text-[#475569]">활성 여부</span>
             <button
               type="button"
               role="switch"
@@ -164,7 +164,7 @@ export function AgentConditionModal({
             >
               <span
                 className={cn(
-                  "absolute top-0.5 size-5 rounded-full bg-[#fdf8f0] shadow transition-transform",
+                  "absolute top-0.5 size-5 rounded-full bg-[#ffffff] shadow transition-transform",
                   form.isActive ? "left-5" : "left-0.5",
                 )}
               />
@@ -177,7 +177,7 @@ export function AgentConditionModal({
             type="button"
             onClick={onClose}
             disabled={isSaving}
-            className="rounded-lg border border-[#e8d9bc] px-4 py-2 text-sm font-medium text-[#5a3e1b] transition-colors hover:bg-[#f5ede0] disabled:opacity-50"
+            className="rounded-lg border border-[#e2e8f0] px-4 py-2 text-sm font-medium text-[#475569] transition-colors hover:bg-[#f8fafc] disabled:opacity-50"
           >
             취소
           </button>
