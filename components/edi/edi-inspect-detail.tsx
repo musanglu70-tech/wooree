@@ -51,10 +51,10 @@ function monthToDate(m: string) {
 const ITEM_TYPES = ["처방", "조제", "공급"] as const;
 
 const fieldCls =
-  "w-full rounded border border-[#d4c5a9] bg-[#fdf8f0] px-3 py-1.5 text-sm text-slate-800 outline-none focus:border-[#c4973d] focus:bg-white";
+  "w-full rounded border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 outline-none focus:border-[#4f6ef7] focus:ring-1 focus:ring-[#4f6ef7]/20";
 
 const topSelectCls =
-  "h-7 rounded border border-[#d9cdb3] bg-white px-2 text-xs text-[#5a4a32] outline-none focus:border-[#c4973d] cursor-pointer";
+  "h-7 rounded border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none focus:border-[#4f6ef7] cursor-pointer";
 
 interface Props {
   prescriptionId: string;
@@ -301,14 +301,14 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
     <div className="flex h-full flex-col gap-2.5 overflow-hidden p-2.5" style={{ fontFamily: "sans-serif", background: "#efeae1" }}>
 
       {/* ── 상단 바 (세션 1) ── */}
-      <div className="flex h-12 shrink-0 items-center gap-2 rounded-lg border border-[#e2d8c3] bg-[#faf6ef] px-4 shadow-sm">
+      <div className="flex h-12 shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 shadow-sm">
         {/* 검수 태그 */}
-        <span className="flex shrink-0 items-center gap-1 px-1 text-sm font-semibold text-[#4a3a28]">
+        <span className="flex shrink-0 items-center gap-1 px-1 text-sm font-semibold text-slate-700">
           🔍 검수
         </span>
 
         {/* 카운터 */}
-        <span className="shrink-0 text-xs text-[#8a7558]">
+        <span className="shrink-0 text-xs text-slate-400">
           {currentIndex >= 0 ? currentIndex + 1 : "-"} / {filteredIds.length}
         </span>
 
@@ -317,8 +317,8 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           type="button"
           disabled={!prevId}
           onClick={() => prevId && router.push(`/edi/inspect/${prevId}`)}
-          className="flex shrink-0 items-center gap-0.5 rounded border border-[#d9cdb3] bg-white px-2 py-0.5 text-xs disabled:opacity-40"
-          style={{ color: prevId ? "#5a4a32" : "#b3a890" }}
+          className="flex shrink-0 items-center gap-0.5 rounded border border-slate-200 bg-white px-2 py-0.5 text-xs disabled:opacity-40"
+          style={{ color: prevId ? "#374151" : "#9ca3af" }}
         >
           <ChevronLeft className="size-3" />
           이전
@@ -328,8 +328,8 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           type="button"
           disabled={!nextId}
           onClick={() => nextId && router.push(`/edi/inspect/${nextId}`)}
-          className="flex shrink-0 items-center gap-0.5 rounded border border-[#d9cdb3] bg-white px-2 py-0.5 text-xs font-semibold disabled:opacity-40"
-          style={{ color: nextId ? "#5a4a32" : "#b3a890" }}
+          className="flex shrink-0 items-center gap-0.5 rounded border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold disabled:opacity-40"
+          style={{ color: nextId ? "#374151" : "#9ca3af" }}
         >
           다음
           <ChevronRight className="size-3" />
@@ -385,26 +385,26 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
         {/* ── 왼쪽: 원본 첨부파일 (세션 2) ── */}
         <div className="flex w-[48%] shrink-0 flex-col overflow-hidden rounded-lg border border-[#e2d8c3] shadow-sm" style={{ background: "#faf6ef" }}>
           {/* 패널 헤더 */}
-          <div className="flex h-10 shrink-0 items-center gap-2 px-3" style={{ background: "#f3ecdf", borderBottom: "1px solid #e2d8c3" }}>
-            <span className="shrink-0 text-xs font-semibold text-[#5a4a32]">📎 원본 첨부파일</span>
+          <div className="flex h-10 shrink-0 items-center gap-2 px-3" style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+            <span className="shrink-0 text-xs font-semibold text-slate-700">📎 원본 첨부파일</span>
             <div className="flex flex-1 items-center justify-end gap-0.5">
               {/* 페이지 이동 */}
               <button type="button" disabled={attachmentIndex <= 0} onClick={() => setAttachmentIndex(i => i - 1)}
-                className="flex h-6 w-6 items-center justify-center rounded text-xs text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32] disabled:opacity-30">◀</button>
-              <span className="min-w-[32px] text-center text-xs text-[#8a7558]">
+                className="flex h-6 w-6 items-center justify-center rounded text-xs text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700 disabled:opacity-30">◀</button>
+              <span className="min-w-[32px] text-center text-xs text-slate-400">
                 {attachmentUrls.length > 0 ? `${attachmentIndex + 1}/${attachmentUrls.length}` : "0/0"}
               </span>
               <button type="button" disabled={attachmentIndex >= attachmentUrls.length - 1} onClick={() => setAttachmentIndex(i => i + 1)}
-                className="flex h-6 w-6 items-center justify-center rounded text-xs text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32] disabled:opacity-30">▶</button>
+                className="flex h-6 w-6 items-center justify-center rounded text-xs text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700 disabled:opacity-30">▶</button>
               <div className="mx-1 h-3 w-px bg-[#d9cdb3]" />
               {/* 줌 */}
               <button type="button" onClick={() => setImageScale(s => Math.min(s + 0.2, 3.0))}
-                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32]">+</button>
+                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700">+</button>
               <button type="button" onClick={() => setImageScale(s => Math.max(s - 0.2, 0.4))}
-                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32]">−</button>
+                className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700">−</button>
               {/* 원본 크기 */}
               <button type="button" onClick={() => setImageScale(1.0)}
-                className="flex h-6 w-6 items-center justify-center rounded text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32]">
+                className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700">
                 <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth={1.5}>
                   <rect x="1" y="1" width="14" height="14" rx="1.5" />
                   <rect x="4" y="4" width="8" height="8" rx="1" />
@@ -414,7 +414,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
               {/* 대비 높이기 */}
               <button type="button"
                 onClick={() => setImageContrast(c => c >= 2.0 ? 1.0 : c + 0.5)}
-                className="flex h-6 w-6 items-center justify-center rounded text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32]"
+                className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700"
                 title="대비 높이기"
                 style={imageContrast > 1.0 ? { background: "#c4973d", color: "#1c1108" } : {}}
               >
@@ -426,7 +426,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
               {/* 흑백 모드 */}
               <button type="button"
                 onClick={() => setIsBlackWhite(b => !b)}
-                className="flex h-6 w-6 items-center justify-center rounded text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32]"
+                className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700"
                 title="흑백 모드"
                 style={isBlackWhite ? { background: "#c4973d", color: "#1c1108" } : {}}
               >
@@ -438,7 +438,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
               <div className="mx-1 h-3 w-px bg-[#d9cdb3]" />
               {/* 파일 추가 */}
               <button type="button" onClick={() => attachmentInputRef.current?.click()} disabled={isUploading}
-                className="flex h-6 items-center gap-1 rounded px-2 text-xs text-[#8a7558] hover:bg-[#ece2cf] hover:text-[#5a4a32] disabled:opacity-50">
+                className="flex h-6 items-center gap-1 rounded px-2 text-xs text-slate-400 hover:bg-[#ece2cf] hover:text-slate-700 disabled:opacity-50">
                 {isUploading ? <Loader2 className="size-3 animate-spin" /> : <Upload className="size-3" />}
                 추가
               </button>
@@ -513,7 +513,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
             {/* 기본 정보 */}
             <div className="mb-3 grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">제약사</label>
+                <label className="mb-1 block text-xs font-semibold text-slate-600">제약사</label>
                 <input
                   value={pharmaInput}
                   onChange={(e) => {
@@ -532,22 +532,22 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                 </datalist>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">거래처 (병원)</label>
+                <label className="mb-1 block text-xs font-semibold text-slate-600">거래처 (병원)</label>
                 <input value={hospital} onChange={(e) => setHospital(e.target.value)} className={fieldCls} placeholder="병의원명" />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">처방일</label>
+                <label className="mb-1 block text-xs font-semibold text-slate-600">처방일</label>
                 <input type="month" value={prescriptionMonth} onChange={(e) => setPrescriptionMonth(e.target.value)} className={fieldCls} />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">정산일</label>
+                <label className="mb-1 block text-xs font-semibold text-slate-600">정산일</label>
                 <input type="month" value={settlementMonth} onChange={(e) => setSettlementMonth(e.target.value)} className={fieldCls} />
               </div>
             </div>
 
             {/* 업체명 */}
             <div className="mb-3">
-              <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">업체명 (담당자)</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">업체명 (담당자)</label>
               <input value="우리메디텍" readOnly className={fieldCls + " cursor-default opacity-70"} />
             </div>
 
@@ -556,18 +556,18 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
             <div className="mb-2 overflow-hidden rounded border border-[#d4c5a9]">
               <table className="w-full text-xs">
                 <thead>
-                  <tr className="border-b border-[#d4c5a9] bg-[#f0e4cc]">
-                    <th className="px-3 py-2 text-left font-semibold text-[#7a5c2e]">제품명</th>
-                    <th className="w-16 px-2 py-2 text-right font-semibold text-[#7a5c2e]">단가</th>
-                    <th className="w-14 px-2 py-2 text-right font-semibold text-[#7a5c2e]">수량</th>
-                    <th className="w-20 px-2 py-2 text-right font-semibold text-[#7a5c2e]">금액</th>
-                    <th className="w-24 px-2 py-2 text-center font-semibold text-[#7a5c2e]">처방/조제/공급내역</th>
+                  <tr className="border-b border-slate-200 bg-slate-50">
+                    <th className="px-3 py-2 text-left font-semibold text-slate-600">제품명</th>
+                    <th className="w-16 px-2 py-2 text-right font-semibold text-slate-600">단가</th>
+                    <th className="w-14 px-2 py-2 text-right font-semibold text-slate-600">수량</th>
+                    <th className="w-20 px-2 py-2 text-right font-semibold text-slate-600">금액</th>
+                    <th className="w-24 px-2 py-2 text-center font-semibold text-slate-600">처방/조제/공급내역</th>
                     <th className="w-6 px-1 py-2" />
                   </tr>
                 </thead>
                 <tbody>
                   {itemRows.map((row, idx) => (
-                    <tr key={idx} className="border-b border-[#ecdfc8] last:border-b-0 hover:bg-[#fdf3e3]">
+                    <tr key={idx} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50">
                       <td className="px-2 py-1.5">
                         <input
                           value={row.product_name}
@@ -599,7 +599,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                         <select
                           value={row.item_type}
                           onChange={(e) => updateItem(idx, { item_type: e.target.value as "처방" | "조제" | "공급" })}
-                          className="w-full rounded border border-[#d4c5a9] bg-[#fdf8f0] px-1 py-0.5 text-center text-xs outline-none focus:border-[#c4973d]"
+                          className="w-full rounded border border-slate-200 bg-white px-1 py-0.5 text-center text-xs outline-none focus:border-[#4f6ef7]"
                         >
                           {ITEM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                         </select>
@@ -613,9 +613,9 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                   ))}
 
                   {/* 합계 */}
-                  <tr className="border-t border-[#d4c5a9] bg-[#f5ede0]">
-                    <td colSpan={3} className="px-3 py-2 text-right text-xs font-semibold text-[#7a5c2e]">합계</td>
-                    <td className="px-2 py-2 text-right text-sm font-bold text-[#c4973d]">
+                  <tr className="border-t border-slate-200 bg-slate-50">
+                    <td colSpan={3} className="px-3 py-2 text-right text-xs font-semibold text-slate-600">합계</td>
+                    <td className="px-2 py-2 text-right text-sm font-bold text-blue-600">
                       {total.toLocaleString("ko-KR")}
                     </td>
                     <td colSpan={2} />
@@ -628,7 +628,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
             <button
               type="button"
               onClick={addRow}
-              className="mb-4 flex w-full items-center justify-center gap-1 rounded border border-dashed border-[#c4973d] py-2 text-xs text-[#c4973d] hover:bg-[#fdf3e3]"
+              className="mb-4 flex w-full items-center justify-center gap-1 rounded border border-dashed border-slate-300 py-2 text-xs text-slate-500 hover:bg-slate-50"
             >
               <Plus className="size-3.5" />
               행 추가
@@ -636,7 +636,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
 
             {/* 비고 */}
             <div className="mb-2">
-              <label className="mb-1 block text-xs font-semibold text-[#7a5c2e]">비고</label>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">비고</label>
               <input
                 value={memo}
                 onChange={(e) => setMemo(e.target.value)}
@@ -654,9 +654,9 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                 disabled={isSaving}
                 onClick={() => handleSave(true)}
                 className="flex flex-1 items-center justify-center gap-2 rounded-lg py-3 text-sm font-bold text-white shadow-md transition-colors disabled:opacity-60"
-                style={{ backgroundColor: "#c4973d" }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#a87f30")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#c4973d")}
+                style={{ backgroundColor: "#4f6ef7" }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#3d5ce5")}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#4f6ef7")}
               >
                 {isSaving && <Loader2 className="size-4 animate-spin" />}
                 ✔ 확정 저장

@@ -74,7 +74,7 @@ function StatusBadge({ status }: { status: string }) {
         "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
         isConfirmed
           ? "bg-[rgba(79,110,247,0.12)] text-[#4f6ef7]"
-          : "bg-[#eee3cc] text-[#7a5c2e]",
+          : "bg-[#eee3cc] text-slate-600",
       )}
     >
       {label || "-"}
@@ -116,7 +116,7 @@ export function MonthlyPrescriptionsTable() {
 
   if (isLoading) {
     return (
-      <div className="px-6 py-12 text-center text-sm text-[#9a7c4e]">
+      <div className="px-6 py-12 text-center text-sm text-slate-500">
         불러오는 중...
       </div>
     );
@@ -124,7 +124,7 @@ export function MonthlyPrescriptionsTable() {
 
   if (rows.length === 0) {
     return (
-      <div className="px-6 py-12 text-center text-sm text-[#9a7c4e]">
+      <div className="px-6 py-12 text-center text-sm text-slate-500">
         등록된 처방 데이터가 없습니다
       </div>
     );
@@ -135,17 +135,17 @@ export function MonthlyPrescriptionsTable() {
       <div className="overflow-x-auto">
         <table className="hidden w-full min-w-[800px] text-left text-sm md:table">
           <thead>
-            <tr className="border-b border-[#e8d9bc] bg-[#f5ede0]/80">
-              <th className="px-6 py-3 font-medium text-[#7a5c2e]">처방월</th>
-              <th className="px-6 py-3 font-medium text-[#7a5c2e]">제약사</th>
-              <th className="px-6 py-3 font-medium text-[#7a5c2e]">업체</th>
-              <th className="px-6 py-3 font-medium text-[#7a5c2e]">
+            <tr className="border-b border-slate-200 bg-slate-50">
+              <th className="px-6 py-3 font-medium text-slate-600">처방월</th>
+              <th className="px-6 py-3 font-medium text-slate-600">제약사</th>
+              <th className="px-6 py-3 font-medium text-slate-600">업체</th>
+              <th className="px-6 py-3 font-medium text-slate-600">
                 병의원명
               </th>
-              <th className="px-6 py-3 text-right font-medium text-[#7a5c2e]">
+              <th className="px-6 py-3 text-right font-medium text-slate-600">
                 처방금액
               </th>
-              <th className="px-6 py-3 font-medium text-[#7a5c2e]">상태</th>
+              <th className="px-6 py-3 font-medium text-slate-600">상태</th>
             </tr>
           </thead>
           <tbody>
@@ -153,14 +153,14 @@ export function MonthlyPrescriptionsTable() {
               <tr
                 key={row.id}
                 className={cn(
-                  "border-b border-[#f0e4d0] last:border-b-0",
-                  index % 2 === 1 && "bg-[#f5ede0]/40",
+                  "border-b border-slate-100 last:border-b-0",
+                  index % 2 === 1 && "bg-slate-50/60",
                 )}
               >
                 <td className="px-6 py-3.5 text-[#5a3e1b]">
                   {formatMonthLabel(row.month)}
                 </td>
-                <td className="px-6 py-3.5 font-medium text-[#2c1f0e]">
+                <td className="px-6 py-3.5 font-medium text-slate-900">
                   {row.pharma || "-"}
                 </td>
                 <td className="px-6 py-3.5 text-[#5a3e1b]">
@@ -169,7 +169,7 @@ export function MonthlyPrescriptionsTable() {
                 <td className="px-6 py-3.5 text-[#5a3e1b]">
                   {row.hospital || "-"}
                 </td>
-                <td className="px-6 py-3.5 text-right font-medium text-[#2c1f0e]">
+                <td className="px-6 py-3.5 text-right font-medium text-slate-900">
                   {formatWon(row.amount)}
                 </td>
                 <td className="px-6 py-3.5">
@@ -185,32 +185,32 @@ export function MonthlyPrescriptionsTable() {
         {rows.map((row) => (
           <li key={row.id} className="px-4 py-4">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-xs font-medium text-[#9a7c4e]">
+              <span className="text-xs font-medium text-slate-500">
                 {formatMonthLabel(row.month)}
               </span>
               <StatusBadge status={row.status} />
             </div>
 
-            <p className="mt-2 text-base font-semibold text-[#2c1f0e]">
+            <p className="mt-2 text-base font-semibold text-slate-900">
               {row.pharma || "-"}
             </p>
 
             <dl className="mt-3 space-y-1.5 text-sm">
               <div className="flex items-center justify-between gap-3">
-                <dt className="text-[#9a7c4e]">업체</dt>
+                <dt className="text-slate-500">업체</dt>
                 <dd className="text-right text-[#5a3e1b]">
                   {row.company || "-"}
                 </dd>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <dt className="text-[#9a7c4e]">병의원</dt>
+                <dt className="text-slate-500">병의원</dt>
                 <dd className="text-right text-[#5a3e1b]">
                   {row.hospital || "-"}
                 </dd>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <dt className="text-[#9a7c4e]">금액</dt>
-                <dd className="text-right font-semibold text-[#2c1f0e]">
+                <dt className="text-slate-500">금액</dt>
+                <dd className="text-right font-semibold text-slate-900">
                   {formatWon(row.amount)}
                 </dd>
               </div>
