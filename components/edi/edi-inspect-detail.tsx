@@ -322,21 +322,16 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
   if (!prescription) return null;
 
   return (
-    <div className="flex h-full flex-col gap-2.5 overflow-hidden p-2.5" style={{ fontFamily: "sans-serif", background: "#efeae1" }}>
+    <div className="flex h-full flex-col gap-2.5 overflow-hidden p-2.5" style={{ fontFamily: "sans-serif", background: "#f1f5f9" }}>
 
-      {/* ── 상단 바 (세션 1) ── */}
+      {/* ── 상단 바 ── */}
       <div className="flex h-12 shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 shadow-sm">
-        {/* 검수 태그 */}
         <span className="flex shrink-0 items-center gap-1 px-1 text-sm font-semibold text-slate-700">
           🔍 검수
         </span>
-
-        {/* 카운터 */}
         <span className="shrink-0 text-xs text-slate-400">
           {currentIndex >= 0 ? currentIndex + 1 : "-"} / {filteredIds.length}
         </span>
-
-        {/* 이전 */}
         <button
           type="button"
           disabled={!prevId}
@@ -347,7 +342,6 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           <ChevronLeft className="size-3" />
           이전
         </button>
-        {/* 다음 */}
         <button
           type="button"
           disabled={!nextId}
@@ -361,7 +355,6 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
 
         <div className="flex-1" />
 
-        {/* 필터 드롭다운 */}
         <select value={fPharma} onChange={e => setFPharma(e.target.value)} className={topSelectCls}>
           <option value="">제약사 전체</option>
           {pharmaOptions.map(p => <option key={p} value={p}>{p}</option>)}
@@ -384,7 +377,6 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           <option value="">전체</option>
         </select>
 
-        {/* 일괄 확정 버튼 */}
         {!isConfirmed && (
           <button
             type="button"
@@ -393,7 +385,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
             className="shrink-0 rounded px-3 py-1.5 text-xs font-bold text-white shadow-sm disabled:opacity-60"
             style={{ backgroundColor: "#4f6ef7" }}
           >
-            {isSaving ? <Loader2 className="inline size-3 animate-spin" /> : "일괄 확정"}
+            {isSaving ? <Loader2 className="inline size-3 animate-spin" /> : "✔ 확정"}
           </button>
         )}
         {isConfirmed && (
@@ -406,9 +398,8 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
       {/* ── 메인 두 패널 ── */}
       <div className="flex flex-1 gap-2 overflow-hidden">
 
-        {/* ── 왼쪽: 원본 첨부파일 (세션 2) ── */}
+        {/* ── 왼쪽: 원본 첨부파일 ── */}
         <div className="flex w-[48%] shrink-0 flex-col overflow-hidden rounded-lg border border-[#e2e8f0] shadow-sm" style={{ background: "#f8fafc" }}>
-          {/* 패널 헤더 */}
           <div className="flex h-10 shrink-0 items-center gap-2 px-3" style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
             <span className="shrink-0 text-xs font-semibold text-slate-700">📎 원본 첨부파일</span>
             <div className="flex flex-1 items-center justify-end gap-0.5">
@@ -422,9 +413,12 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                 className="flex h-6 w-6 items-center justify-center rounded text-xs text-slate-400 hover:bg-[#f1f5f9] hover:text-slate-700 disabled:opacity-30">▶</button>
               <div className="mx-1 h-3 w-px bg-[#cbd5e1]" />
               {/* 줌 */}
-              <button type="button" onClick={() => setImageScale(s => Math.min(s + 0.2, 3.0))}
+              <button type="button" onClick={() => setImageScale(s => Math.min(s + 0.25, 4.0))}
                 className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-slate-400 hover:bg-[#f1f5f9] hover:text-slate-700">+</button>
-              <button type="button" onClick={() => setImageScale(s => Math.max(s - 0.2, 0.4))}
+              <span className="min-w-[36px] text-center text-xs tabular-nums text-slate-500">
+                {Math.round(imageScale * 100)}%
+              </span>
+              <button type="button" onClick={() => setImageScale(s => Math.max(s - 0.25, 0.25))}
                 className="flex h-6 w-6 items-center justify-center rounded text-sm font-bold text-slate-400 hover:bg-[#f1f5f9] hover:text-slate-700">−</button>
               {/* 원본 크기 */}
               <button type="button" onClick={() => setImageScale(1.0)}
@@ -435,24 +429,24 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                 </svg>
               </button>
               <div className="mx-1 h-3 w-px bg-[#cbd5e1]" />
-              {/* 대비 높이기 */}
+              {/* 대비 */}
               <button type="button"
                 onClick={() => setImageContrast(c => c >= 2.0 ? 1.0 : c + 0.5)}
                 className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-[#f1f5f9] hover:text-slate-700"
                 title="대비 높이기"
-                style={imageContrast > 1.0 ? { background: "#4f6ef7", color: "#1c1108" } : {}}
+                style={imageContrast > 1.0 ? { background: "#4f6ef7", color: "#fff" } : {}}
               >
                 <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor">
                   <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" strokeWidth="1.5"/>
                   <path d="M8 1a7 7 0 0 1 0 14V1z"/>
                 </svg>
               </button>
-              {/* 흑백 모드 */}
+              {/* 흑백 */}
               <button type="button"
                 onClick={() => setIsBlackWhite(b => !b)}
                 className="flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-[#f1f5f9] hover:text-slate-700"
                 title="흑백 모드"
-                style={isBlackWhite ? { background: "#4f6ef7", color: "#1c1108" } : {}}
+                style={isBlackWhite ? { background: "#4f6ef7", color: "#fff" } : {}}
               >
                 <svg viewBox="0 0 16 16" className="size-3.5" fill="currentColor">
                   <rect x="1" y="1" width="6" height="14" rx="1" fill="currentColor"/>
@@ -471,8 +465,14 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
             </div>
           </div>
 
-          {/* 첨부파일 영역 */}
-          <div className="relative flex flex-1 overflow-auto">
+          {/* 첨부파일 영역 - 휠 줌 지원 */}
+          <div
+            className="relative flex flex-1 overflow-auto"
+            onWheel={(e) => {
+              e.preventDefault();
+              setImageScale(s => Math.min(Math.max(s - e.deltaY * 0.001, 0.25), 4.0));
+            }}
+          >
             {signedUrls.length > 0 && signedUrls[attachmentIndex] ? (
               <div className="flex flex-1 items-center justify-center">
                 {attachmentUrls[attachmentIndex]?.toLowerCase().includes(".pdf") ? (
@@ -482,7 +482,12 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                   <img
                     src={signedUrls[attachmentIndex]}
                     alt="처방전"
-                    style={{ transform: `scale(${imageScale})`, transformOrigin: "center center", transition: "transform 0.15s ease", filter: `grayscale(${isBlackWhite ? 1 : 0}) contrast(${imageContrast})` }}
+                    style={{
+                      transform: `scale(${imageScale})`,
+                      transformOrigin: "center center",
+                      transition: "transform 0.15s ease",
+                      filter: `grayscale(${isBlackWhite ? 1 : 0}) contrast(${imageContrast})`,
+                    }}
                     className="max-h-full max-w-full object-contain"
                   />
                 )}
@@ -494,9 +499,9 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                   onClick={() => attachmentInputRef.current?.click()}
                   disabled={isUploading}
                   className="flex w-full max-w-[300px] flex-col items-center justify-center gap-5 rounded-2xl py-14 transition-colors hover:bg-[#f1f5f9] disabled:opacity-50"
-                  style={{ border: "1.5px dashed #cbd5e1", background: "rgba(196,151,61,0.06)" }}
+                  style={{ border: "1.5px dashed #c7d2fe", background: "rgba(79,110,247,0.04)" }}
                 >
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "#f3ead7", border: "1px solid #e2e8f0" }}>
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "#eef2ff", border: "1px solid #c7d2fe" }}>
                     {isUploading
                       ? <Loader2 className="size-8 animate-spin" style={{ color: "#4f6ef7" }} />
                       : <Upload className="size-8" style={{ color: "#4f6ef7" }} />
@@ -514,10 +519,9 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
           </div>
         </div>
 
-        {/* ── 오른쪽: 입력 데이터 검수 (세션 3) ── */}
+        {/* ── 오른쪽: 입력 데이터 검수 ── */}
         <div className="flex flex-1 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
 
-          {/* 폼 헤더 */}
           <div className="flex h-10 shrink-0 items-center justify-between border-b border-gray-200 bg-gray-50 px-5">
             <span className="text-sm font-semibold text-slate-800">📋 입력 데이터 검수</span>
             <span
@@ -531,7 +535,6 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
             </span>
           </div>
 
-          {/* 스크롤 영역 */}
           <div className="flex-1 overflow-y-auto px-5 py-4">
 
             {/* 기본 정보 */}
@@ -636,7 +639,6 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
                     </tr>
                   ))}
 
-                  {/* 합계 */}
                   <tr className="border-t border-slate-200 bg-slate-50">
                     <td colSpan={3} className="px-3 py-2 text-right text-xs font-semibold text-slate-600">합계</td>
                     <td className="px-2 py-2 text-right text-sm font-bold text-blue-600">
@@ -648,7 +650,7 @@ export function EdiInspectDetail({ prescriptionId }: Props) {
               </table>
             </div>
 
-            {/* + 명 추가 */}
+            {/* 행 추가 */}
             <button
               type="button"
               onClick={addRow}
