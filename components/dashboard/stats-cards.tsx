@@ -136,7 +136,7 @@ export function StatsCards() {
         return (
           <div
             key={card.key}
-            className="rounded-xl border border-[#e8d9bc] bg-[#fdf8f0] p-4 shadow-sm"
+            className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
           >
             <div
               className={cn(
@@ -151,13 +151,13 @@ export function StatsCards() {
             </div>
             <p
               className={cn(
-                "font-semibold tracking-tight text-[#2c1f0e]",
+                "font-semibold tracking-tight text-slate-900",
                 card.format === "won" ? "text-xl" : "text-2xl",
               )}
             >
               {formatValue(value, card.format)}
             </p>
-            <p className="mt-1 text-sm text-[#9a7c4e]">{card.label}</p>
+            <p className="mt-1 text-sm text-slate-500">{card.label}</p>
           </div>
         );
       })}
