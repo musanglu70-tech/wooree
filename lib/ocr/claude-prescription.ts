@@ -5,10 +5,10 @@ import {
   type OcrMediaType,
 } from "@/lib/ocr/image-payload";
 
-/** Sonnet 우선, 실패 시 Haiku로 폴백 (2026-06 기준 활성 모델) */
+/** Haiku 우선 (빠름), 실패 시 Sonnet 폴백 */
 const CLAUDE_MODELS = [
-  "claude-sonnet-4-6",
   "claude-haiku-4-5-20251001",
+  "claude-sonnet-4-6",
 ] as const;
 
 const EXTRACTION_PROMPT = `이 이미지는 의약품 처방전, 제약사별처방통계, 병원 EDI 화면 캡처입니다.
@@ -284,7 +284,7 @@ export async function extractPrescriptionWithClaude(
       console.log(`[OCR] Claude API 호출 — model: ${model}`);
       response = await client.messages.create({
         model,
-        max_tokens: 8192,
+        max_tokens: 2048,
         system:
           "You extract structured prescription data from Korean medical documents. Respond with valid JSON only.",
         messages: [
