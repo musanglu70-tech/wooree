@@ -49,10 +49,13 @@ export function DashboardSidebar() {
   return (
     <aside
       className="sticky top-0 hidden h-screen w-[200px] shrink-0 flex-col md:flex"
-      style={{ background: "#1c1108", borderRight: "1px solid #3d3020" }}
+      style={{ background: "#0f0e17", borderRight: "1px solid #1e1b2e" }}
     >
       {/* 로고 */}
-      <div className="flex items-center gap-2.5 px-4 py-4" style={{ borderBottom: "1px solid #3d3020" }}>
+      <div
+        className="flex items-center gap-2.5 px-4 py-4"
+        style={{ borderBottom: "1px solid #1e1b2e" }}
+      >
         <div
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11px] font-black"
           style={{ background: "linear-gradient(135deg, #c4973d, #8b6920)", color: "#fff" }}
@@ -60,13 +63,17 @@ export function DashboardSidebar() {
           우리
         </div>
         <div>
-          <p className="text-[11px] font-bold leading-snug" style={{ color: "#e8c97a" }}>CSO(주)우리메디텍</p>
-          <p className="text-[10px] font-medium mt-0.5" style={{ color: "#7a6040" }}>EDI 관리 시스템</p>
+          <p className="text-[11px] font-bold leading-snug" style={{ color: "#e2e8f0" }}>
+            CSO(주)우리메디텍
+          </p>
+          <p className="mt-0.5 text-[10px] font-medium" style={{ color: "#64748b" }}>
+            EDI 관리 시스템
+          </p>
         </div>
       </div>
 
       {/* 네비게이션 */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto px-2 py-3">
         {MENU_GROUPS.map((group, groupIndex) => {
           /* 라벨 없는 그룹 (대시보드 등 최상위 메뉴) */
           if (!group.label) {
@@ -82,12 +89,19 @@ export function DashboardSidebar() {
                       className={cn(
                         "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-semibold transition-all",
                         isActive
-                          ? "text-[#e8c97a]"
-                          : "text-[#7a6040] hover:text-[#c8a96e] hover:bg-white/5"
+                          ? "text-white"
+                          : "text-[#64748b] hover:bg-white/5 hover:text-[#94a3b8]",
                       )}
-                      style={isActive ? { background: "#3d3020" } : {}}
+                      style={
+                        isActive
+                          ? { background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }
+                          : {}
+                      }
                     >
-                      <Icon className="size-[15px] shrink-0" strokeWidth={isActive ? 2.5 : 2} />
+                      <Icon
+                        className="size-[15px] shrink-0"
+                        strokeWidth={isActive ? 2.5 : 2}
+                      />
                       {item.label}
                     </Link>
                   );
@@ -97,31 +111,42 @@ export function DashboardSidebar() {
           }
 
           const isOpen = openGroups[group.label] ?? false;
-          const hasActive = group.items.some((item) => isActivePath(pathname, item.href));
+          const hasActive = group.items.some((item) =>
+            isActivePath(pathname, item.href),
+          );
 
           return (
-            <div key={group.label}>
+            <div key={group.label} className="mb-0.5">
               {/* 그룹 헤더 버튼 */}
               <button
                 type="button"
                 onClick={() => toggleGroup(group.label!)}
                 className={cn(
                   "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-bold transition-all",
-                  (hasActive || isOpen)
-                    ? "text-[#e8c97a]"
-                    : "text-[#7a6040] hover:text-[#c8a96e] hover:bg-white/5"
+                  hasActive || isOpen
+                    ? "text-white"
+                    : "text-[#64748b] hover:bg-white/5 hover:text-[#94a3b8]",
                 )}
-                style={(hasActive || isOpen) ? { background: "#3d3020" } : {}}
+                style={
+                  hasActive || isOpen
+                    ? { background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }
+                    : {}
+                }
               >
                 <span
-                  className="h-1.5 w-1.5 rounded-full shrink-0"
-                  style={{ background: (hasActive || isOpen) ? "#c4973d" : "#4a3a28" }}
+                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                  style={{
+                    background: hasActive || isOpen ? "#a5b4fc" : "#334155",
+                  }}
                 />
                 <span className="flex-1 text-left">{group.label}</span>
                 <ChevronDown
-                  className={cn("size-3.5 shrink-0 transition-transform duration-200", isOpen && "-rotate-180")}
+                  className={cn(
+                    "size-3.5 shrink-0 transition-transform duration-200",
+                    isOpen && "-rotate-180",
+                  )}
                   strokeWidth={2.5}
-                  style={{ color: (hasActive || isOpen) ? "#c4973d" : "#4a3a28" }}
+                  style={{ color: hasActive || isOpen ? "#a5b4fc" : "#334155" }}
                 />
               </button>
 
@@ -129,10 +154,13 @@ export function DashboardSidebar() {
               <div
                 className={cn(
                   "overflow-hidden transition-all duration-200",
-                  isOpen ? "max-h-96 opacity-100 mt-0.5 mb-1" : "max-h-0 opacity-0"
+                  isOpen ? "mb-1 mt-0.5 max-h-96 opacity-100" : "max-h-0 opacity-0",
                 )}
               >
-                <div className="ml-3 space-y-0.5 border-l pl-2.5" style={{ borderColor: hasActive ? "#c4973d" : "#3d3020" }}>
+                <div
+                  className="ml-3 space-y-0.5 border-l pl-2.5"
+                  style={{ borderColor: hasActive ? "#6366f1" : "#1e1b2e" }}
+                >
                   {group.items.map((item) => {
                     const Icon = item.icon;
                     const isActive = isActivePath(pathname, item.href);
@@ -143,19 +171,24 @@ export function DashboardSidebar() {
                         className={cn(
                           "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-all",
                           isActive
-                            ? "text-[#e8c97a]"
-                            : "text-[#7a6040] hover:text-[#c8a96e] hover:bg-white/5"
+                            ? "text-white"
+                            : "text-[#64748b] hover:bg-white/5 hover:text-[#94a3b8]",
                         )}
-                        style={isActive ? { background: "rgba(196,151,61,0.15)" } : {}}
+                        style={
+                          isActive ? { background: "rgba(99,102,241,0.25)" } : {}
+                        }
                       >
                         <Icon
                           className="size-[13px] shrink-0"
                           strokeWidth={isActive ? 2.5 : 1.75}
-                          style={{ color: isActive ? "#c4973d" : "#4a3a28" }}
+                          style={{ color: isActive ? "#818cf8" : "#334155" }}
                         />
                         <span>{item.label}</span>
                         {isActive && (
-                          <span className="ml-auto h-1.5 w-1.5 rounded-full shrink-0" style={{ background: "#c4973d" }} />
+                          <span
+                            className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full"
+                            style={{ background: "#818cf8" }}
+                          />
                         )}
                       </Link>
                     );
@@ -168,28 +201,39 @@ export function DashboardSidebar() {
       </nav>
 
       {/* 하단 */}
-      <div className="px-2 pb-3" style={{ borderTop: "1px solid #3d3020", paddingTop: "10px" }}>
+      <div
+        className="px-2 pb-3"
+        style={{ borderTop: "1px solid #1e1b2e", paddingTop: "10px" }}
+      >
         {isAdmin && (
           <Link
             href={ADMIN_BOTTOM_MENU.href}
             className={cn(
-              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-semibold transition-all mb-0.5",
+              "mb-0.5 flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-semibold transition-all",
               isActivePath(pathname, ADMIN_BOTTOM_MENU.href)
-                ? "text-[#e8c97a]"
-                : "text-[#7a6040] hover:text-[#c8a96e] hover:bg-white/5"
+                ? "text-white"
+                : "text-[#64748b] hover:bg-white/5 hover:text-[#94a3b8]",
             )}
-            style={isActivePath(pathname, ADMIN_BOTTOM_MENU.href) ? { background: "#3d3020" } : {}}
+            style={
+              isActivePath(pathname, ADMIN_BOTTOM_MENU.href)
+                ? { background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }
+                : {}
+            }
           >
-            <ADMIN_BOTTOM_MENU.icon className="size-[15px] shrink-0" strokeWidth={2} style={{ color: "#c4973d" }} />
+            <ADMIN_BOTTOM_MENU.icon
+              className="size-[15px] shrink-0"
+              strokeWidth={2}
+              style={{ color: "#818cf8" }}
+            />
             {ADMIN_BOTTOM_MENU.label}
           </Link>
         )}
         <button
           type="button"
           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-semibold transition-all hover:bg-white/5"
-          style={{ color: "#4a3a28" }}
-          onMouseEnter={e => (e.currentTarget.style.color = "#7a6040")}
-          onMouseLeave={e => (e.currentTarget.style.color = "#4a3a28")}
+          style={{ color: "#334155" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#64748b")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#334155")}
         >
           <LogOut className="size-[15px] shrink-0" strokeWidth={2} />
           로그아웃
