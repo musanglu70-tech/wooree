@@ -58,7 +58,7 @@ export function DashboardSidebar() {
       >
         <div
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11px] font-black"
-          style={{ background: "linear-gradient(135deg, #c4973d, #8b6920)", color: "#fff" }}
+          style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "#fff" }}
         >
           우리
         </div>
