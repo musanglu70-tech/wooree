@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ChevronDown, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -11,10 +11,18 @@ import {
 } from "@/components/common/nav-items";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/browser";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isAdmin } = useUserProfile();
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
@@ -223,6 +231,7 @@ export function DashboardSidebar() {
         )}
         <button
           type="button"
+          onClick={handleLogout}
           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-semibold transition-all hover:bg-white/5"
           style={{ color: "#334155" }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "#64748b")}

@@ -17,6 +17,7 @@ import type { LucideIcon } from "lucide-react";
 import { MENU_GROUPS, ADMIN_BOTTOM_MENU, isActivePath } from "@/components/common/nav-items";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/browser";
 
 interface BottomItem {
   href: string;
@@ -38,6 +39,12 @@ export function MobileNav() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const { isAdmin } = useUserProfile();
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 
   return (
     <>
@@ -210,6 +217,7 @@ export function MobileNav() {
               )}
               <button
                 type="button"
+                onClick={handleLogout}
                 className="flex w-full items-center gap-2 rounded-lg px-1 py-2 text-[13px] font-medium text-[#8892a4] transition-colors duration-150 hover:text-white"
               >
                 <LogOut className="size-4 shrink-0" strokeWidth={1.75} />
