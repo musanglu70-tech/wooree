@@ -66,7 +66,7 @@ export function DashboardSidebar() {
       >
         <div
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[11px] font-black"
-          style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)", color: "#fff" }}
+          style={{ background: "#4f6ef7", color: "#fff" }}
         >
           우리
         </div>
@@ -101,7 +101,7 @@ export function DashboardSidebar() {
                       )}
                       style={
                         isActive
-                          ? { background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }
+                          ? { background: "#4f6ef7" }
                           : {}
                       }
                     >
@@ -135,13 +135,13 @@ export function DashboardSidebar() {
                 )}
                 style={
                   hasActive || isOpen
-                    ? { background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }
+                    ? { background: "#4f6ef7" }
                     : {}
                 }
               >
                 <span
                   className="h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{ background: hasActive || isOpen ? "#a5b4fc" : "#334155" }}
+                  style={{ background: hasActive || isOpen ? "#c7d2fe" : "#334155" }}
                 />
                 <span className="flex-1 text-left">{group.label}</span>
                 <ChevronDown
@@ -150,7 +150,7 @@ export function DashboardSidebar() {
                     isOpen && "-rotate-180",
                   )}
                   strokeWidth={2.5}
-                  style={{ color: hasActive || isOpen ? "#a5b4fc" : "#334155" }}
+                  style={{ color: hasActive || isOpen ? "#c7d2fe" : "#334155" }}
                 />
               </button>
 
@@ -177,18 +177,18 @@ export function DashboardSidebar() {
                             ? "text-white"
                             : "text-[#64748b] hover:bg-white/5 hover:text-[#94a3b8]",
                         )}
-                        style={isActive ? { background: "rgba(99,102,241,0.25)" } : {}}
+                        style={isActive ? { background: "rgba(79,110,247,0.25)" } : {}}
                       >
                         <Icon
                           className="size-[13px] shrink-0"
                           strokeWidth={isActive ? 2.5 : 1.75}
-                          style={{ color: isActive ? "#818cf8" : "#334155" }}
+                          style={{ color: isActive ? "#4f6ef7" : "#334155" }}
                         />
                         <span>{item.label}</span>
                         {isActive && (
                           <span
                             className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full"
-                            style={{ background: "#818cf8" }}
+                            style={{ background: "#4f6ef7" }}
                           />
                         )}
                       </Link>
@@ -217,14 +217,14 @@ export function DashboardSidebar() {
             )}
             style={
               isActivePath(pathname, ADMIN_BOTTOM_MENU.href)
-                ? { background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }
+                ? { background: "#4f6ef7" }
                 : {}
             }
           >
             <ADMIN_BOTTOM_MENU.icon
               className="size-[15px] shrink-0"
               strokeWidth={2}
-              style={{ color: "#818cf8" }}
+              style={{ color: "#4f6ef7" }}
             />
             {ADMIN_BOTTOM_MENU.label}
           </Link>
