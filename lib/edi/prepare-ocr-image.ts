@@ -43,7 +43,8 @@ async function compressImageFile(
 
   try {
     const image = await loadImage(objectUrl);
-    const maxDimension = 2000;
+    // 처방전 텍스트 인식은 1200px로 충분 (토큰 ~60% 절감)
+    const maxDimension = 1200;
     let width = image.naturalWidth;
     let height = image.naturalHeight;
 
@@ -64,10 +65,10 @@ async function compressImageFile(
 
     context.drawImage(image, 0, 0, width, height);
 
-    let quality = 0.85;
+    let quality = 0.75;
     let dataUrl = canvas.toDataURL("image/jpeg", quality);
 
-    while (dataUrl.length > 3_500_000 && quality > 0.4) {
+    while (dataUrl.length > 2_000_000 && quality > 0.4) {
       quality -= 0.1;
       dataUrl = canvas.toDataURL("image/jpeg", quality);
     }

@@ -81,10 +81,21 @@ export async function POST(request: Request) {
       `[OCR] 요청 수신 — mimeType: ${mimeType}, size: ${(byteLength / 1024).toFixed(0)}KB`,
     );
 
-    const { payload, rawText } = await extractPrescriptionWithClaude(
-      base64,
-      mimeType,
-    );
+    // 429 과부하 시 최대 2회 재시도 (1s, 2s 대기)
+    let payload, rawText;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        ({ payload, rawText } = await extractPrescriptionWithClaude(base64, mimeType));
+        break;
+      } catch (err) {
+        if (err instanceof Anthropic.APIError && err.status === 429 && attempt < 2) {
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        throw err;
+      }
+    }
+    if (!payload || !rawText) throw new Error("OCR 처리 실패");
 
     if (payload && payload.items.length > 0) {
       return NextResponse.json(mapClaudePayloadToResult(payload, rawText));
