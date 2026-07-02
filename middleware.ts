@@ -2,6 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+    // 개인정보처리방침은 로그인 없이 공개 접근 허용 (Google Play 정책 요건)
+    if (request.nextUrl.pathname.startsWith("/privacy")) {
+          return NextResponse.next({ request });
+    }
+  
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
