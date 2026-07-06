@@ -6,6 +6,11 @@ export async function middleware(request: NextRequest) {
     if (request.nextUrl.pathname.startsWith("/privacy")) {
           return NextResponse.next({ request });
     }
+
+      // 정적 이미지 파일은 로그인 없이 접근 허용
+      if (/\.(png|jpg|jpeg|svg|gif|ico|webp)$/.test(request.nextUrl.pathname)) {
+              return NextResponse.next({ request });
+      }
   
   let supabaseResponse = NextResponse.next({ request });
 
