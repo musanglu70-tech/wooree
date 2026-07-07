@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 
 const FROM_EMAIL = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
 const ADMIN_EMAIL =
-  process.env.ADMIN_APPROVAL_EMAIL ?? "musanglu70@gmail.com";
+  process.env.ADMIN_APPROVAL_EMAIL ?? "woorimedi2018@gmail.com";
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://wooree.vercel.app";
 
