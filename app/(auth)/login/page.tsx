@@ -110,18 +110,21 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <div className="mt-6 border-t border-slate-100 pt-5 text-center">
-        <p className="text-xs text-slate-400">CSO 파트너(거래처)이신가요?</p>
-        <div className="mt-2 flex items-center justify-center gap-3 text-sm font-semibold">
-          <a href="/portal/register" className="text-[#0f766e] hover:underline">
-            정산서 포털 회원가입
-          </a>
-          <span className="text-slate-300">|</span>
-          <a href="/portal/login" className="text-[#0f766e] hover:underline">
-            파트너 로그인
-          </a>
-        </div>
-      </div>
+      <p className="mt-6 text-center text-sm text-slate-500">
+        계정이 없으신가요?{" "}
+        <a
+          href="/portal/register"
+          className="font-semibold text-[#4f6ef7] hover:underline"
+        >
+          회원가입
+        </a>
+      </p>
+      <p className="mt-2 text-center text-xs text-slate-400">
+        CSO 파트너이신가요?{" "}
+        <a href="/portal/login" className="text-[#0f766e] hover:underline">
+          정산서 포털 로그인
+        </a>
+      </p>
     </div>
   );
 }
