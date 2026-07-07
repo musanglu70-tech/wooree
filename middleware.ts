@@ -1,17 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
-    // 개인정보처리방침은 로그인 없이 공개 접근 허용 (Google Play 정책 요건)
-    if (request.nextUrl.pathname.startsWith("/privacy")) {
-          return NextResponse.next({ request });
-    }
+// 로그인 없이 접근 가능한 공개 경로 (Google Play 심사용 개인정보처리방침 등)
+const PUBLIC_PATHS = ["/privacy"];
 
-      // 정적 이미지 파일은 로그인 없이 접근 허용
-      if (/\.(png|jpg|jpeg|svg|gif|ico|webp)$/.test(request.nextUrl.pathname)) {
-              return NextResponse.next({ request });
-      }
-  
+export async function middleware(request: NextRequest) {
+  if (PUBLIC_PATHS.some((p) => request.nextUrl.pathname.startsWith(p))) {
+    return NextResponse.next({ request });
+  }
+
+  // 정적 이미지 파일은 로그인 없이 접근 허용
+  if (/\.(png|jpg|jpeg|svg|gif|ico|webp)$/.test(request.nextUrl.pathname)) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
