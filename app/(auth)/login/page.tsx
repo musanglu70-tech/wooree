@@ -110,7 +110,15 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-5 text-center text-sm">
+        <a
+          href="/forgot-password"
+          className="font-medium text-[#4f6ef7] hover:underline"
+        >
+          비밀번호를 잊으셨나요?
+        </a>
+      </p>
+      <p className="mt-3 text-center text-sm text-slate-500">
         계정이 없으신가요?{" "}
         <a
           href="/portal/register"
