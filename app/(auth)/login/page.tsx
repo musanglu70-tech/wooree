@@ -109,6 +109,19 @@ export default function LoginPage() {
           {isSubmitting ? "로그인 중..." : "로그인"}
         </button>
       </form>
+
+      <div className="mt-6 border-t border-slate-100 pt-5 text-center">
+        <p className="text-xs text-slate-400">CSO 파트너(거래처)이신가요?</p>
+        <div className="mt-2 flex items-center justify-center gap-3 text-sm font-semibold">
+          <a href="/portal/register" className="text-[#0f766e] hover:underline">
+            정산서 포털 회원가입
+          </a>
+          <span className="text-slate-300">|</span>
+          <a href="/portal/login" className="text-[#0f766e] hover:underline">
+            파트너 로그인
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
