@@ -16,6 +16,7 @@ import {
   Save,
   Scissors,
   Send,
+  UserCheck,
   Users,
   Zap,
 } from "lucide-react";
@@ -50,6 +51,7 @@ export const MENU_GROUPS: MenuGroup[] = [
       { href: "/hospitals", label: "병의원 관리", icon: Hospital },
       { href: "/products", label: "의약품 관리", icon: Pill },
       { href: "/companies", label: "업체 관리", icon: Building2 },
+      { href: "/partners", label: "파트너 승인", icon: UserCheck },
     ],
   },
   {
