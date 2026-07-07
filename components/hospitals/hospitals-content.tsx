@@ -21,6 +21,7 @@ interface Hospital {
   address: string;
   phone: string;
   doctorName: string;
+  companyId: string;
 }
 
 interface HospitalForm {
@@ -29,6 +30,12 @@ interface HospitalForm {
   address: string;
   phone: string;
   doctorName: string;
+  companyId: string;
+}
+
+interface CompanyOption {
+  id: string;
+  name: string;
 }
 
 const EMPTY_FORM: HospitalForm = {
@@ -37,6 +44,7 @@ const EMPTY_FORM: HospitalForm = {
   address: "",
   phone: "",
   doctorName: "",
+  companyId: "",
 };
 
 const PAGE_SIZE = 10;
@@ -56,6 +64,7 @@ function normalizeRow(row: Record<string, unknown>): Hospital {
     address: toStr(row.address),
     phone: toStr(row.phone ?? row.phone_number ?? row.tel),
     doctorName: toStr(row.doctor_name ?? row.doctor),
+    companyId: toStr(row.company_id),
   };
 }
 
@@ -92,7 +101,14 @@ export function HospitalsContent() {
   const supabase = useMemo(() => createClient(), []);
 
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
+  const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const companyMap = useMemo(() => {
+    const m = new Map<string, string>();
+    companies.forEach((c) => m.set(c.id, c.name));
+    return m;
+  }, [companies]);
 
   const [searchInput, setSearchInput] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
@@ -126,6 +142,21 @@ export function HospitalsContent() {
   useEffect(() => {
     loadHospitals();
   }, [loadHospitals]);
+
+  useEffect(() => {
+    supabase
+      .from("companies")
+      .select("id, name")
+      .order("name", { ascending: true })
+      .then(({ data }) => {
+        setCompanies(
+          ((data as Record<string, unknown>[]) ?? []).map((r) => ({
+            id: toStr(r.id),
+            name: toStr(r.name),
+          })),
+        );
+      });
+  }, [supabase]);
 
   const filteredHospitals = useMemo(() => {
     const keyword = appliedSearch.trim();
@@ -168,6 +199,7 @@ export function HospitalsContent() {
       address: hospital.address,
       phone: hospital.phone,
       doctorName: hospital.doctorName,
+      companyId: hospital.companyId,
     });
     setIsModalOpen(true);
   };
@@ -192,6 +224,7 @@ export function HospitalsContent() {
         address: form.address.trim() || null,
         phone: form.phone.trim() || null,
         doctor_name: form.doctorName.trim() || null,
+        company_id: form.companyId || null,
       };
 
       const { error } = editingId
@@ -285,6 +318,9 @@ export function HospitalsContent() {
                   전화번호
                 </th>
                 <th className="px-5 py-3 font-medium text-[#475569]">의사명</th>
+                <th className="px-5 py-3 font-medium text-[#475569]">
+                  담당 CSO 업체
+                </th>
                 <th className="px-5 py-3 text-center font-medium text-[#475569]">
                   관리
                 </th>
@@ -294,7 +330,7 @@ export function HospitalsContent() {
               {isLoading ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-5 py-12 text-center text-sm text-[#64748b]"
                   >
                     불러오는 중...
@@ -303,7 +339,7 @@ export function HospitalsContent() {
               ) : paginatedHospitals.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-5 py-12 text-center text-sm text-[#64748b]"
                   >
                     {appliedSearch
@@ -334,6 +370,16 @@ export function HospitalsContent() {
                     </td>
                     <td className="px-5 py-3.5 text-[#475569]">
                       {hospital.doctorName || "-"}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      {hospital.companyId &&
+                      companyMap.get(hospital.companyId) ? (
+                        <span className="inline-flex items-center rounded-full bg-[#eef2ff] px-2.5 py-1 text-xs font-semibold text-[#4f6ef7]">
+                          {companyMap.get(hospital.companyId)}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-[#94a3b8]">미지정</span>
+                      )}
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center justify-center gap-1.5">
@@ -470,6 +516,28 @@ export function HospitalsContent() {
                   setForm((f) => ({ ...f, doctorName }))
                 }
               />
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-[#475569]">
+                  담당 CSO 업체
+                </label>
+                <select
+                  value={form.companyId}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, companyId: e.target.value }))
+                  }
+                  className={inputClassName}
+                >
+                  <option value="">미지정</option>
+                  {companies.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-[11px] text-[#94a3b8]">
+                  지정하면 이 병의원의 처방이 해당 CSO 업체 정산으로 자동 배정됩니다.
+                </p>
+              </div>
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
