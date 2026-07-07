@@ -177,6 +177,21 @@ export default function PortalRegisterPage() {
         return;
       }
 
+      // 관리자에게 승인 요청 메일 발송 (실패해도 가입은 완료 처리)
+      const inserted = await supabase
+        .from("companies")
+        .select("id")
+        .eq("auth_user_id", userId)
+        .maybeSingle();
+      const companyId = (inserted.data as { id?: string } | null)?.id;
+      if (companyId) {
+        await fetch("/api/partners/register-notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ companyId }),
+        }).catch(() => {});
+      }
+
       toast.success("회원가입이 접수되었습니다. 관리자 승인 후 이용 가능합니다.");
       router.push("/portal/home");
       router.refresh();

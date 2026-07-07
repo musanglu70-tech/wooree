@@ -2,7 +2,12 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // 로그인 없이 접근 가능한 공개 경로 (Google Play 심사용 개인정보처리방침 등)
-const PUBLIC_PATHS = ["/privacy", "/forgot-password", "/reset-password"];
+const PUBLIC_PATHS = [
+  "/privacy",
+  "/forgot-password",
+  "/reset-password",
+  "/api/partners/email-action",
+];
 
 // 파트너 포털 공개 경로 (비로그인 접근 허용)
 const PORTAL_PUBLIC_PATHS = ["/portal/login", "/portal/register"];

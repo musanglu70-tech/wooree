@@ -6,6 +6,10 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/browser";
+import {
+  normalizeBusinessNumber,
+  partnerEmail,
+} from "@/lib/partner/auth";
 import { cn } from "@/lib/utils";
 
 const loginSchema = z.object({
@@ -31,8 +35,15 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email: data.email,
+
+    // 입력값이 숫자 10자리면 사업자번호(파트너) 로그인으로 처리
+    const raw = data.email.trim();
+    const digits = normalizeBusinessNumber(raw);
+    const isBizNo = !raw.includes("@") && digits.length === 10;
+    const loginEmail = isBizNo ? partnerEmail(digits) : raw;
+
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
+      email: loginEmail,
       password: data.password,
     });
 
@@ -41,7 +52,11 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    const role = (
+      authData.user?.user_metadata as { role?: string } | undefined
+    )?.role;
+
+    router.push(role === "partner" ? "/portal/home" : "/dashboard");
     router.refresh();
   };
 
@@ -60,13 +75,13 @@ export default function LoginPage() {
             htmlFor="email"
             className="text-sm font-medium text-slate-700"
           >
-            아이디
+            아이디 / 사업자번호
           </label>
           <input
             id="email"
             type="text"
             autoComplete="username"
-            placeholder="아이디(이메일)를 입력하세요"
+            placeholder="이메일 또는 사업자번호(숫자 10자리)"
             className={cn(
               "h-11 w-full rounded-lg border bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20",
               errors.email ? "border-red-400" : "border-slate-200",
