@@ -12,7 +12,7 @@ export function normalizeBusinessNumber(raw: string): string {
 /** 사업자번호 → Supabase Auth 용 합성 이메일 */
 export function partnerEmail(businessNumber: string): string {
   const digits = normalizeBusinessNumber(businessNumber);
-  return `p${digits}@partner.wooree`;
+  return `p${digits}@partner.wooree.com`;
 }
 
 /** 000-00-00000 형식으로 표시 */
