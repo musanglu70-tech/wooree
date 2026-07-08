@@ -11,7 +11,13 @@ interface ProfileRow {
   email: string;
   name: string;
   role: UserRole;
+  tenantId: string;
   createdAt: string;
+}
+
+interface CompanyOption {
+  id: string;
+  name: string;
 }
 
 const ROLES: { value: UserRole; label: string }[] = [
@@ -42,6 +48,7 @@ function normalizeRow(row: Record<string, unknown>): ProfileRow {
     email: toStr(row.email),
     name: toStr(row.name ?? row.full_name),
     role: normalizeRole(row.role),
+    tenantId: toStr(row.tenant_id),
     createdAt: toStr(row.created_at).slice(0, 10),
   };
 }
@@ -51,6 +58,7 @@ export function UsersContent() {
   const { isAdmin, isLoading: isProfileLoading } = useUserProfile();
 
   const [users, setUsers] = useState<ProfileRow[]>([]);
+  const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -77,10 +85,42 @@ export function UsersContent() {
   useEffect(() => {
     if (!isProfileLoading && isAdmin) {
       loadUsers();
+      supabase
+        .from("companies")
+        .select("id, name")
+        .order("name", { ascending: true })
+        .then(({ data }) =>
+          setCompanies(
+            ((data as Record<string, unknown>[]) ?? []).map((r) => ({
+              id: toStr(r.id),
+              name: toStr(r.name),
+            })),
+          ),
+        );
     } else if (!isProfileLoading) {
       setIsLoading(false);
     }
-  }, [isProfileLoading, isAdmin, loadUsers]);
+  }, [isProfileLoading, isAdmin, loadUsers, supabase]);
+
+  const handleTenantChange = async (user: ProfileRow, tenantId: string) => {
+    setUpdatingId(user.id);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ tenant_id: tenantId || null })
+        .eq("id", user.id);
+      if (error) {
+        toast.error("소속 업체 변경 실패: " + error.message);
+        return;
+      }
+      setUsers((prev) =>
+        prev.map((u) => (u.id === user.id ? { ...u, tenantId } : u)),
+      );
+      toast.success("소속 업체가 변경되었습니다.");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   const handleRoleChange = async (user: ProfileRow, role: UserRole) => {
     if (user.role === role) return;
@@ -143,6 +183,9 @@ export function UsersContent() {
               <th className="px-5 py-3 font-medium text-[#475569]">이메일</th>
               <th className="px-5 py-3 font-medium text-[#475569]">이름</th>
               <th className="px-5 py-3 font-medium text-[#475569]">역할</th>
+              <th className="px-5 py-3 font-medium text-[#475569]">
+                소속 업체(테넌트)
+              </th>
               <th className="px-5 py-3 font-medium text-[#475569]">가입일</th>
             </tr>
           </thead>
@@ -150,7 +193,7 @@ export function UsersContent() {
             {isLoading ? (
               <tr>
                 <td
-                  colSpan={4}
+                  colSpan={5}
                   className="px-5 py-12 text-center text-sm text-[#64748b]"
                 >
                   불러오는 중...
@@ -159,7 +202,7 @@ export function UsersContent() {
             ) : users.length === 0 ? (
               <tr>
                 <td
-                  colSpan={4}
+                  colSpan={5}
                   className="px-5 py-12 text-center text-sm text-[#64748b]"
                 >
                   등록된 사용자가 없습니다.
@@ -195,6 +238,29 @@ export function UsersContent() {
                         </option>
                       ))}
                     </select>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    {user.role === "admin" ? (
+                      <span className="text-xs text-[#94a3b8]">
+                        전체(본사)
+                      </span>
+                    ) : (
+                      <select
+                        value={user.tenantId}
+                        disabled={updatingId === user.id}
+                        onChange={(e) =>
+                          handleTenantChange(user, e.target.value)
+                        }
+                        className="h-9 rounded-lg border border-[#e2e8f0] bg-[#ffffff] px-2.5 text-sm text-[#0f172a] outline-none transition-colors focus:border-[#4f6ef7] focus:ring-2 focus:ring-[#4f6ef7]/20 disabled:opacity-50"
+                      >
+                        <option value="">미지정(본인 입력분만)</option>
+                        {companies.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </td>
                   <td className="px-5 py-3.5 text-[#475569]">
                     {user.createdAt || "-"}

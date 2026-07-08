@@ -142,12 +142,6 @@ export default function LoginPage() {
           회원가입
         </a>
       </p>
-      <p className="mt-2 text-center text-xs text-slate-400">
-        CSO 파트너이신가요?{" "}
-        <a href="/portal/login" className="text-[#0f766e] hover:underline">
-          정산서 포털 로그인
-        </a>
-      </p>
     </div>
   );
 }
