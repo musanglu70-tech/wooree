@@ -2,6 +2,7 @@ import { MonthlyPrescriptionsTable } from "@/components/dashboard/monthly-prescr
 import { PharmaStatsTable } from "@/components/dashboard/pharma-stats-table";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { UnfiledHospitalsCard } from "@/components/dashboard/unfiled-hospitals-card";
+import { DashboardCharts } from "@/components/dashboard/dashboard-charts";
 
 export default function DashboardPage() {
   return (
@@ -17,6 +18,8 @@ export default function DashboardPage() {
         </header>
 
         <StatsCards />
+
+        <DashboardCharts />
 
         <UnfiledHospitalsCard />
 

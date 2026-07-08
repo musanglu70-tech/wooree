@@ -7,6 +7,7 @@ const PUBLIC_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/api/partners/email-action",
+  "/api/cron/",
 ];
 
 // 파트너 포털 공개 경로 (비로그인 접근 허용)

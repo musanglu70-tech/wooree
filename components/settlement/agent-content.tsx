@@ -118,6 +118,16 @@ export function AgentContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isComparing, setIsComparing] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<{
+    summary: string;
+    flags: Array<{
+      pharma: string;
+      severity: string;
+      reason: string;
+      suggestion: string;
+    }>;
+  } | null>(null);
   const [compareMonth, setCompareMonth] = useState(
     () => new Date().toISOString().slice(0, 7),
   );
@@ -420,6 +430,42 @@ export function AgentContent() {
     }
   };
 
+  const handleAnalyze = async () => {
+    setIsAnalyzing(true);
+    setAnalysis(null);
+    try {
+      const response = await fetch("/api/settlement/agent/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ month: compareMonth }),
+      });
+      const body = (await response.json()) as {
+        message?: string;
+        result?: {
+          summary: string;
+          flags: Array<{
+            pharma: string;
+            severity: string;
+            reason: string;
+            suggestion: string;
+          }>;
+        };
+      };
+      if (!response.ok) {
+        toast.error(body.message ?? "분석 실패");
+        return;
+      }
+      if (body.result) setAnalysis(body.result);
+      if (body.message) toast.message(body.message);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "AI 분석 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -574,8 +620,70 @@ export function AgentContent() {
               )}
               {isComparing ? "대조 중..." : "AI 대조 실행"}
             </button>
+            <button
+              type="button"
+              onClick={handleAnalyze}
+              disabled={isAnalyzing}
+              className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#7c3aed] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#6d28d9] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isAnalyzing ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Bot className="size-4" />
+              )}
+              {isAnalyzing ? "분석 중..." : "AI 이상 분석"}
+            </button>
           </div>
         </div>
+
+        {analysis && (
+          <div className="mb-4 rounded-lg border border-[#7c3aed]/30 bg-[#f5f3ff] p-4">
+            <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-[#6d28d9]">
+              <Bot className="size-4" /> AI 이상 정산 분석
+            </p>
+            <p className="text-sm text-slate-700">
+              {analysis.summary || "특이사항이 없습니다."}
+            </p>
+            {analysis.flags.length > 0 && (
+              <ul className="mt-3 space-y-2">
+                {analysis.flags.map((f, i) => (
+                  <li
+                    key={i}
+                    className="rounded-lg border border-slate-200 bg-white p-3 text-sm"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={cn(
+                          "rounded-full px-2 py-0.5 text-xs font-semibold",
+                          f.severity === "high"
+                            ? "bg-red-100 text-red-700"
+                            : f.severity === "medium"
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-slate-100 text-slate-600",
+                        )}
+                      >
+                        {f.severity === "high"
+                          ? "높음"
+                          : f.severity === "medium"
+                            ? "중간"
+                            : "낮음"}
+                      </span>
+                      <span className="font-semibold text-slate-800">
+                        {f.pharma}
+                      </span>
+                    </div>
+                    <p className="mt-1.5 text-slate-700">{f.reason}</p>
+                    {f.suggestion && (
+                      <p className="mt-1 text-xs text-[#6d28d9]">
+                        → {f.suggestion}
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
         {summary && (
           <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
