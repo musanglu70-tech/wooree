@@ -16,6 +16,7 @@ import {
   Save,
   Scissors,
   Send,
+  User,
   UserCheck,
   Users,
   Zap,
@@ -39,6 +40,7 @@ export const MENU_GROUPS: MenuGroup[] = [
     items: [
       { href: "/dashboard", label: "대시 보드", icon: LayoutDashboard },
       { href: "/notices", label: "공지 알림", icon: Bell },
+      { href: "/mypage", label: "마이페이지", icon: User },
     ],
   },
   {

@@ -1,6 +1,7 @@
 import { MonthlyPrescriptionsTable } from "@/components/dashboard/monthly-prescriptions-table";
 import { PharmaStatsTable } from "@/components/dashboard/pharma-stats-table";
 import { StatsCards } from "@/components/dashboard/stats-cards";
+import { UnfiledHospitalsCard } from "@/components/dashboard/unfiled-hospitals-card";
 
 export default function DashboardPage() {
   return (
@@ -16,6 +17,8 @@ export default function DashboardPage() {
         </header>
 
         <StatsCards />
+
+        <UnfiledHospitalsCard />
 
         <section className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-200 px-6 py-4">

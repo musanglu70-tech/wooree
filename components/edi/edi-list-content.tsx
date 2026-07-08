@@ -110,6 +110,9 @@ export function EdiListContent() {
     pharma: "",
     client: "",
   });
+  const [groupBy, setGroupBy] = useState<"none" | "pharma" | "hospital">(
+    "none",
+  );
   const [page, setPage] = useState(1);
 
   useEffect(() => {
@@ -167,6 +170,22 @@ export function EdiListContent() {
     [filteredItems],
   );
 
+  const groupedRows = useMemo(() => {
+    if (groupBy === "none") return [];
+    const map = new Map<string, { count: number; amount: number }>();
+    filteredItems.forEach((item) => {
+      const key =
+        (groupBy === "pharma" ? item.pharma : item.hospital) || "(미지정)";
+      const cur = map.get(key) ?? { count: 0, amount: 0 };
+      cur.count += 1;
+      cur.amount += item.amount;
+      map.set(key, cur);
+    });
+    return Array.from(map.entries())
+      .map(([name, v]) => ({ name, ...v }))
+      .sort((a, b) => b.amount - a.amount);
+  }, [filteredItems, groupBy]);
+
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const paginatedItems = filteredItems.slice(
@@ -208,6 +227,86 @@ export function EdiListContent() {
 
   return (
     <div className="space-y-4">
+      {/* 집계 보기 탭 */}
+      <div className="flex gap-1 rounded-lg border border-[#e2e8f0] bg-white p-1">
+        {[
+          { key: "none", label: "전체 목록" },
+          { key: "pharma", label: "제약사별" },
+          { key: "hospital", label: "거래처별" },
+        ].map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() =>
+              setGroupBy(t.key as "none" | "pharma" | "hospital")
+            }
+            className={cn(
+              "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+              groupBy === t.key
+                ? "bg-[#4f6ef7] text-white"
+                : "text-[#475569] hover:bg-slate-100",
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* 그룹 집계 표 */}
+      {groupBy !== "none" && (
+        <section className="overflow-hidden rounded-xl border border-[#e2e8f0] bg-white shadow-sm">
+          <div className="border-b border-[#e2e8f0] px-5 py-3">
+            <h3 className="text-sm font-semibold text-[#0f172a]">
+              {groupBy === "pharma" ? "제약사별 집계" : "거래처별 집계"}
+            </h3>
+          </div>
+          <div className="max-h-96 overflow-y-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-[#e2e8f0] bg-[#f8fafc] text-xs text-[#475569]">
+                  <th className="px-5 py-2.5 font-medium">
+                    {groupBy === "pharma" ? "제약사" : "거래처(병의원)"}
+                  </th>
+                  <th className="px-5 py-2.5 text-right font-medium">건수</th>
+                  <th className="px-5 py-2.5 text-right font-medium">
+                    처방금액 합계
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {groupedRows.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={3}
+                      className="px-5 py-8 text-center text-sm text-[#94a3b8]"
+                    >
+                      데이터가 없습니다.
+                    </td>
+                  </tr>
+                ) : (
+                  groupedRows.map((g) => (
+                    <tr
+                      key={g.name}
+                      className="border-b border-[#f1f5f9] last:border-0"
+                    >
+                      <td className="px-5 py-3 font-medium text-[#0f172a]">
+                        {g.name}
+                      </td>
+                      <td className="px-5 py-3 text-right text-[#475569]">
+                        {g.count}건
+                      </td>
+                      <td className="px-5 py-3 text-right font-semibold text-[#4f6ef7]">
+                        {formatWon(g.amount)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       {/* 필터 */}
       <section className="rounded-xl border border-[#e2e8f0] bg-[#ffffff] p-5 shadow-sm">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
