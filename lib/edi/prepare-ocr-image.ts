@@ -43,8 +43,8 @@ async function compressImageFile(
 
   try {
     const image = await loadImage(objectUrl);
-    // 처방전 텍스트 인식은 1200px로 충분 (토큰 ~60% 절감)
-    const maxDimension = 1200;
+    // 표(제약사별약품통계)의 작은 글씨·숫자 인식 위해 1600px로 상향
+    const maxDimension = 1600;
     let width = image.naturalWidth;
     let height = image.naturalHeight;
 
@@ -65,11 +65,12 @@ async function compressImageFile(
 
     context.drawImage(image, 0, 0, width, height);
 
-    let quality = 0.75;
+    // 텍스트 선명도 위해 품질 0.82로 상향, 3MB 초과 시에만 점진 감소
+    let quality = 0.82;
     let dataUrl = canvas.toDataURL("image/jpeg", quality);
 
-    while (dataUrl.length > 2_000_000 && quality > 0.4) {
-      quality -= 0.1;
+    while (dataUrl.length > 3_000_000 && quality > 0.45) {
+      quality -= 0.08;
       dataUrl = canvas.toDataURL("image/jpeg", quality);
     }
 

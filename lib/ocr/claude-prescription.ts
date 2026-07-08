@@ -35,10 +35,14 @@ const EXTRACTION_PROMPT = `이 이미지는 의약품 처방전, 제약사별처
 }
 
 규칙:
-- code: 9자리 숫자 또는 A+8자리 (청구코드/보험코드)
+- code: 9자리 숫자 또는 A+8자리 (청구코드/보험코드). 앞자리 0 보존.
 - 제약사별처방통계 하단 상세표(청구코드·명칭·처방횟수·단가·총사용량·총금액) 우선
-- 숫자는 쉼표 없이 정수
-- 항목을 하나도 못 찾으면 items: [] 로 반환`;
+- 표의 **모든 행**을 위→아래 순서대로 빠짐없이 추출. 행을 건너뛰지 말 것.
+- 숫자는 쉼표·공백 제거한 정수로. 소수점/원 단위 그대로.
+- '합계·소계·total' 같은 요약 행은 items에서 제외.
+- 글자가 흐리거나 숫자가 불확실한 행은 needsReview: true 로 표시(추출은 유지).
+- 세로줄이 병합되었거나 원내/원외(inN/outN)가 나뉜 표는 각 숫자를 정확히 대응시킬 것.
+- 항목을 하나도 못 찾으면 items: [] 로 반환. 절대 값을 지어내지 말 것.`;
 
 export interface ClaudePrescriptionPayload {
   pharmaName: string | null;
@@ -284,7 +288,8 @@ export async function extractPrescriptionWithClaude(
       console.log(`[OCR] Claude API 호출 — model: ${model}`);
       response = await client.messages.create({
         model,
-        max_tokens: 2048,
+        max_tokens: 4096,
+        temperature: 0,
         system:
           "You extract structured prescription data from Korean medical documents. Respond with valid JSON only.",
         messages: [
