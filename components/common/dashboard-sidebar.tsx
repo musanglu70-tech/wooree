@@ -9,6 +9,7 @@ import {
   MENU_GROUPS,
   isActivePath,
 } from "@/components/common/nav-items";
+import { TenantSwitcher } from "@/components/common/tenant-switcher";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/browser";
@@ -79,6 +80,9 @@ export function DashboardSidebar() {
           </p>
         </div>
       </div>
+
+      {/* 테넌트 전환 (관리자 전용) */}
+      <TenantSwitcher />
 
       {/* 네비게이션 */}
       <nav className="flex-1 overflow-y-auto px-2 py-3">
