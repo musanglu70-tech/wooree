@@ -181,9 +181,10 @@ export default function PortalRegisterPage() {
         return;
       }
 
-      // 2) 프로필에 소속 테넌트 + 역할 지정 (profiles에 있는 컬럼만)
+      // 2) 프로필에 소속 테넌트 + 역할 지정
       const { error: profErr } = await supabase.from("profiles").upsert({
         id: userId,
+        username: partnerEmail(form.businessNumber),
         role: "user",
         tenant_id: (company as { id: string }).id,
       });
