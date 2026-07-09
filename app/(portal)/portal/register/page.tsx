@@ -10,7 +10,6 @@ import {
   isValidBusinessNumber,
   normalizeBusinessNumber,
   partnerEmail,
-  PARTNER_ROLE,
 } from "@/lib/partner/auth";
 
 const BANKS = [
@@ -124,7 +123,7 @@ export default function PortalRegisterPage() {
           password: form.password,
           options: {
             data: {
-              role: PARTNER_ROLE,
+              role: "user",
               business_number: bizDigits,
               company_name: form.companyName.trim(),
             },
@@ -152,48 +151,51 @@ export default function PortalRegisterPage() {
         .filter(Boolean)
         .join(" ");
 
-      const { error: insertError } = await supabase.from("companies").insert({
-        auth_user_id: userId,
-        status: "pending",
-        name: form.companyName.trim(),
-        business_number: bizDigits,
-        representative: form.representative.trim(),
-        address,
-        postal_code: form.postalCode.trim() || null,
-        road_address: form.roadAddress.trim() || null,
-        detail_address: form.detailAddress.trim() || null,
-        phone: form.contactPhone.trim(),
-        contact_phone: form.contactPhone.trim(),
-        representative_phone: form.representativePhone.trim() || null,
-        email: form.contactEmail.trim(),
-        contact_email: form.contactEmail.trim(),
-        contact_email2: form.contactEmail2.trim() || null,
-        bank_name: form.bankName,
-        account_number: form.accountNumber.trim(),
-      });
+      // 1) 테넌트(회사) 생성 — 즉시 사용 가능
+      const { data: company, error: insertError } = await supabase
+        .from("companies")
+        .insert({
+          auth_user_id: userId,
+          status: "approved",
+          name: form.companyName.trim(),
+          business_number: bizDigits,
+          representative: form.representative.trim(),
+          address,
+          postal_code: form.postalCode.trim() || null,
+          road_address: form.roadAddress.trim() || null,
+          detail_address: form.detailAddress.trim() || null,
+          phone: form.contactPhone.trim(),
+          contact_phone: form.contactPhone.trim(),
+          representative_phone: form.representativePhone.trim() || null,
+          email: form.contactEmail.trim(),
+          contact_email: form.contactEmail.trim(),
+          contact_email2: form.contactEmail2.trim() || null,
+          bank_name: form.bankName,
+          account_number: form.accountNumber.trim(),
+        })
+        .select("id")
+        .single();
 
-      if (insertError) {
-        toast.error("업체 정보 저장 실패: " + insertError.message);
+      if (insertError || !company) {
+        toast.error("업체 정보 저장 실패: " + (insertError?.message ?? ""));
         return;
       }
 
-      // 관리자에게 승인 요청 메일 발송 (실패해도 가입은 완료 처리)
-      const inserted = await supabase
-        .from("companies")
-        .select("id")
-        .eq("auth_user_id", userId)
-        .maybeSingle();
-      const companyId = (inserted.data as { id?: string } | null)?.id;
-      if (companyId) {
-        await fetch("/api/partners/register-notify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ companyId }),
-        }).catch(() => {});
+      // 2) 프로필에 소속 테넌트 + 역할 지정
+      const { error: profErr } = await supabase.from("profiles").upsert({
+        id: userId,
+        email: form.contactEmail.trim(),
+        name: form.companyName.trim(),
+        role: "user",
+        tenant_id: (company as { id: string }).id,
+      });
+      if (profErr) {
+        toast.error("프로필 저장 실패: " + profErr.message);
+        return;
       }
 
-      toast.success("회원가입이 접수되었습니다. 관리자 승인 후 이용 가능합니다.");
-      router.push("/portal/home");
+      toast.success("회원가입 완료! 로그인되었습니다.");
+      router.push("/dashboard");
       router.refresh();
     } finally {
       setIsSubmitting(false);
@@ -205,10 +207,10 @@ export default function PortalRegisterPage() {
       <div className="mx-auto max-w-2xl rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            회원가입
+            사업자 회원가입
           </h1>
           <p className="mt-2 text-sm text-slate-500">
-            CSO 정산서 포털 회원가입
+            CSO(주)우리메디텍 EDI 관리 시스템
           </p>
         </div>
 
@@ -415,7 +417,7 @@ export default function PortalRegisterPage() {
         <p className="mt-6 text-center text-sm text-slate-500">
           이미 계정이 있으신가요?{" "}
           <Link
-            href="/portal/login"
+            href="/login"
             className="font-semibold text-[#0f766e] hover:underline"
           >
             로그인
