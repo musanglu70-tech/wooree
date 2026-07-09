@@ -156,7 +156,7 @@ export default function PortalRegisterPage() {
         .from("companies")
         .insert({
           auth_user_id: userId,
-          status: "approved",
+          status: "pending",
           name: form.companyName.trim(),
           business_number: bizDigits,
           representative: form.representative.trim(),
@@ -193,7 +193,7 @@ export default function PortalRegisterPage() {
         return;
       }
 
-      toast.success("회원가입 완료! 로그인되었습니다.");
+      toast.success("회원가입이 접수되었습니다. 본사 승인 후 이용 가능합니다.");
       router.push("/dashboard");
       router.refresh();
     } finally {
