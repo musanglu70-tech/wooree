@@ -105,12 +105,14 @@ export function UsersContent() {
   const handleTenantChange = async (user: ProfileRow, tenantId: string) => {
     setUpdatingId(user.id);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ tenant_id: tenantId || null })
-        .eq("id", user.id);
-      if (error) {
-        toast.error("소속 업체 변경 실패: " + error.message);
+      const res = await fetch("/api/admin/set-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, tenantId: tenantId || null }),
+      });
+      const j = await res.json();
+      if (!res.ok) {
+        toast.error("소속 업체 변경 실패: " + (j.error ?? ""));
         return;
       }
       setUsers((prev) =>
@@ -128,13 +130,14 @@ export function UsersContent() {
     setUpdatingId(user.id);
 
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ role })
-        .eq("id", user.id);
-
-      if (error) {
-        toast.error("역할 변경 실패: " + error.message);
+      const res = await fetch("/api/admin/set-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, role }),
+      });
+      const j = await res.json();
+      if (!res.ok) {
+        toast.error("역할 변경 실패: " + (j.error ?? ""));
         return;
       }
 

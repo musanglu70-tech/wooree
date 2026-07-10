@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { isAdminServer } from "@/lib/auth/authorization";
 
 const FROM_EMAIL = process.env.FROM_EMAIL ?? "onboarding@resend.dev";
 const PORTAL_URL =
@@ -14,16 +15,11 @@ interface Body {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createServerSupabaseClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    // 직원(파트너 아님)만 승인 가능
-    const role = (user?.user_metadata as { role?: string } | undefined)?.role;
-    if (!user || role === "partner") {
+    // 관리자(profiles.role='admin')만 승인 가능 — user_metadata 신뢰 안 함
+    if (!(await isAdminServer())) {
       return NextResponse.json({ error: "권한이 없습니다." }, { status: 403 });
     }
+    const supabase = await createServerSupabaseClient();
 
     const body = (await request.json()) as Body;
     const companyId = body.companyId?.trim();

@@ -4,12 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/browser";
 import {
   formatBusinessNumber,
   isValidBusinessNumber,
-  normalizeBusinessNumber,
-  partnerEmail,
 } from "@/lib/partner/auth";
 
 const BANKS = [
@@ -114,87 +111,36 @@ export default function PortalRegisterPage() {
 
     setIsSubmitting(true);
     try {
-      const supabase = createClient();
-      const bizDigits = normalizeBusinessNumber(form.businessNumber);
-
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp(
-        {
-          email: partnerEmail(form.businessNumber),
+      // 서버가 role/tenant/status를 강제 (클라이언트는 지정 못 함)
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          businessNumber: form.businessNumber,
+          companyName: form.companyName,
+          representative: form.representative,
+          postalCode: form.postalCode,
+          roadAddress: form.roadAddress,
+          detailAddress: form.detailAddress,
+          contactPhone: form.contactPhone,
+          representativePhone: form.representativePhone,
+          contactEmail: form.contactEmail,
+          contactEmail2: form.contactEmail2,
+          bankName: form.bankName,
+          accountNumber: form.accountNumber,
           password: form.password,
-          options: {
-            data: {
-              role: "user",
-              business_number: bizDigits,
-              company_name: form.companyName.trim(),
-            },
-          },
-        },
-      );
-
-      if (signUpError) {
-        const msg = signUpError.message.includes("already")
-          ? "이미 가입된 사업자번호입니다."
-          : "가입 실패: " + signUpError.message;
-        toast.error(msg);
-        return;
-      }
-
-      const userId = signUpData.user?.id;
-      if (!userId) {
-        toast.error(
-          "가입 처리 중 오류가 발생했습니다. 관리자에게 문의해주세요.",
-        );
-        return;
-      }
-
-      const address = [form.roadAddress.trim(), form.detailAddress.trim()]
-        .filter(Boolean)
-        .join(" ");
-
-      // 1) 테넌트(회사) 생성 — 즉시 사용 가능
-      const { data: company, error: insertError } = await supabase
-        .from("companies")
-        .insert({
-          auth_user_id: userId,
-          status: "pending",
-          name: form.companyName.trim(),
-          business_number: bizDigits,
-          representative: form.representative.trim(),
-          address,
-          postal_code: form.postalCode.trim() || null,
-          road_address: form.roadAddress.trim() || null,
-          detail_address: form.detailAddress.trim() || null,
-          phone: form.contactPhone.trim(),
-          contact_phone: form.contactPhone.trim(),
-          representative_phone: form.representativePhone.trim() || null,
-          email: form.contactEmail.trim(),
-          contact_email: form.contactEmail.trim(),
-          contact_email2: form.contactEmail2.trim() || null,
-          bank_name: form.bankName,
-          account_number: form.accountNumber.trim(),
-        })
-        .select("id")
-        .single();
-
-      if (insertError || !company) {
-        toast.error("업체 정보 저장 실패: " + (insertError?.message ?? ""));
-        return;
-      }
-
-      // 2) 프로필에 소속 테넌트 + 역할 지정
-      const { error: profErr } = await supabase.from("profiles").upsert({
-        id: userId,
-        username: partnerEmail(form.businessNumber),
-        role: "user",
-        tenant_id: (company as { id: string }).id,
+        }),
       });
-      if (profErr) {
-        toast.error("프로필 저장 실패: " + profErr.message);
+      const body = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(body.error ?? "가입 실패");
         return;
       }
 
-      toast.success("회원가입이 접수되었습니다. 본사 승인 후 이용 가능합니다.");
-      router.push("/dashboard");
+      toast.success(
+        "회원가입이 접수되었습니다. 본사 승인 후 로그인하실 수 있습니다.",
+      );
+      router.push("/login");
       router.refresh();
     } finally {
       setIsSubmitting(false);
