@@ -110,7 +110,10 @@ export async function POST(request: Request) {
       tenant_id: (company as { id: string }).id,
     });
     if (pErr) {
-      await admin.from("companies").delete().eq("id", (company as { id: string }).id).catch(() => {});
+      await admin
+        .from("companies")
+        .delete()
+        .eq("id", (company as { id: string }).id);
       await admin.auth.admin.deleteUser(userId).catch(() => {});
       return NextResponse.json({ error: "프로필 저장 실패: " + pErr.message }, { status: 500 });
     }
