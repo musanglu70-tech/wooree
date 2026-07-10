@@ -6,7 +6,7 @@ import { ChevronDown, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   ADMIN_BOTTOM_MENU,
-  MENU_GROUPS,
+  getMenuGroups,
   isActivePath,
 } from "@/components/common/nav-items";
 import { TenantSwitcher } from "@/components/common/tenant-switcher";
@@ -18,6 +18,7 @@ export function DashboardSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { isAdmin } = useUserProfile();
+  const menuGroups = getMenuGroups(isAdmin);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -27,7 +28,7 @@ export function DashboardSidebar() {
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
-    for (const group of MENU_GROUPS) {
+    for (const group of menuGroups) {
       if (!group.label) continue;
       const isActive = group.items.some((item) =>
         isActivePath(pathname, item.href),
@@ -40,7 +41,7 @@ export function DashboardSidebar() {
   useEffect(() => {
     setOpenGroups((prev) => {
       const next = { ...prev };
-      for (const group of MENU_GROUPS) {
+      for (const group of menuGroups) {
         if (!group.label) continue;
         const isActive = group.items.some((item) =>
           isActivePath(pathname, item.href),
@@ -86,7 +87,7 @@ export function DashboardSidebar() {
 
       {/* 네비게이션 */}
       <nav className="flex-1 overflow-y-auto px-2 py-3">
-        {MENU_GROUPS.map((group, groupIndex) => {
+        {menuGroups.map((group, groupIndex) => {
           if (!group.label) {
             return (
               <div key={`group-${groupIndex}`} className="mb-2 space-y-0.5">

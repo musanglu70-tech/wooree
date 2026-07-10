@@ -14,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { MENU_GROUPS, ADMIN_BOTTOM_MENU, isActivePath } from "@/components/common/nav-items";
+import { getMenuGroups, ADMIN_BOTTOM_MENU, isActivePath } from "@/components/common/nav-items";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/browser";
@@ -39,6 +39,7 @@ export function MobileNav() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const { isAdmin } = useUserProfile();
+  const menuGroups = getMenuGroups(isAdmin);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -148,7 +149,7 @@ export function MobileNav() {
             </div>
 
             <nav className="flex-1 space-y-4 overflow-y-auto px-3 pb-4">
-              {MENU_GROUPS.map((group, groupIndex) => (
+              {menuGroups.map((group, groupIndex) => (
                 <div key={group.label ?? `group-${groupIndex}`}>
                   {group.label && (
                     <p className="mb-1.5 px-3 text-[10px] font-semibold tracking-wide text-[#5c6678]">
